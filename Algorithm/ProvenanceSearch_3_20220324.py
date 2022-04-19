@@ -1,5 +1,5 @@
 """
-executable
+executable but buggy since stop line should be below all terms with the same value in this column
 without optimizations
 """
 
@@ -12,7 +12,7 @@ from intbitset import intbitset
 import json
 
 
-def subtract_provenance(data, selected_attributes, all_sensitive_attributes, fairness_constraints,
+def subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
                         selection_categorical_attributes):
     """

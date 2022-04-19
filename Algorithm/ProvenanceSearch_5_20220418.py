@@ -14,7 +14,7 @@ from intbitset import intbitset
 import json
 
 
-def subtract_provenance(data, selected_attributes, all_sensitive_attributes, fairness_constraints,
+def subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
                         selection_categorical_attributes):
     """
@@ -565,56 +565,9 @@ def dominate(a, b):
             return False
     return True
 
-
-# # TODO: now: only update stop line for the first time
-# def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_table, delta_table,
-#                      delta_table_multifunctional, columns_delta_table, value_assignment):
-#     rows_to_compare = delta_table.iloc[combo_w_t]
-#     relaxation_terms = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
-#     contraction_terms = [x for x in combo_w_t if x not in relaxation_terms]
-#     column_idx = 0
-#     first_relaxation_col = False
-#     def itercol(column):
-#         nonlocal column_idx
-#         nonlocal first_relaxation_col
-#         col_name = columns_delta_table[column_idx]
-#         col_idx = 0
-#         if value_assignment[column_idx] < 0:
-#             ct = [x for x in contraction_terms if rows_to_compare[col_name].loc[x] == value_assignment[column_idx]]
-#             num_ct = len(ct)
-#             found = 0
-#             col_idx = 0
-#             for k, v in column.items():
-#                 if v in ct:
-#                     found += 1
-#                     col_idx = k
-#                     if found == num_ct:
-#                         break
-#             column_idx += 1
-#             return col_idx
-#         num_rt = len(relaxation_terms)
-#         num = 0
-#         for k, v in column.items():
-#             if v in relaxation_terms:
-#                 num += 1
-#                 col_idx = k
-#                 if num == num_rt:
-#                     break
-#         if not first_relaxation_col:
-#             for k, v in column.items():
-#                 if k > col_idx:
-#                     if value_assignment[column_idx] < abs(delta_table_multifunctional[col_name].loc[v]):
-#                         col_idx = k
-#                         break
-#             first_relaxation_col = True
-#         column_idx += 1
-#         return col_idx
-#
-#     new_stop_line = sorted_table.apply(itercol, axis=0)
-#     return new_stop_line
-
-
 # TODO: now: only update stop line for the first time
+# FIXME: once we find a first valid refinement, we need to resort the sorted_table categorical columns
+# put 0 and 100 before +-1, stop line is the first +-1
 def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_table, delta_table,
                      delta_table_multifunctional, columns_delta_table, value_assignment, numeric_attributes,
                      categorical_attributes):
@@ -682,6 +635,7 @@ def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_tab
     new_stop_line = sorted_table.apply(itercol, axis=0)
     return new_stop_line
 
+
 def update_minimal_relaxation(minimal_added_relaxations, r):
     dominated = []
     for mr in minimal_added_relaxations:
@@ -721,6 +675,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                     checked.append(t_str)
                     have_legitimate_value_assignment, value_assignments = get_relaxation([t],
                                                                                          delta_table,
+                                                                                         delta_table_multifunctional,
                                                                                          only_greater_than,
                                                                                          only_smaller_than)
                     if have_legitimate_value_assignment:
@@ -821,72 +776,78 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 
 
 
-data = pd.read_csv("toy_examples/example2.csv")
-print(data)
-with open('toy_examples/selection2.json') as f:
-    info = json.load(f)
-
-# data = pd.read_csv("../InputData/Pipelines/healthcare/before_selection.csv")
-# print(data)
-# with open("../InputData/Pipelines/healthcare/selection1.json") as f:
-#     info = json.load(f)
 
 
-all_attributes = data.columns.tolist()
+def FindMinimalRefinement(data_file, selection_file):
+    data = pd.read_csv(data_file)
+    print(data)
+    with open(selection_file) as f:
+        info = json.load(f)
 
-sensitive_attributes = info['all_sensitive_attributes']
-fairness_constraints = info['fairness_constraints']
-selection_numeric_attributes = info['selection_numeric_attributes']
-selection_categorical_attributes = info['selection_categorical_attributes']
-numeric_attributes = list(selection_numeric_attributes.keys())
-categorical_attributes = info['categorical_attributes']
-selected_attributes = numeric_attributes + [x for x in categorical_attributes]
-print("selected_attributes", selected_attributes)
+    all_attributes = data.columns.tolist()
 
-pd.set_option('display.float_format', '{:.2f}'.format)
+    sensitive_attributes = info['all_sensitive_attributes']
+    fairness_constraints = info['fairness_constraints']
+    selection_numeric_attributes = info['selection_numeric_attributes']
+    selection_categorical_attributes = info['selection_categorical_attributes']
+    numeric_attributes = list(selection_numeric_attributes.keys())
+    categorical_attributes = info['categorical_attributes']
+    selected_attributes = numeric_attributes + [x for x in categorical_attributes]
+    print("selected_attributes", selected_attributes)
 
-time1 = time.time()
-fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-data_rows_greater_than, data_rows_smaller_than \
-    = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                          selection_categorical_attributes)
-print("provenance_expressions")
-print(*fairness_constraints_provenance_greater_than, sep="\n")
-print(*fairness_constraints_provenance_smaller_than, sep="\n")
-#
-# print("data_rows_greater_than: \n{}".format(data_rows_greater_than))
+    pd.set_option('display.float_format', '{:.2f}'.format)
 
-sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, \
-only_greater_than, only_smaller_than, change_constraint = build_sorted_table(data, selected_attributes,
-                                                                             numeric_attributes,
-                                                                             categorical_attributes,
-                                                                             selection_numeric_attributes,
-                                                                             selection_categorical_attributes,
-                                                                             sensitive_attributes, fairness_constraints,
-                                                                             fairness_constraints_provenance_greater_than,
-                                                                             fairness_constraints_provenance_smaller_than,
-                                                                             data_rows_greater_than,
-                                                                             data_rows_smaller_than
-                                                                             )
-print("delta table:\n{}".format(delta_table))
-print("delta_table_multifunctional:\n{}".format(delta_table_multifunctional))
-print("sorted table:\n{}".format(sorted_table))
+    time1 = time.time()
+    fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+    data_rows_greater_than, data_rows_smaller_than \
+        = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                              selection_categorical_attributes)
+    print("provenance_expressions")
+    print(*fairness_constraints_provenance_greater_than, sep="\n")
+    print(*fairness_constraints_provenance_smaller_than, sep="\n")
+    #
+    # print("data_rows_greater_than: \n{}".format(data_rows_greater_than))
 
-minimal_added_refinements = search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
-                                   numeric_attributes,
-                                   categorical_attributes, selection_numeric_attributes,
-                                   selection_categorical_attributes,
-                                   fairness_constraints_provenance_greater_than,
-                                   fairness_constraints_provenance_smaller_than, only_greater_than, only_smaller_than,
-                                   change_constraint)
+    sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, \
+    only_greater_than, only_smaller_than, change_constraint = build_sorted_table(data, selected_attributes,
+                                                                                 numeric_attributes,
+                                                                                 categorical_attributes,
+                                                                                 selection_numeric_attributes,
+                                                                                 selection_categorical_attributes,
+                                                                                 sensitive_attributes, fairness_constraints,
+                                                                                 fairness_constraints_provenance_greater_than,
+                                                                                 fairness_constraints_provenance_smaller_than,
+                                                                                 data_rows_greater_than,
+                                                                                 data_rows_smaller_than
+                                                                                 )
+    print("delta table:\n{}".format(delta_table))
+    print("delta_table_multifunctional:\n{}".format(delta_table_multifunctional))
+    print("sorted table:\n{}".format(sorted_table))
 
-print("minimal_added_relaxations:{}".format(minimal_added_refinements))
+    minimal_added_refinements = search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
+                                       numeric_attributes,
+                                       categorical_attributes, selection_numeric_attributes,
+                                       selection_categorical_attributes,
+                                       fairness_constraints_provenance_greater_than,
+                                       fairness_constraints_provenance_smaller_than, only_greater_than, only_smaller_than,
+                                       change_constraint)
 
-minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-                                                     selection_numeric_attributes, selection_categorical_attributes,
-                                                     columns_delta_table)
-time2 = time.time()
+    print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(time2 - time1))
+    minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
+                                                         selection_numeric_attributes, selection_categorical_attributes,
+                                                         columns_delta_table)
+    time2 = time.time()
+
+    print(*minimal_refinements, sep="\n")
+    print("running time = {}".format(time2 - time1))
+    return minimal_refinements, time2 - time1
+
+
+
+data_file = r"toy_examples/example2.csv"
+selection_file = r"toy_examples/selection2.json"
+minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+
+
