@@ -512,7 +512,7 @@ To get skyline of all terms in list terms
 
     value_assignments = [[]]
     mark_satisfied_terms = [0]
-    source_terms = [[]]
+
     rows_to_compare = delta_table.iloc[terms]
     rows_to_compare_with_multifunctional = delta_table_multifunctional.iloc[terms]
     rows_to_compare_indices = rows_to_compare.index.tolist()
@@ -545,7 +545,8 @@ To get skyline of all terms in list terms
             for k in range(len(mark_satisfied_terms)):
                 mark_satisfied_terms[k] |= positive_terms_int
             continue
-        non_zeros = rows_to_compare[rows_to_compare[col] < 0].index.tolist()
+        unique_values = rows_to_compare[col].drop_duplicates()
+        non_zeros = unique_values[unique_values < 0].index.tolist()
         relaxation_terms_idx = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
         if len(non_zeros) == 0:
             for v in value_assignments:
@@ -824,7 +825,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                     checked_invalid_combination.append(combo_str)
                     continue
                 print("combo_w_t:{}".format(combo_w_t))
-                if combo_w_t == [10, 4]:
+                if combo_w_t == [10, 4, 7, 1]:
                     print("here stop combo_w_t:{}".format(combo_w_t))
                 have_legitimate_value_assignment, value_assignments = get_relaxation(combo_w_t,
                                                                                      delta_table,

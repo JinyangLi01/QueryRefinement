@@ -517,7 +517,8 @@ To get skyline of all terms in list terms
             for k in range(len(mark_satisfied_terms)):
                 mark_satisfied_terms[k] |= positive_terms_int
             continue
-        non_zeros = rows_to_compare[rows_to_compare[col] < 0].index.tolist()
+        unique_values = rows_to_compare[col].drop_duplicates()
+        non_zeros = unique_values[unique_values < 0].index.tolist()
         relaxation_terms_idx = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
         if len(non_zeros) == 0:
             for v in value_assignments:
