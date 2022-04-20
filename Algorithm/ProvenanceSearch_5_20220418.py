@@ -657,7 +657,9 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
            fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than,
            only_greater_than, only_smaller_than, change_constraint):
     minimal_added_relaxations = []  # relaxation to add to original selection conditions
-    checked = []  # set of bit arrays
+    checked_invalid_combination = []
+    checked_satisfying_constraints = []  # set of bit arrays
+    checked_unsatisfying_constraints = []
     num_columns = len(sorted_table.columns)
     stop_line = pd.Series([len(sorted_table)] * num_columns, sorted_table.columns)
     set_stop_line = False
@@ -671,10 +673,11 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
             if stop_line[i] <= row_num:
                 continue
             print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
+            assign_successfully = False
             if only_smaller_than or only_greater_than:
                 t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
-                if t_str not in checked:
-                    checked.append(t_str)
+                if t_str not in checked_invalid_combination and t_str not in checked_satisfying_constraints \
+                        and t_str not in checked_unsatisfying_constraints:
                     have_legitimate_value_assignment, value_assignments = get_relaxation([t],
                                                                                          delta_table,
                                                                                          delta_table_multifunctional,
@@ -686,6 +689,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                     selection_numeric, selection_categorical, columns_delta_table,
                                                     num_columns, fairness_constraints_provenance_greater_than,
                                                     fairness_constraints_provenance_smaller_than, change_constraint):
+                                assign_successfully = True
                                 if update_minimal_relaxation(minimal_added_relaxations, value_assignment):
                                     # print("value_assignment: {}".format(value_assignment))
                                     if not set_stop_line:
@@ -695,8 +699,14 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                                      value_assignment, numeric_attributes,
                                                                      categorical_attributes)
                                         set_stop_line = True
-                                checked.append(t_str)
-
+                                checked_satisfying_constraints.append(t_str)
+                                continue
+                            else:
+                                checked_unsatisfying_constraints.append(t_str)
+                    else:
+                        checked_invalid_combination.append(t_str)
+            if assign_successfully:
+                continue
             terms_above = list(sorted_table.loc[:row_num - 1, i])
             combo_list = [[y] for y in terms_above]
             while len(combo_list) > 0:
@@ -708,11 +718,19 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                     print("here stop t:{}, rownum:{}".format(t, row_num))
                 combo_str = intbitset(combo_w_t).strbits()
                 # combo_str += '0' * (num_columns - len(combo) - 1)
-                if combo_str in checked:
+                if combo_str in checked_invalid_combination or combo_str in checked_satisfying_constraints:
                     continue
+                if combo_str in checked_unsatisfying_constraints:
+                    # generate children
+                    idx = terms_above.index(combo[-1])
+                    for x in terms_above[idx + 1:]:
+                        combo_list.append(combo + [x])
+                    continue
+
                 # optimization 1: if all terms in the set are relaxation/contraction terms, skip
                 terms_set = delta_table.iloc[combo_w_t]
                 if terms_set['relaxation_term'].eq(True).all() or terms_set['relaxation_term'].eq(False).all():
+                    checked_invalid_combination.append(combo_str)
                     continue
                 print("combo_w_t:{}".format(combo_w_t))
                 if combo_w_t == [10, 4, 7, 1]:
@@ -743,12 +761,16 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                                  numeric_attributes, categorical_attributes)
                                     set_stop_line = True
                                     print("stop line {}".format(stop_line))
-                    if not assign_successfully:
+                    if assign_successfully:
+                        checked_satisfying_constraints.append(combo_str)
+                    else:
+                        checked_unsatisfying_constraints.append(combo_str)
                         # generate children
                         idx = terms_above.index(combo[-1])
                         for x in terms_above[idx + 1:]:
                             combo_list.append(combo + [x])
-                checked.append(combo_str)
+                else:
+                    checked_invalid_combination.append(combo_str)
         row_num += 1
 
     # sorted_table[:1].apply(iterrow, axis=1)
