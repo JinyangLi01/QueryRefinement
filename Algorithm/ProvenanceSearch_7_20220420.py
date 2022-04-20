@@ -33,7 +33,7 @@ from intbitset import intbitset
 import json
 
 
-def subtract_provenance(data, selected_attributes, all_sensitive_attributes, fairness_constraints,
+def subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
                         selection_categorical_attributes):
     """
@@ -351,13 +351,12 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
 
     # print("data_rows_greater_than:\n", data_rows_greater_than)
     data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
-    print("delta_table with data_rows_greater_than:")
-    print(pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term']))
+    # print("delta_table with data_rows_greater_than:")
+    # print(pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term']))
     data_rows_smaller_than.apply(iterrow, args=(False,), axis=1)
     delta_table = pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term'])
-    delta_table_multifunctional = pd.DataFrame(list_of_rows_delta_table_multifunctional, columns=columns_delta_table+['relaxation_term'])
-    print("delta_table:\n", delta_table)
-    print("delta_table_multifunctional:\n", delta_table_multifunctional)
+    delta_table_multifunctional = pd.DataFrame(list_of_rows_delta_table_multifunctional,
+                                               columns=columns_delta_table+['relaxation_term'])
     sorted_table_by_column = dict()
     if len(numeric_attributes) == 0:
         tiebreaker_col = delta_table[columns_delta_table[0]].replace(1, 200)
@@ -769,7 +768,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
         for i, t in row.items():
             if stop_line[i] <= row_num:
                 continue
-            print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
+            # print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
             assign_successfully = False
             if only_smaller_than or only_greater_than:
                 t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
@@ -825,8 +824,6 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                     checked_invalid_combination.append(combo_str)
                     continue
                 print("combo_w_t:{}".format(combo_w_t))
-                if combo_w_t == [10, 4, 7, 1]:
-                    print("here stop combo_w_t:{}".format(combo_w_t))
                 have_legitimate_value_assignment, value_assignments = get_relaxation(combo_w_t,
                                                                                      delta_table,
                                                                                      delta_table_multifunctional,
@@ -898,72 +895,78 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 
 
 
-data = pd.read_csv("toy_examples/example2.csv")
-print(data)
-with open('toy_examples/selection2.json') as f:
-    info = json.load(f)
 
-# data = pd.read_csv("../InputData/Pipelines/healthcare/before_selection.csv")
-# print(data)
-# with open("../InputData/Pipelines/healthcare/selection1.json") as f:
-#     info = json.load(f)
+def FindMinimalRefinement(data_file, selection_file):
 
 
-all_attributes = data.columns.tolist()
+    data = pd.read_csv(data_file)
+    print(data)
+    with open(selection_file) as f:
+        info = json.load(f)
 
-sensitive_attributes = info['all_sensitive_attributes']
-fairness_constraints = info['fairness_constraints']
-selection_numeric_attributes = info['selection_numeric_attributes']
-selection_categorical_attributes = info['selection_categorical_attributes']
-numeric_attributes = list(selection_numeric_attributes.keys())
-categorical_attributes = info['categorical_attributes']
-selected_attributes = numeric_attributes + [x for x in categorical_attributes]
-print("selected_attributes", selected_attributes)
+    sensitive_attributes = info['all_sensitive_attributes']
+    fairness_constraints = info['fairness_constraints']
+    selection_numeric_attributes = info['selection_numeric_attributes']
+    selection_categorical_attributes = info['selection_categorical_attributes']
+    numeric_attributes = list(selection_numeric_attributes.keys())
+    categorical_attributes = info['categorical_attributes']
+    selected_attributes = numeric_attributes + [x for x in categorical_attributes]
+    print("selected_attributes", selected_attributes)
 
-pd.set_option('display.float_format', '{:.2f}'.format)
+    pd.set_option('display.float_format', '{:.2f}'.format)
 
-time1 = time.time()
-fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-data_rows_greater_than, data_rows_smaller_than \
-    = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                          selection_categorical_attributes)
-print("provenance_expressions")
-print(*fairness_constraints_provenance_greater_than, sep="\n")
-print(*fairness_constraints_provenance_smaller_than, sep="\n")
-#
-# print("data_rows_greater_than: \n{}".format(data_rows_greater_than))
+    time1 = time.time()
+    fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+    data_rows_greater_than, data_rows_smaller_than \
+        = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                              selection_categorical_attributes)
+    print("provenance_expressions")
+    print(*fairness_constraints_provenance_greater_than, sep="\n")
+    print(*fairness_constraints_provenance_smaller_than, sep="\n")
 
-sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, categorical_att_columns, \
-only_greater_than, only_smaller_than, change_constraint = build_sorted_table(data, selected_attributes,
-                                                                             numeric_attributes,
-                                                                             categorical_attributes,
-                                                                             selection_numeric_attributes,
-                                                                             selection_categorical_attributes,
-                                                                             sensitive_attributes, fairness_constraints,
-                                                                             fairness_constraints_provenance_greater_than,
-                                                                             fairness_constraints_provenance_smaller_than,
-                                                                             data_rows_greater_than,
-                                                                             data_rows_smaller_than
-                                                                             )
-print("delta table:\n{}".format(delta_table))
-print("delta_table_multifunctional:\n{}".format(delta_table_multifunctional))
-print("sorted table:\n{}".format(sorted_table))
+    sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, categorical_att_columns, \
+    only_greater_than, only_smaller_than, change_constraint = build_sorted_table(data, selected_attributes,
+                                                                                 numeric_attributes,
+                                                                                 categorical_attributes,
+                                                                                 selection_numeric_attributes,
+                                                                                 selection_categorical_attributes,
+                                                                                 sensitive_attributes, fairness_constraints,
+                                                                                 fairness_constraints_provenance_greater_than,
+                                                                                 fairness_constraints_provenance_smaller_than,
+                                                                                 data_rows_greater_than,
+                                                                                 data_rows_smaller_than
+                                                                                 )
+    print("delta table:\n{}".format(delta_table))
+    print("delta_table_multifunctional:\n{}".format(delta_table_multifunctional))
+    print("sorted table:\n{}".format(sorted_table))
 
-minimal_added_refinements = search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
-                                   numeric_attributes, categorical_att_columns,
-                                   categorical_attributes, selection_numeric_attributes,
-                                   selection_categorical_attributes,
-                                   fairness_constraints_provenance_greater_than,
-                                   fairness_constraints_provenance_smaller_than, only_greater_than, only_smaller_than,
-                                   change_constraint)
+    time_search1 = time.time()
+    minimal_added_refinements = search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
+                                       numeric_attributes, categorical_att_columns,
+                                       categorical_attributes, selection_numeric_attributes,
+                                       selection_categorical_attributes,
+                                       fairness_constraints_provenance_greater_than,
+                                       fairness_constraints_provenance_smaller_than, only_greater_than, only_smaller_than,
+                                       change_constraint)
+    time_search2 = time.time()
+    print("searching time = {}".format(time_search2 - time_search1))
+    print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
-print("minimal_added_relaxations:{}".format(minimal_added_refinements))
+    minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
+                                                         selection_numeric_attributes, selection_categorical_attributes,
+                                                         columns_delta_table)
+    time2 = time.time()
 
-minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-                                                     selection_numeric_attributes, selection_categorical_attributes,
-                                                     columns_delta_table)
-time2 = time.time()
+
+    return minimal_refinements, time2 - time1
+
+
+
+data_file = r"toy_examples/example2.csv"
+selection_file = r"toy_examples/selection2.json"
+minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
 
 print(*minimal_refinements, sep="\n")
-print("running time = {}".format(time2 - time1))
+print("running time = {}".format(running_time))
+

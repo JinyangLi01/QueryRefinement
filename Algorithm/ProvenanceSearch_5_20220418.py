@@ -336,13 +336,12 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
 
     # print("data_rows_greater_than:\n", data_rows_greater_than)
     data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
-    print("delta_table with data_rows_greater_than:")
-    print(pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term']))
+    # print("delta_table with data_rows_greater_than:")
+    # print(pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term']))
     data_rows_smaller_than.apply(iterrow, args=(False,), axis=1)
     delta_table = pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term'])
-    delta_table_multifunctional = pd.DataFrame(list_of_rows_delta_table_multifunctional, columns=columns_delta_table+['relaxation_term'])
-    print("delta_table:\n", delta_table)
-    print("delta_table_multifunctional:\n", delta_table_multifunctional)
+    delta_table_multifunctional = pd.DataFrame(list_of_rows_delta_table_multifunctional,
+                                               columns=columns_delta_table+['relaxation_term'])
     sorted_table_by_column = dict()
     for att in columns_delta_table:
         s = np.array(list(zip(delta_table[att].abs(),
@@ -673,7 +672,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
         for i, t in row.items():
             if stop_line[i] <= row_num:
                 continue
-            print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
+            # print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
             assign_successfully = False
             if only_smaller_than or only_greater_than:
                 t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
@@ -713,10 +712,6 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
             while len(combo_list) > 0:
                 combo: List[Any] = combo_list.pop(0)
                 combo_w_t = [t] + combo
-                if combo_w_t == [10, 4, 7, 1]:
-                    print("here stop combo_w_t:{}".format(combo_w_t))
-                if t == 10 and row_num == 11:
-                    print("here stop t:{}, rownum:{}".format(t, row_num))
                 combo_str = intbitset(combo_w_t).strbits()
                 # combo_str += '0' * (num_columns - len(combo) - 1)
                 if combo_str in checked_invalid_combination or combo_str in checked_satisfying_constraints:
@@ -734,8 +729,6 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                     checked_invalid_combination.append(combo_str)
                     continue
                 print("combo_w_t:{}".format(combo_w_t))
-                if combo_w_t == [10, 4, 7, 1]:
-                    print("here stop combo_w_t:{}".format(combo_w_t))
                 have_legitimate_value_assignment, value_assignments = get_relaxation(combo_w_t,
                                                                                      delta_table,
                                                                                      delta_table_multifunctional,
@@ -814,7 +807,6 @@ def FindMinimalRefinement(data_file, selection_file):
     with open(selection_file) as f:
         info = json.load(f)
 
-    all_attributes = data.columns.tolist()
 
     sensitive_attributes = info['all_sensitive_attributes']
     fairness_constraints = info['fairness_constraints']
@@ -854,7 +846,7 @@ def FindMinimalRefinement(data_file, selection_file):
     print("delta table:\n{}".format(delta_table))
     print("delta_table_multifunctional:\n{}".format(delta_table_multifunctional))
     print("sorted table:\n{}".format(sorted_table))
-
+    time_search1 = time.time()
     minimal_added_refinements = search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
                                        numeric_attributes,
                                        categorical_attributes, selection_numeric_attributes,
@@ -862,7 +854,8 @@ def FindMinimalRefinement(data_file, selection_file):
                                        fairness_constraints_provenance_greater_than,
                                        fairness_constraints_provenance_smaller_than, only_greater_than, only_smaller_than,
                                        change_constraint)
-
+    time_search2 = time.time()
+    print("searching time = {}".format(time_search2 - time_search1))
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
     minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
@@ -870,8 +863,7 @@ def FindMinimalRefinement(data_file, selection_file):
                                                          columns_delta_table)
     time2 = time.time()
 
-    print(*minimal_refinements, sep="\n")
-    print("running time = {}".format(time2 - time1))
+
     return minimal_refinements, time2 - time1
 
 
@@ -880,4 +872,5 @@ data_file = r"toy_examples/example2.csv"
 selection_file = r"toy_examples/selection2.json"
 minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
 
-
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
