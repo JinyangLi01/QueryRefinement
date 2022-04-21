@@ -338,9 +338,15 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
         row_idx += 1
 
     # print("data_rows_greater_than:\n", data_rows_greater_than)
+
+    # data_rows_greater_than = data_rows_greater_than.groupby(selected_attributes)
+    data_rows_greater_than = data_rows_greater_than.drop_duplicates(
+        subset=selected_attributes,
+        keep='first').reset_index(drop=True)
     data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
-    # print("delta_table with data_rows_greater_than:")
-    # print(pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table+['relaxation_term']))
+    data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
+        subset=selected_attributes,
+        keep='first').reset_index(drop=True)
     data_rows_smaller_than.apply(iterrow, args=(False,), axis=1)
     delta_table = pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table + ['relaxation_term'])
     delta_table_multifunctional = pd.DataFrame(list_of_rows_delta_table_multifunctional,
@@ -713,7 +719,7 @@ def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_tab
         new_stop_line[numeric_attributes] = sorted_table[numeric_attributes].apply(itercol_numeric, axis=0)
 
     ################## categorical columns, resort ###################
-    
+
     def itercol_categorical(column):
         nonlocal column_idx
         col_name = columns_delta_table[column_idx]
