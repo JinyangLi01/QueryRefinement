@@ -190,7 +190,9 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
-        return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
+        return [0] * num_numeric_att + [0] * (num_cate_variables_to_add + num_cate_variables_to_remove), \
+               numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove
+        # return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables_to_add + num_cate_variables_to_remove
@@ -299,7 +301,8 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
-        return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
+        return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_contract, \
+           [], categorical_att_domain_too_remove
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
@@ -393,8 +396,8 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
-        return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
-
+        return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_relax, \
+               categorical_att_domain_too_add, []
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
     last_time_selection = [0] * num_numeric_att + [0] * num_cate_variables
@@ -461,16 +464,14 @@ def FindMinimalRefinement(data_file, selection_file):
     with open(selection_file) as f:
         info = json.load(f)
 
-    all_attributes = data.columns.tolist()
-
     sensitive_attributes = info['all_sensitive_attributes']
     fairness_constraints = info['fairness_constraints']
-    selected_attributes = [x for x in all_attributes if x not in sensitive_attributes]
-    print("selected_attributes", selected_attributes)
     selection_numeric_attributes = info['selection_numeric_attributes']
     selection_categorical_attributes = info['selection_categorical_attributes']
     numeric_attributes = list(selection_numeric_attributes.keys())
     categorical_attributes = info['categorical_attributes']
+    selected_attributes = list(categorical_attributes.keys()) + numeric_attributes
+    print("selected_attributes", selected_attributes)
 
     pd.set_option('display.float_format', '{:.3f}'.format)
 
@@ -495,8 +496,12 @@ def FindMinimalRefinement(data_file, selection_file):
     return minimal_refinements, time2 - time1
 
 
-data_file = r"toy_examples/example2.csv"
-selection_file = r"toy_examples/selection2.json"
+data_file = r"../InputData/Pipelines/healthcare/before_selection_income10K.csv"
+selection_file = r"../InputData/Pipelines/healthcare/selection1.json"
+
+# data_file = r"toy_examples/example2.csv"
+# selection_file = r"toy_examples/selection2.json"
 minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
 
-
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
