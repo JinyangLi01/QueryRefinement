@@ -1,7 +1,7 @@
 """
 executable
-Same as ProvenanceSearch7
-Difference is how to deal with categorical columns
+This script is ProvenanceSearch7 + Optimization4
+
 
 merge same terms in provenance expression
 
@@ -228,9 +228,9 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
             if greater_than:  # relaxation term
                 if selection_numeric[att][0] == ">":
                     if isinstance(row[att], int):
-                        delta_v = selection_numeric[att][1] - row[att] + 1
+                        delta_v = selection_numeric[att][1] - row[att] + selection_numeric[att][2]
                     else:
-                        delta_v = selection_numeric[att][1] - row[att] + 0.05
+                        delta_v = selection_numeric[att][1] - row[att] + selection_numeric[att][2]
                     if row[att] > selection_numeric[att][1]:
                         delta_v_zero = 0
                     else:
@@ -243,9 +243,9 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
                         delta_v_zero = delta_v
                 elif selection_numeric[att][0] == "<":
                     if isinstance(row[att], int):
-                        delta_v = row[att] - selection_numeric[att][1] + 1
+                        delta_v = row[att] - selection_numeric[att][1] + selection_numeric[att][2]
                     else:
-                        delta_v = row[att] - selection_numeric[att][1] + 0.05
+                        delta_v = row[att] - selection_numeric[att][1] + selection_numeric[att][2]
                     if row[att] < selection_numeric[att][1]:
                         delta_v_zero = 0
                     else:
@@ -267,9 +267,9 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
                         delta_v = 0
                     else:
                         if isinstance(row[att], int):
-                            delta_v = - (row[att] - selection_numeric[att][1] + 1)
+                            delta_v = - (row[att] - selection_numeric[att][1] + selection_numeric[att][2])
                         else:
-                            delta_v = - (row[att] - selection_numeric[att][1] + 0.05)
+                            delta_v = - (row[att] - selection_numeric[att][1] + selection_numeric[att][2])
                 elif selection_numeric[att][0] == "<":
                     if row[att] >= selection_numeric[att][1]:
                         delta_v = 0
@@ -280,9 +280,9 @@ def build_sorted_table(data, selected_attributes, numeric_attributes,
                         delta_v = 0
                     else:
                         if isinstance(row[att], int):
-                            delta_v = - (selection_numeric[att][1] - row[att] + 1)
+                            delta_v = - (selection_numeric[att][1] - row[att] + selection_numeric[att][2])
                         else:
-                            delta_v = - (selection_numeric[att][1] - row[att] + 0.05)
+                            delta_v = - (selection_numeric[att][1] - row[att] + selection_numeric[att][2])
             delta_values_multifunctional.append(delta_v)
             if greater_than:
                 delta_values.append(delta_v_zero)
@@ -738,15 +738,15 @@ def update_minimal_relaxation(minimal_added_relaxations, r):
     dominated = []
     for mr in minimal_added_relaxations:
         if mr == r:
-            return True
+            return True, minimal_added_relaxations
         if dominate(mr, r):
-            return False
+            return False, minimal_added_relaxations
         elif dominate(r, mr):
             dominated.append(mr)
     if len(dominated) > 0:
         minimal_added_relaxations = [x for x in minimal_added_relaxations if x not in dominated]
     minimal_added_relaxations.append(r)
-    return True
+    return True, minimal_added_relaxations
 
 
 def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, numeric_attributes,
@@ -766,6 +766,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
         nonlocal row_num
         nonlocal set_stop_line
         nonlocal stop_line
+        nonlocal minimal_added_relaxations
         for i, t in row.items():
             if stop_line[i] <= row_num:
                 continue
@@ -789,7 +790,9 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                     fairness_constraints_provenance_smaller_than, change_constraint):
                                 assign_successfully = True
                                 # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
-                                if update_minimal_relaxation(minimal_added_relaxations, value_assignment):
+                                this_is_minimal, minimal_added_relaxations = \
+                                    update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                                if this_is_minimal:
                                     # print("value_assignment: {}".format(value_assignment))
                                     if not set_stop_line:
                                         stop_line = update_stop_line([t], stop_line, minimal_added_relaxations,
@@ -845,7 +848,9 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                 change_constraint):
                             assign_successfully = True
                             # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
-                            if update_minimal_relaxation(minimal_added_relaxations, value_assignment):
+                            this_is_minimal, minimal_added_relaxations = \
+                                update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                            if this_is_minimal:
                                 print("terms: {}, value_assignment: {}".format(combo_w_t, value_assignment))
                                 if not set_stop_line:
                                     stop_line = update_stop_line(combo_w_t, stop_line, minimal_added_relaxations,

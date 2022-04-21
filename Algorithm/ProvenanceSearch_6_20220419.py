@@ -737,15 +737,15 @@ def update_minimal_relaxation(minimal_added_relaxations, r):
     dominated = []
     for mr in minimal_added_relaxations:
         if mr == r:
-            return True
+            return True, minimal_added_relaxations
         if dominate(mr, r):
-            return False
+            return False, minimal_added_relaxations
         elif dominate(r, mr):
             dominated.append(mr)
     if len(dominated) > 0:
         minimal_added_relaxations = [x for x in minimal_added_relaxations if x not in dominated]
     minimal_added_relaxations.append(r)
-    return True
+    return True, minimal_added_relaxations
 
 
 def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, numeric_attributes,
@@ -763,6 +763,7 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
         nonlocal row_num
         nonlocal set_stop_line
         nonlocal stop_line
+        nonlocal minimal_added_relaxations
         for i, t in row.items():
             if stop_line[i] <= row_num:
                 continue
@@ -781,7 +782,9 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                     selection_numeric, selection_categorical, columns_delta_table,
                                                     num_columns, fairness_constraints_provenance_greater_than,
                                                     fairness_constraints_provenance_smaller_than, change_constraint):
-                                if update_minimal_relaxation(minimal_added_relaxations, value_assignment):
+                                this_is_minimal, minimal_added_relaxations = \
+                                    update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                                if this_is_minimal:
                                     # print("value_assignment: {}".format(value_assignment))
                                     if not set_stop_line:
                                         stop_line = update_stop_line([t], stop_line, minimal_added_relaxations,
@@ -824,7 +827,9 @@ def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta
                                                 fairness_constraints_provenance_greater_than,
                                                 fairness_constraints_provenance_smaller_than,
                                                 change_constraint):
-                            if update_minimal_relaxation(minimal_added_relaxations, value_assignment):
+                            this_is_minimal, minimal_added_relaxations = \
+                                update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                            if this_is_minimal:
                                 print("terms: {}, value_assignment: {}".format(combo_w_t, value_assignment))
                                 if not set_stop_line:
                                     stop_line = update_stop_line(combo_w_t, stop_line, minimal_added_relaxations,
