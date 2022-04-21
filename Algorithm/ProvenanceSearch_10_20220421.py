@@ -168,6 +168,184 @@ def row_is_protected_group(row, fairness_constraints_provenance):
         provenance_expression = fc['provenance_expression']
 
 
+# TODO: no need for multifunctional tables
+def build_sorted_table_relax_only(data, selected_attributes, numeric_attributes,
+                                  categorical_attributes, selection_numeric, selection_categorical,
+                                  sensitive_attributes, fairness_constraints,
+                                  fairness_constraints_provenance_greater_than,
+                                  fairness_constraints_provenance_smaller_than,
+                                  data_rows_greater_than, data_rows_smaller_than
+                                  ):
+    """
+    to build the sorted table
+    :param fairness_constraints_provenance_greater_than:
+    :param fairness_constraints_provenance_smaller_than:
+    :param data_rows_smaller_than:
+    :param data_rows_greater_than:
+    :param selected_attributes:
+    :param data: dataframe
+    :param numeric_attributes: list of names of numeric attributes [city, major, state]
+    :param categorical_attributes: dictionary: {city: [domain of city], major: [domain of major]}
+    :param selection_numeric: dictionary: {grade:[80, >], age:[30, <], hours: [100, <=]}
+    :param selection_categorical: dictionary: {city: [accepted cities], major: [accepted majors]}
+    :return: return the whole sorted table, including rows that already satisfy the selection conditions;
+            also return delta table
+    """
+
+    columns_delta_table = numeric_attributes.copy()
+    for att, domain in categorical_attributes.items():
+        for value in domain:
+            if value in selection_categorical[att]:
+                continue
+            else:
+                columns_delta_table.append(att + "_" + value)
+
+    # if there is only one direction in constraints, we remvoe some rows that already satisfy/dissatisfy the constraints,
+    # and then need to change the size in constraint inequality
+    change_constraint = 0
+    list_of_rows_delta_table = []
+    row_idx = 0
+
+    # build delta table
+    def iterrow(row,
+                greater_than=True):  # greater than is symbol in fairness constraint is greater than (relaxation term)
+        delta_values = []  # for delta table where relaxation term doesn't have negative delta values recorded
+        nonlocal change_constraint
+        for att in numeric_attributes:
+            delta_v_zero = 0
+            if greater_than:  # relaxation term
+                if selection_numeric[att][0] == ">":
+                    delta_v = selection_numeric[att][1] - row[att] + selection_numeric[att][2]
+                    if row[att] > selection_numeric[att][1]:
+                        delta_v_zero = 0
+                    else:
+                        delta_v_zero = delta_v
+                elif selection_numeric[att][0] == ">=":
+                    delta_v = selection_numeric[att][1] - row[att]
+                    if row[att] >= selection_numeric[att][1]:
+                        delta_v_zero = 0
+                    else:
+                        delta_v_zero = delta_v
+                elif selection_numeric[att][0] == "<":
+                    delta_v = row[att] - selection_numeric[att][1] + selection_numeric[att][2]
+                    if row[att] < selection_numeric[att][1]:
+                        delta_v_zero = 0
+                    else:
+                        delta_v_zero = delta_v
+                else:
+                    delta_v = row[att] - selection_numeric[att][1]
+                    if row[att] <= selection_numeric[att][1]:
+                        delta_v_zero = 0
+                    else:
+                        delta_v_zero = delta_v
+            else:
+                if selection_numeric[att][0] == ">":
+                    if row[att] <= selection_numeric[att][1]:
+                        delta_v = 0
+                    else:
+                        delta_v = - (row[att] - selection_numeric[att][1])
+                elif selection_numeric[att][0] == ">=":
+                    if row[att] < selection_numeric[att][1]:
+                        delta_v = 0
+                    else:
+                        delta_v = - (row[att] - selection_numeric[att][1] + selection_numeric[att][2])
+                elif selection_numeric[att][0] == "<":
+                    if row[att] >= selection_numeric[att][1]:
+                        delta_v = 0
+                    else:
+                        delta_v = - (selection_numeric[att][1] - row[att])
+                else:  # selection_numeric[att][0] == "<=":
+                    if row[att] > selection_numeric[att][1]:
+                        delta_v = 0
+                    else:
+                        delta_v = - (selection_numeric[att][1] - row[att] + selection_numeric[att][2])
+
+            if greater_than:
+                delta_values.append(delta_v_zero)
+            else:
+                delta_values.append(delta_v)
+        for att, domain in categorical_attributes.items():
+            for value in domain:
+                if value in selection_categorical[att]:
+                    continue
+                if greater_than:
+                    if row[att] in selection_categorical[att]:
+                        delta_values.append(0)
+
+                    elif row[att] == value:
+                        delta_values.append(1)
+
+                    else:  # make it -100 because 1) it should be ranked the last, 2) this place can be -1 when merge two terms
+                        delta_values.append(-100)
+
+                else:
+                    if row[att] not in selection_categorical[att]:
+                        delta_values.append(0)
+
+                    elif row[att] == value:
+                        delta_values.append(-1)
+
+                    else:  # make it 100 because 1) it should be ranked last, 2) differentiate from -100 of relaxation term
+                        delta_values.append(100)
+
+        # FIXME: should I remove all-zero rows here?
+        # remove all-zeros or non-all-zeros columns when constraints are single-direction
+        delta_values.append(greater_than)
+        nonlocal row_idx
+        if not all(v == 0 for v in delta_values):
+            list_of_rows_delta_table.append(delta_values)
+        else:
+            change_constraint -= 1
+        row_idx += 1
+
+    # print("data_rows_greater_than:\n", data_rows_greater_than)
+
+    # data_rows_greater_than = data_rows_greater_than.groupby(selected_attributes)
+    data_rows_greater_than = data_rows_greater_than.drop_duplicates(
+        subset=selected_attributes,
+        keep='first').reset_index(drop=True)
+    data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
+
+    delta_table = pd.DataFrame(list_of_rows_delta_table, columns=columns_delta_table + ['relaxation_term'])
+
+    delta_table = delta_table.drop_duplicates().reset_index(drop=True)
+
+
+    sorted_table_by_column = dict()
+    if len(numeric_attributes) == 0:
+        tiebreaker_col = delta_table[columns_delta_table[0]].replace(1, 200)
+        tiebreaker_col = tiebreaker_col.replace(-1, -200)
+    else:
+        tiebreaker_col = delta_table[columns_delta_table[0]]
+    tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
+    for att in columns_delta_table:
+        if att in numeric_attributes:
+            values_in_col = delta_table[att]
+        else:
+            values_in_col = delta_table[att].replace(1, 200)
+            values_in_col = values_in_col.replace(-1, -200)
+
+        s = np.array(list(zip(values_in_col.abs(),
+                              tiebreaker_col.abs())),
+                     dtype=[('value', delta_table.dtypes[att]),
+                            ('tiebreaker', tiebreaker_dtype)])
+        sorted_att_idx = np.argsort(s, order=['value', 'tiebreaker'])
+        sorted_table_by_column[att] = sorted_att_idx
+
+    sorted_table = pd.DataFrame(data=sorted_table_by_column)
+    # print("sorted_table:\n", sorted_table)
+    categorical_att_columns = [item for item in columns_delta_table if item not in numeric_attributes]
+    # FIXME: should it be 0.5 or 0?
+    # make it 100 because it should be ranked the last
+    # but for value assignment, 100 means it doesn't change the selection conditions
+    # replace 100 with 0 for contraction terms
+    # for relaxation terms, -100 means it can be -1 when we merge two terms
+    delta_table[categorical_att_columns] = delta_table[categorical_att_columns].replace(100, 0)
+    delta_table[categorical_att_columns] = delta_table[categorical_att_columns].replace(-100, 0)
+    # print("delta_table:\n", delta_table)
+    return sorted_table, delta_table, columns_delta_table, categorical_att_columns, change_constraint
+
+
 def build_sorted_table(data, selected_attributes, numeric_attributes,
                        categorical_attributes, selection_numeric, selection_categorical,
                        sensitive_attributes, fairness_constraints,
@@ -585,73 +763,6 @@ def dominate(a, b):
     return True
 
 
-# def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_table, delta_table,
-#                      delta_table_multifunctional, columns_delta_table, value_assignment, numeric_attributes,
-#                      categorical_attributes):
-#     rows_to_compare = delta_table.iloc[combo_w_t]
-#     relaxation_terms = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
-#     contraction_terms = [x for x in combo_w_t if x not in relaxation_terms]
-#     column_idx = 0
-#     num_rt = len(relaxation_terms)
-#     num_ct = len(contraction_terms)
-#     num_terms = len(combo_w_t)
-#     first_relaxation_col = False
-#     def itercol(column):
-#         nonlocal column_idx
-#         nonlocal first_relaxation_col
-#         col_name = columns_delta_table[column_idx]
-#         col_idx = 0
-#         num = 0
-#         if value_assignment[column_idx] < 0:  # contraction term
-#             found = False
-#             for k, v in column.items():
-#                 if num == num_ct:
-#                     if abs(value_assignment[column_idx]) < abs(delta_table_multifunctional[col_name].loc[v]):
-#                         col_idx = k
-#                         found = True
-#                         break
-#                 elif v in contraction_terms:
-#                     num += 1
-#                     col_idx = k
-#             column_idx += 1
-#             if not found:
-#                 col_idx = len(delta_table) - 1
-#             return col_idx
-#         else:  # relaxation term
-#             if col_name in numeric_attributes:
-#                 found = False
-#                 for k, v in column.items():
-#                     if num == num_rt:
-#                         if value_assignment[column_idx] < abs(delta_table[col_name].loc[v]):
-#                             col_idx = k
-#                             found = True
-#                             break
-#                     if v in relaxation_terms:
-#                         num += 1
-#                         col_idx = k
-#                 if not found:
-#                     col_idx = len(delta_table) - 1
-#             else:  # categorical attribute
-#                 delta_table_value_stop_at = 0
-#                 found = False
-#                 for k, v in column.items():
-#                     if num == num_rt:
-#                         if abs(delta_table_value_stop_at) < abs(delta_table_multifunctional[col_name].loc[v]):
-#                             col_idx = k
-#                             found = True
-#                             break
-#                     if v in relaxation_terms:
-#                         delta_table_value_stop_at = delta_table_multifunctional[col_name].loc[v]
-#                         num += 1
-#                         col_idx = k
-#                 if not found:
-#                     col_idx = len(delta_table) - 1
-#         column_idx += 1
-#         return col_idx
-#
-#     new_stop_line = sorted_table.apply(itercol, axis=0)
-#     return new_stop_line
-
 # TODO: now: only update stop line for the first time
 # FIXME: once we find a first valid refinement, we need to resort the sorted_table categorical columns
 # put 0 and 100 before +-1, stop line is the first +-1
@@ -702,6 +813,7 @@ def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_tab
                 col_idx = len(delta_table) - 1
         column_idx += 1
         return col_idx
+
     if len(numeric_attributes) > 0:
         new_stop_line[numeric_attributes] = sorted_table[numeric_attributes].apply(itercol_numeric, axis=0)
 
@@ -716,7 +828,8 @@ def update_stop_line(combo_w_t, stop_line, minimal_added_relaxations, sorted_tab
         return len(delta_table_multifunctional) - num_ones
 
     if len(categorical_att_columns) > 0:
-        new_stop_line[categorical_att_columns] = sorted_table[categorical_att_columns].apply(itercol_categorical, axis=0)
+        new_stop_line[categorical_att_columns] = sorted_table[categorical_att_columns].apply(itercol_categorical,
+                                                                                             axis=0)
 
     return new_stop_line
 
@@ -734,6 +847,135 @@ def update_minimal_relaxation(minimal_added_relaxations, r):
         minimal_added_relaxations = [x for x in minimal_added_relaxations if x not in dominated]
     minimal_added_relaxations.append(r)
     return True, minimal_added_relaxations
+
+
+
+def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_attributes,
+           categorical_att_columns, categorical_attributes, selection_numeric, selection_categorical,
+           fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than,
+           only_greater_than, only_smaller_than, change_constraint):
+    minimal_added_relaxations = []  # relaxation to add to original selection conditions
+    checked_invalid_combination = []
+    checked_satisfying_constraints = []  # set of bit arrays
+    checked_unsatisfying_constraints = []
+    num_columns = len(sorted_table.columns)
+    stop_line = pd.Series([len(sorted_table)] * num_columns, sorted_table.columns)
+    set_stop_line = False
+    row_num = 0
+
+    def iterrow(row):
+        nonlocal row_num
+        nonlocal set_stop_line
+        nonlocal stop_line
+        nonlocal minimal_added_relaxations
+        for i, t in row.items():
+            if stop_line[i] <= row_num:
+                continue
+            # print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
+            assign_successfully = False
+            t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
+            if t_str not in checked_invalid_combination and t_str not in checked_satisfying_constraints \
+                    and t_str not in checked_unsatisfying_constraints:
+                have_legitimate_value_assignment, value_assignments = get_relaxation([t],
+                                                                                     delta_table,
+                                                                                     delta_table,
+                                                                                     only_greater_than,
+                                                                                     only_smaller_than)
+                if have_legitimate_value_assignment:
+                    for value_assignment in value_assignments:
+                        if assign_to_provenance(value_assignment, numeric_attributes, categorical_attributes,
+                                                selection_numeric, selection_categorical, columns_delta_table,
+                                                num_columns, fairness_constraints_provenance_greater_than,
+                                                fairness_constraints_provenance_smaller_than, change_constraint):
+                            assign_successfully = True
+                            # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
+                            this_is_minimal, minimal_added_relaxations = \
+                                update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                            if this_is_minimal:
+                                # print("value_assignment: {}".format(value_assignment))
+                                if not set_stop_line:
+                                    stop_line = update_stop_line([t], stop_line, minimal_added_relaxations,
+                                                                 sorted_table, delta_table,
+                                                                 delta_table, columns_delta_table,
+                                                                 value_assignment, numeric_attributes,
+                                                                 categorical_attributes, categorical_att_columns)
+                                    set_stop_line = True
+                            checked_satisfying_constraints.append(t_str)
+                        else:
+                            checked_unsatisfying_constraints.append(t_str)
+                else:
+                    checked_invalid_combination.append(t_str)
+
+            if assign_successfully:
+                continue
+            terms_above = list(sorted_table.loc[:row_num - 1, i])
+            combo_list = [[y] for y in terms_above]
+            while len(combo_list) > 0:
+                combo: List[Any] = combo_list.pop(0)
+                combo_w_t = [t] + combo
+                combo_str = intbitset(combo_w_t).strbits()
+                # combo_str += '0' * (num_columns - len(combo) - 1)
+                if combo_str in checked_invalid_combination or combo_str in checked_satisfying_constraints:
+                    continue
+                if combo_str in checked_unsatisfying_constraints:
+                    # generate children
+                    idx = terms_above.index(combo[-1])
+                    for x in terms_above[idx + 1:]:
+                        combo_list.append(combo + [x])
+                    continue
+
+                # # optimization 1: if all terms in the set are relaxation/contraction terms, skip
+                # terms_set = delta_table.iloc[combo_w_t]
+                # if terms_set['relaxation_term'].eq(True).all() or terms_set['relaxation_term'].eq(False).all():
+                #     checked_invalid_combination.append(combo_str)
+                #     continue
+                have_legitimate_value_assignment, value_assignments = get_relaxation(combo_w_t,
+                                                                                     delta_table,
+                                                                                     delta_table,
+                                                                                     only_greater_than,
+                                                                                     only_smaller_than)
+                if have_legitimate_value_assignment:
+                    assign_successfully = False
+                    for value_assignment in value_assignments:
+                        # check larger term set if this one doesn't satisfy the fairness constraints
+                        # if it does, whether minimal or not, don't check larger ones
+                        if assign_to_provenance(value_assignment, numeric_attributes, categorical_attributes,
+                                                selection_numeric, selection_categorical,
+                                                columns_delta_table, num_columns,
+                                                fairness_constraints_provenance_greater_than,
+                                                fairness_constraints_provenance_smaller_than,
+                                                change_constraint):
+                            assign_successfully = True
+                            # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
+                            this_is_minimal, minimal_added_relaxations = \
+                                update_minimal_relaxation(minimal_added_relaxations, value_assignment)
+                            if this_is_minimal:
+                                # print("terms: {}, value_assignment: {}".format(combo_w_t, value_assignment))
+                                if not set_stop_line:
+                                    stop_line = update_stop_line(combo_w_t, stop_line, minimal_added_relaxations,
+                                                                 sorted_table, delta_table, delta_table,
+                                                                 columns_delta_table, value_assignment,
+                                                                 numeric_attributes, categorical_attributes,
+                                                                 categorical_att_columns)
+                                    set_stop_line = True
+                                    print("stop line {}".format(stop_line))
+                    if assign_successfully:
+                        checked_satisfying_constraints.append(combo_str)
+                    else:
+                        checked_unsatisfying_constraints.append(combo_str)
+                        # generate children
+                        idx = terms_above.index(combo[-1])
+                        for x in terms_above[idx + 1:]:
+                            combo_list.append(combo + [x])
+                else:
+                    checked_invalid_combination.append(combo_str)
+        row_num += 1
+
+    # sorted_table[:1].apply(iterrow, axis=1)
+    # max_stop_line = stop_line.max()
+    sorted_table.apply(iterrow, axis=1)
+    return minimal_added_relaxations
+
 
 
 def search(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, numeric_attributes,
@@ -914,6 +1156,52 @@ def FindMinimalRefinement(data_file, selection_file):
     print("provenance_expressions")
     print(*fairness_constraints_provenance_greater_than, sep="\n")
     print(*fairness_constraints_provenance_smaller_than, sep="\n")
+
+    only_greater_than = False
+    only_smaller_than = False
+    if len(fairness_constraints_provenance_greater_than) != 0 and len(
+            fairness_constraints_provenance_smaller_than) == 0:
+        only_greater_than = True
+    elif len(fairness_constraints_provenance_greater_than) == 0 and len(
+            fairness_constraints_provenance_smaller_than) != 0:
+        only_smaller_than = True
+
+    if only_greater_than:
+        sorted_table, delta_table, columns_delta_table, \
+        categorical_att_columns, change_constraint = build_sorted_table_relax_only(data, selected_attributes,
+                                                                                   numeric_attributes,
+                                                                                   categorical_attributes,
+                                                                                   selection_numeric_attributes,
+                                                                                   selection_categorical_attributes,
+                                                                                   sensitive_attributes,
+                                                                                   fairness_constraints,
+                                                                                   fairness_constraints_provenance_greater_than,
+                                                                                   fairness_constraints_provenance_smaller_than,
+                                                                                   data_rows_greater_than,
+                                                                                   data_rows_smaller_than
+                                                                                   )
+        print("delta table:\n{}".format(delta_table))
+        print("sorted table:\n{}".format(sorted_table))
+        time_search1 = time.time()
+        minimal_added_refinements = search_relax_only(sorted_table, delta_table, columns_delta_table,
+                                           numeric_attributes, categorical_att_columns,
+                                           categorical_attributes, selection_numeric_attributes,
+                                           selection_categorical_attributes,
+                                           fairness_constraints_provenance_greater_than,
+                                           fairness_constraints_provenance_smaller_than, only_greater_than,
+                                           only_smaller_than,
+                                           change_constraint)
+        time_search2 = time.time()
+        print("searching time = {}".format(time_search2 - time_search1))
+        print("minimal_added_relaxations:{}".format(minimal_added_refinements))
+        minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
+                                                             selection_numeric_attributes,
+                                                             selection_categorical_attributes,
+                                                             columns_delta_table)
+        time2 = time.time()
+        return minimal_refinements, time2 - time1
+
+
 
     sorted_table, delta_table, delta_table_multifunctional, columns_delta_table, categorical_att_columns, \
     only_greater_than, only_smaller_than, change_constraint = build_sorted_table(data, selected_attributes,
