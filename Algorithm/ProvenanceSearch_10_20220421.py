@@ -1313,7 +1313,7 @@ def FindMinimalRefinement(data_file, selection_file):
         print("table time = {}".format(table_time))
         print("searching time = {}".format(time_search2 - time_search1))
         print("minimal_added_relaxations:{}".format(minimal_added_refinements))
-        return minimal_refinements, time2 - time1
+        return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
 
@@ -1352,22 +1352,23 @@ def FindMinimalRefinement(data_file, selection_file):
                                                          columns_delta_table)
     time2 = time.time()
 
-    return minimal_refinements, time2 - time1
+    return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
 
-data_file = r"../InputData/Pipelines/healthcare/income10K/before_selection_income10K.csv"
-selection_file = r"../InputData/Pipelines/healthcare/selection1.json"
-
-# data_file = r"../InputData/Pipelines/healthcare/SmallerData/300/before_selection_income10K_300.csv"
-# selection_file = r"../InputData/Pipelines/healthcare/SmallerData/300/selection1.json"
-
-# data_file = r"toy_examples/example2.csv"
-# selection_file = r"toy_examples/selection2.json"
-
-minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
-
+# data_file = r"../InputData/Pipelines/healthcare/income10K/before_selection_income10K.csv"
+# selection_file = r"../InputData/Pipelines/healthcare/income10K/selection1.json"
+#
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+#
+#
+# # data_file = r"toy_examples/example2.csv"
+# # selection_file = r"toy_examples/selection2.json"
+#
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#

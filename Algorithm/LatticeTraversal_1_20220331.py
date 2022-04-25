@@ -225,7 +225,7 @@ def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_c
 
 data = pd.read_csv("../InputData/Pipelines/healthcare/before_selection.csv")
 print(data)
-with open("../InputData/Pipelines/healthcare/selection1.json") as f:
+with open("../InputData/Pipelines/healthcare/incomeK/selection1.json") as f:
     info = json.load(f)
 
 all_attributes = data.columns.tolist()

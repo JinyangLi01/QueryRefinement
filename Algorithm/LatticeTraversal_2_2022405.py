@@ -183,9 +183,9 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables_to_add = len(categorical_att_domain_too_add)
     num_cate_variables_to_remove = len(categorical_att_domain_too_remove)
-    print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
-    print("categorical_att_domain_too_remove:\n", categorical_att_domain_too_remove)
-    print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
+    # print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
+    # print("categorical_att_domain_too_remove:\n", categorical_att_domain_too_remove)
+    # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
@@ -460,7 +460,6 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
 
 def FindMinimalRefinement(data_file, selection_file):
     data = pd.read_csv(data_file)
-    print(data)
     with open(selection_file) as f:
         info = json.load(f)
 
@@ -490,18 +489,21 @@ def FindMinimalRefinement(data_file, selection_file):
                                                          categorical_att_domain_too_remove)
 
     time2 = time.time()
-    print(*minimal_refinements, sep="\n")
-    print("running time = {}".format(time2 - time1))
-
-    return minimal_refinements, time2 - time1
+    return minimal_refinements, relaxed_conditions, time2 - time1
 
 
-data_file = r"../InputData/Pipelines/healthcare/before_selection_income10K.csv"
-selection_file = r"../InputData/Pipelines/healthcare/selection1.json"
-
-# data_file = r"toy_examples/example2.csv"
-# selection_file = r"toy_examples/selection2.json"
-minimal_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
+#
+# # data_file = r"../InputData/Pipelines/healthcare/income10K/before_selection_income10K.csv"
+# # selection_file = r"../InputData/Pipelines/healthcare/income10K/selection1.json"
+#
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+#
+# # data_file = r"toy_examples/example2.csv"
+# # selection_file = r"toy_examples/selection2.json"
+# minimal_refinements, relaxed_conditions, running_time = FindMinimalRefinement(data_file, selection_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#
