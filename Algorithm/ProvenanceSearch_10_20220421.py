@@ -654,6 +654,9 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
             for att in pe:
                 if att == 'occurrence':
                     continue
+                if pd.isnull(pe[att]):
+                    fail = True
+                    break
                 if att in numeric_attributes:
                     if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
                         after_refinement = selection_numeric[att][1] - va_dict[att]
@@ -671,6 +674,7 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
                             break
                 else:  # att in categorical
                     # TODO: fix the following
+                    # print(att, pe[att])
                     column_name = att + "_" + pe[att]
                     if column_name not in columns_delta_table:
                         continue
@@ -1479,11 +1483,11 @@ def FindMinimalRefinement(data_file, selection_file):
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection3.json"
 #
-
-data_file = r"toy_examples/example2.csv"
-selection_file = r"toy_examples/selection2.json"
-
-minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
+#
+# data_file = r"toy_examples/example2.csv"
+# selection_file = r"toy_examples/selection2.json"
+#
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))

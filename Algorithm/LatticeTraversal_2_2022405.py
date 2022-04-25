@@ -497,13 +497,13 @@ def FindMinimalRefinement(data_file, selection_file):
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection3.json"
 #
-
-data_file = r"toy_examples/example2.csv"
-selection_file = r"toy_examples/selection2.json"
-
-minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
-
+#
+# data_file = r"toy_examples/example2.csv"
+# selection_file = r"toy_examples/selection2.json"
+#
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#
