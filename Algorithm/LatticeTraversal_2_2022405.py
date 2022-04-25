@@ -475,35 +475,35 @@ def FindMinimalRefinement(data_file, selection_file):
     pd.set_option('display.float_format', '{:.3f}'.format)
 
     time1 = time.time()
-    relaxed_conditions, numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove \
+    minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove \
         = LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
                            selection_categorical_attributes, time_limit=5 * 60)
 
-    print("\nrelaxed_conditions: \n")
-    print(relaxed_conditions)
+    print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
-    minimal_refinements = transform_to_refinement_format(relaxed_conditions, numeric_attributes,
+
+    minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
                                                          selection_numeric_attributes, selection_categorical_attributes,
                                                          numeric_att_domain_to_relax, categorical_att_domain_too_add,
                                                          categorical_att_domain_too_remove)
 
     time2 = time.time()
-    return minimal_refinements, relaxed_conditions, time2 - time1
+    return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
-#
-# # data_file = r"../InputData/Pipelines/healthcare/income10K/before_selection_income10K.csv"
-# # selection_file = r"../InputData/Pipelines/healthcare/income10K/selection1.json"
+
 #
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection3.json"
 #
-# # data_file = r"toy_examples/example2.csv"
-# # selection_file = r"toy_examples/selection2.json"
-# minimal_refinements, relaxed_conditions, running_time = FindMinimalRefinement(data_file, selection_file)
-#
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
-#
-#
+
+data_file = r"toy_examples/example2.csv"
+selection_file = r"toy_examples/selection2.json"
+
+minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
+
