@@ -3,8 +3,8 @@
     "M": ["EE", "CS", "ME"]
   },
   "selection_numeric_attributes": {
-    "G": [">=", 60],
-    "I": [">=", 100]
+    "G": [">=", 60, 1],
+    "I": [">=", 100, 1]
   },
   "selection_categorical_attributes": {
     "M": ["EE"]
