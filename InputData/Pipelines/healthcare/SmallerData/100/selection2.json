@@ -3,14 +3,14 @@
     "county": ["county1", "county2", "county3", "county4"]
   },
   "selection_numeric_attributes": {
-    "income": [">=", 100, 10],
+    "income": [">=", 60, 10],
     "num_children": [">=", 2, 1]
   },
   "selection_categorical_attributes": {
-    "county": ["county2", "county3"]
+    "county": ["county2", "county3", "county4"]
   },
   "all_sensitive_attributes": ["race"],
-  "number_fairness_constraints": 2,
+  "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
@@ -18,7 +18,7 @@
         "race": "race3"
       },
       "symbol": ">=",
-      "number": 5
+      "number": 2
     }
   ]
 }
