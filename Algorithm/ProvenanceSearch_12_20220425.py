@@ -1,7 +1,8 @@
 """
 executable
 Pure relaxations and refinements are treated differently.
-
+Difference from 10: recursively search the table
+but still slow...
 
 """
 
@@ -331,25 +332,24 @@ def build_sorted_table_relax_only(data, selected_attributes, numeric_attributes,
     sorted_table_by_column = dict()
 
     # sort first column
-    s = delta_table[columns_delta_table].to_records(index=False)
-    sorted_att_idx = np.argsort(s, order=columns_delta_table)
+    # s = delta_table[columns_delta_table].to_records(index=False)
+
+    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]])
+              for i in range(len(columns_delta_table))]
+    s2 = list(delta_table[columns_delta_table].itertuples(index=False))
+    s3 = np.array(s2, dtype=dtypes)
+
+    sorted_att_idx = np.argsort(s3, order=columns_delta_table)
     sorted_table_by_column[columns_delta_table[0]] = sorted_att_idx
 
-    tiebreaker_col = delta_table[columns_delta_table[0]]
+    # tiebreaker_col = delta_table[columns_delta_table[0]]
+    tiebreaker_col = [0] * len(sorted_att_idx)
+    for k, v in enumerate(sorted_att_idx):
+        tiebreaker_col[v] = k
 
-    # if len(numeric_attributes) == 0:
-    #     tiebreaker_col = delta_table[columns_delta_table[0]].replace(1, 200)
-    #     tiebreaker_col = tiebreaker_col.replace(-1, -200)
-    # else:
-    #     tiebreaker_col = delta_table[columns_delta_table[0]]
     tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
         values_in_col = delta_table[att]
-        # if att in numeric_attributes:
-        #     values_in_col = delta_table[att]
-        # else:
-        #     values_in_col = delta_table[att].replace(1, 200)
-        #     values_in_col = values_in_col.replace(-1, -200)
         s = np.array(list(zip(values_in_col,
                               tiebreaker_col)),
                      dtype=[('value', delta_table.dtypes[att]),
@@ -501,16 +501,24 @@ def build_sorted_table_bidirectional(data, selected_attributes, numeric_attribut
     sorted_table_by_column = dict()
 
     # sort first column
-    s = delta_table[columns_delta_table].abs().to_records(index=False)
-    sorted_att_idx = np.argsort(s, order=columns_delta_table)
+    # s = delta_table[columns_delta_table].abs().to_records(index=False)
+    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]])
+              for i in range(len(columns_delta_table))]
+    s2 = list(delta_table[columns_delta_table].abs().itertuples(index=False))
+    s3 = np.array(s2, dtype=dtypes)
+    sorted_att_idx = np.argsort(s3, order=columns_delta_table)
     sorted_table_by_column[columns_delta_table[0]] = sorted_att_idx
 
-    tiebreaker_col = delta_table[columns_delta_table[0]].abs()
+    # tiebreaker_col = delta_table[columns_delta_table[0]].abs()
+    tiebreaker_col = [0] * len(sorted_att_idx)
+    for k, v in enumerate(sorted_att_idx):
+        tiebreaker_col[v] = k
+
     tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
         values_in_col = delta_table[att]
         s = np.array(list(zip(values_in_col.abs(),
-                              tiebreaker_col.abs())),
+                              tiebreaker_col)),
                      dtype=[('value', delta_table.dtypes[att]),
                             ('tiebreaker', tiebreaker_dtype)])
         sorted_att_idx = np.argsort(s, order=['value', 'tiebreaker'])
@@ -1007,14 +1015,22 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     sorted_table_by_column = dict()
     # sort first column
     row_indices = delta_table.index.values
-    s = delta_table[columns_delta_table].to_records(index=False)
-    sorted_att_idx = np.argsort(s, order=columns_delta_table)
+    # s = delta_table[columns_delta_table].to_records(index=False)
+
+    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]]) for i in
+              range(len(columns_delta_table))]
+    s2 = list(delta_table[columns_delta_table].itertuples(index=False))
+    s3 = np.array(s2, dtype=dtypes)
+
+    sorted_att_idx = np.argsort(s3, order=columns_delta_table)
     sorted_delta_idx = row_indices[sorted_att_idx]
     sorted_table_by_column[columns_delta_table[0]] = sorted_delta_idx
+
     tiebreaker_col = [0] * len(sorted_att_idx)
     for k, v in enumerate(sorted_att_idx):
         tiebreaker_col[v] = k
     # tiebreaker_col = delta_table[columns_delta_table[0]]
+
     tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
         values_in_col = delta_table[att]
