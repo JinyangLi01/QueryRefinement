@@ -6,6 +6,7 @@ Difference from 3: support date format of numeric attributes
 """
 
 import copy
+from datetime import datetime, timedelta
 import json
 import time
 import pymysql
@@ -48,7 +49,7 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+def whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes, sql_file_read, sql_connection):
     # # get data selected
@@ -74,7 +75,7 @@ def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_at
     params = dict()
     for att in selection_numeric_attributes:
         num_numeric += 1
-        params['numeric'+str(num_numeric)] = selection_numeric_attributes[att][1] # FIXME???
+        params['numeric'+str(num_numeric)] = selection_numeric_attributes[att][1]  # FIXME???
 
     num_cate = 0
     for att in selection_categorical_attributes:
@@ -149,14 +150,20 @@ def transform_refinement_format(this_refinement, numeric_att_domain_to_relax, nu
         if minimal_refinement_values[i] == -1:
             minimal_refinement_values[i] = 0
         else:
-            minimal_refinement_values[i] = minimal_refinement_values[i] - \
+            if isinstance(selection_numeric_attributes[numeric_attributes[i]][1], str):
+                refined_date = datetime.strptime(minimal_refinement_values[i], '%Y-%m-%d')
+                selection_date = datetime.strptime(selection_numeric_attributes[numeric_attributes[i]][1], '%Y-%m-%d')
+                minimal_refinement_values[i] = (refined_date - selection_date).days
+            else:
+                minimal_refinement_values[i] = minimal_refinement_values[i] - \
                                            selection_numeric_attributes[numeric_attributes[i]][1]
     return minimal_refinement_values
 
 
-def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
+def LatticeTraversal(selected_attributes, sensitive_attributes, fairness_constraints,
                      numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                     selection_categorical_attributes, sql_file_read, sql_connection, time_limit=5 * 60):
+                     selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                     sql_connection, time_limit=5 * 60):
     # whether it's single-direction
     only_smaller_than = True
     only_greater_than = True
@@ -169,25 +176,65 @@ def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_c
             break
 
     if only_greater_than:
-        return LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
+        return LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                           selection_categorical_attributes, sql_file_read, sql_connection,
+                                           selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                           sql_connection,
                                            time_limit=5 * 60)
     elif only_smaller_than:
-        return LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
+        return LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                           selection_categorical_attributes, sql_file_read, sql_connection,
+                                           selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                           sql_connection,
                                            time_limit=5 * 60)
     else:
-        return LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
+        return LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fairness_constraints,
                                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                             selection_categorical_attributes, sql_file_read, sql_connection,
+                                             selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                             sql_connection,
                                              time_limit=5 * 60)
 
 
-def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
+
+
+def ProcessNumericAttributeBidirectional(att, selection_numeric_attributes, numeric_att_domain_to_relax,
+                            sql_file_read, sql_getinfo_file, sql_connection):
+    params = {"att": att}
+    cursor = sql_connection.cursor()
+    cursor.execute(sql_getinfo_file, params)
+    fetch_result = cursor.fetchall()  # ascending
+    unique_values = fetch_result
+
+    if isinstance(selection_numeric_attributes[att][1], str):  # date
+        if selection_numeric_attributes[att][0] == ">=":
+            unique_values = [x + timedelta(days=1) if x >= selection_numeric_attributes[att][1] else x for x in unique_values]
+        elif selection_numeric_attributes[att][0] == ">":
+            unique_values = [x - timedelta(days=1) if x < selection_numeric_attributes[att][1] else x for x in unique_values]
+        elif selection_numeric_attributes[att][0] == "<=":
+            unique_values = [x - timedelta(days=1) if x <= selection_numeric_attributes[att][1] else x for x in unique_values]
+        else:  # selection_numeric_attributes[att][0] == "<":
+            unique_values = [x + timedelta(days=1) if x > selection_numeric_attributes[att][1] else x for x in unique_values]
+        if selection_numeric_attributes[att][1] not in unique_values:
+            unique_values.append(selection_numeric_attributes[att][1])
+        return
+    else:
+        if selection_numeric_attributes[att][0] == ">=":
+            unique_values = [x + 1 if x >= selection_numeric_attributes[att][1] else x for x in unique_values]
+        elif selection_numeric_attributes[att][0] == ">":
+            unique_values = [x - 1 if x < selection_numeric_attributes[att][1] else x for x in unique_values]
+        elif selection_numeric_attributes[att][0] == "<=":
+            unique_values = [x - 1 if x <= selection_numeric_attributes[att][1] else x for x in unique_values]
+        else:  # selection_numeric_attributes[att][0] == "<":
+            unique_values = [x + 1 if x > selection_numeric_attributes[att][1] else x for x in unique_values]
+        if selection_numeric_attributes[att][1] not in unique_values:
+            unique_values.append(selection_numeric_attributes[att][1])
+    return
+
+
+def LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fairness_constraints,
                                   numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                  selection_categorical_attributes, sql_file_read, sql_connection, time_limit=5 * 60):
+                                  selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                  sql_connection, time_limit=5 * 60):
     categorical_att_domain_too_remove = []
     for att in categorical_attributes:
         s = [(att, v) for v in selection_categorical_attributes[att]]
@@ -200,6 +247,10 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
 
     numeric_att_domain_to_relax = dict()
     for att in numeric_attributes:
+        ProcessNumericAttributeBidirectional(att, selection_numeric_attributes, numeric_att_domain_to_relax,
+                                     sql_file_read, sql_getinfo_file, sql_connection)
+
+
         unique_values = data[att].unique().tolist() + [selection_numeric_attributes[att][1]]
         unique_values.sort()  # ascending
         if selection_numeric_attributes[att][0] == ">=":
@@ -214,6 +265,12 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
             unique_values.append(selection_numeric_attributes[att][1])
         # FIXME: DO I need to sort unique_values again? The value in originala selection is appended at lasat.
         numeric_att_domain_to_relax[att] = unique_values
+
+
+
+
+
+
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables_to_add = len(categorical_att_domain_too_add)
     num_cate_variables_to_remove = len(categorical_att_domain_too_remove)
@@ -301,39 +358,71 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
            categorical_att_domain_too_remove
 
 
-# it only considers contraction
-def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                selection_categorical_attributes, sql_file_read, sql_connection, time_limit=5 * 60):
-    categorical_att_domain_too_remove = []
-    for att in categorical_attributes:
-        s = [(att, v) for v in selection_categorical_attributes[att]]
-        categorical_att_domain_too_remove += s
 
-    numeric_att_domain_to_contract = dict()
-    for att in numeric_attributes:
+
+def ProcessNumericAttributeContract(att, selection_numeric_attributes, numeric_att_domain_to_contract,
+                            sql_file_read, sql_getinfo_file, sql_connection):
+    params = {"att": att}
+    cursor = sql_connection.cursor()
+    cursor.execute(sql_getinfo_file, params)
+    fetch_result = cursor.fetchall()  # ascending
+    if isinstance(selection_numeric_attributes[att][1], str):  # date
         if selection_numeric_attributes[att][0] == "<" or selection_numeric_attributes[att][0] == "<=":
-            unique_values = data[att].unique().tolist()
-            unique_values.sort(reverse=True)  # descending
+            unique_values = fetch_result[::-1]  # descending
             domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] < selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
         else:
-            unique_values = data[att].unique().tolist()
-            unique_values.sort()  # ascending
+            unique_values = fetch_result  # ascending
             domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] > selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
+        return
+    else:
+        if selection_numeric_attributes[att][0] == "<" or selection_numeric_attributes[att][0] == "<=":
+            unique_values = fetch_result[::-1]  # descending
+            domain = unique_values
+            for idx_domain in range(len(domain)):
+                if domain[idx_domain] < selection_numeric_attributes[att][1]:
+                    numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
+                    break
+        else:
+            unique_values = fetch_result  # ascending
+            domain = unique_values
+            for idx_domain in range(len(domain)):
+                if domain[idx_domain] > selection_numeric_attributes[att][1]:
+                    numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
+                    break
+    return
+
+
+
+# it only considers contraction
+def LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairness_constraints,
+                                numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                sql_connection, time_limit=5 * 60):
+    categorical_att_domain_too_remove = []
+    for att in categorical_attributes:
+        s = [(att, v) for v in selection_categorical_attributes[att]]
+        categorical_att_domain_too_remove += s
+
+    numeric_att_domain_to_contract = dict()
+
+    for att in numeric_attributes:
+        ProcessNumericAttributeContract(att, selection_numeric_attributes, numeric_att_domain_to_contract,
+                                sql_file_read, sql_getinfo_file, sql_connection)
+
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables = len(categorical_att_domain_too_remove)
     print("categorical_att_domain_too_add:\n", categorical_att_domain_too_remove)
     print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_contract)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+    if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes, sql_file_read, sql_connection):
         return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_contract, \
@@ -349,7 +438,7 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
         # if time.time() - time1 > time_limit:
         #     break
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
+            if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes,
@@ -396,40 +485,67 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove
 
 
-# it only considers relaxation
-def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                selection_categorical_attributes, sql_file_read, sql_connection, time_limit=5 * 60):
-    categorical_att_domain_too_add = []
-    for att in categorical_attributes:
-        s = [(att, v) for v in categorical_attributes[att] if v not in selection_categorical_attributes[att]]
-        categorical_att_domain_too_add += s
-
-    numeric_att_domain_to_relax = dict()
-    for att in numeric_attributes:
+def ProcessNumericAttributeRelax(att, selection_numeric_attributes, numeric_att_domain_to_relax,
+                            sql_file_read, sql_getinfo_file, sql_connection):
+    params = {"att": att}
+    cursor = sql_connection.cursor()
+    cursor.execute(sql_getinfo_file, params)
+    fetch_result = cursor.fetchall()  # ascending
+    if isinstance(selection_numeric_attributes[att][1], str):  # date
         if selection_numeric_attributes[att][0] == ">" or selection_numeric_attributes[att][0] == ">=":
-            unique_values = data[att].unique().tolist()
-            unique_values.sort(reverse=True)  # descending
+            unique_values = fetch_result[::-1]  # descending
             domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] < selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_relax[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
         else:
-            unique_values = data[att].unique().tolist()
-            unique_values.sort()  # ascending
+            unique_values = fetch_result  # ascending
             domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] > selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_relax[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
+        return
+    else:
+        if selection_numeric_attributes[att][0] == ">" or selection_numeric_attributes[att][0] == ">=":
+            unique_values = fetch_result[::-1]  # descending
+            domain = unique_values
+            for idx_domain in range(len(domain)):
+                if domain[idx_domain] < selection_numeric_attributes[att][1]:
+                    numeric_att_domain_to_relax[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
+                    break
+        else:
+            unique_values = fetch_result  # ascending
+            domain = unique_values
+            for idx_domain in range(len(domain)):
+                if domain[idx_domain] > selection_numeric_attributes[att][1]:
+                    numeric_att_domain_to_relax[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
+                    break
+    return
+
+# it only considers relaxation
+def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairness_constraints,
+                                numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                                sql_connection, time_limit=5 * 60):
+    categorical_att_domain_too_add = []
+    for att in categorical_attributes:
+        s = [(att, v) for v in categorical_attributes[att] if v not in selection_categorical_attributes[att]]
+        categorical_att_domain_too_add += s
+
+    numeric_att_domain_to_relax = dict()
+
+    for att in numeric_attributes:
+        ProcessNumericAttributeRelax(att, selection_numeric_attributes, numeric_att_domain_to_relax,
+                                sql_file_read, sql_getinfo_file, sql_connection)
 
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables = len(categorical_att_domain_too_add)
     print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
     print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+    if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes, sql_file_read, sql_connection):
         return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_relax, \
@@ -444,7 +560,7 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
         # if time.time() - time1 > time_limit:
         #     break
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
+            if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes,
@@ -495,7 +611,7 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
 
 
 
-def FindMinimalRefinement(data, selection_file, sql_file_read, sql_connection):
+def FindMinimalRefinement(data, selection_file, sql_file_read, sql_getinfo_file, sql_connection):
 
     with open(selection_file) as f:
         info = json.load(f)
@@ -515,7 +631,8 @@ def FindMinimalRefinement(data, selection_file, sql_file_read, sql_connection):
     minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove \
         = LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                           selection_categorical_attributes, sql_file_read, sql_connection, time_limit=5 * 60)
+                           selection_categorical_attributes, sql_file_read, sql_getinfo_file,
+                           sql_connection, time_limit=5 * 60)
 
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
