@@ -611,7 +611,7 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
 
 
 
-def FindMinimalRefinement(data, selection_file, sql_file_read, sql_getinfo_file, sql_connection):
+def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file, sql_connection):
 
     with open(selection_file) as f:
         info = json.load(f)
@@ -629,7 +629,7 @@ def FindMinimalRefinement(data, selection_file, sql_file_read, sql_getinfo_file,
 
     time1 = time.time()
     minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove \
-        = LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
+        = LatticeTraversal(selected_attributes, sensitive_attributes, fairness_constraints,
                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
                            selection_categorical_attributes, sql_file_read, sql_getinfo_file,
                            sql_connection, time_limit=5 * 60)
@@ -647,17 +647,17 @@ def FindMinimalRefinement(data, selection_file, sql_file_read, sql_getinfo_file,
 
 
 
-
-data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
-
-
-# data_file = r"toy_examples/example2.csv"
-# selection_file = r"toy_examples/selection2.json"
-
-minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
-
+#
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+#
+#
+# # data_file = r"toy_examples/example2.csv"
+# # selection_file = r"toy_examples/selection2.json"
+#
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#
