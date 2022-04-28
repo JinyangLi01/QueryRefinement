@@ -1089,6 +1089,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         # even if this is not minimal, it still gives a stop line
                         if not set_stop_line:
                             value_assignment_remained_columns = [value_assignment[i] for i in index_of_columns_remained]
+                            if value_assignment == [0, 3, 0, 0]:
+                                print("stop here!")
                             stop_line = update_stop_line_relax_only([t], stop_line,
                                                                     sorted_table, delta_table[columns_delta_table],
                                                                     delta_table[columns_delta_table],
@@ -1110,7 +1112,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                     #                                          if original_columns_delta_table[x] != col]
                                     resort_and_search_relax_only(terms_above_stop_line,
                                                                  delta_table.loc[terms_above_stop_line],
-                                                                 columns_delta_table, list(range(len(columns_delta_table))),
+                                                                 columns_delta_table, index_of_columns_remained,
                                                                  minimal_added_relaxations,
                                                                  original_columns_delta_table,
                                                                  checked_satisfying_constraints,
@@ -1247,7 +1249,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                     #                              if original_columns_delta_table[x] != col]
                                     resort_and_search_relax_only(terms_above_stop_line,
                                                                  delta_table.loc[terms_above_stop_line],
-                                                                 columns_delta_table, list(range(len(columns_delta_table))),
+                                                                 columns_delta_table, index_of_columns_remained,
                                                                  minimal_added_relaxations,
                                                                  original_columns_delta_table,
                                                                  checked_satisfying_constraints,
@@ -1261,10 +1263,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                  fairness_constraints_provenance_smaller_than,
                                                                  threshold_to_resort)
                             col_idx += 1
-                        # else: # FIXME: !!!~
-                        #     stop_line = pd.Series([row_num] * num_columns, sorted_table.columns)
-                        #     break
-                        break
+                        break # FIXME: can i break here?
                         # if row_num > 80:
                         #     print("time9 - time8 = {}".format(time9 - time8))
                         #     print("time10 - time9 = {}".format(time10 - time9))
@@ -1348,7 +1347,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                     if stop_line[col] > row_num + 10:
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
-                                        new_columns = columns_delta_table.copy()
+                                        # new_columns = columns_delta_table.copy()
                                         # new_columns.remove(col)
                                         # index_of_columns_remained = list(range(num_columns))
                                         # index_of_columns_remained.remove(col_idx)
