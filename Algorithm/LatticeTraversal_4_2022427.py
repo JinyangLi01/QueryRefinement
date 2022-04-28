@@ -6,6 +6,7 @@ Difference from 3: support date format of numeric attributes
 """
 
 import copy
+import csv
 from datetime import datetime, timedelta
 import json
 import time
@@ -51,7 +52,8 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 
 def whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                         selection_categorical_attributes, sql_file_read, sql_connection):
+                                         selection_categorical_attributes, sql_file_read, sql_connection,
+                                         answer_columns):
     # # get data selected
     # def select(row):
     #     for att in selection_numeric_attributes:
@@ -91,8 +93,7 @@ def whether_satisfy_fairness_constraints(selected_attributes, sensitive_attribut
     cursor = sql_connection.cursor()
     cursor.execute(sql_file_read, params)
     fetch_result = cursor.fetchall()
-    data_selected = pd.DataFrame(fetch_result)
-    print(data_selected[:3])
+    data_selected = pd.DataFrame(fetch_result, columns=answer_columns)
 
     sql_connection.commit()
 
@@ -165,7 +166,7 @@ def transform_refinement_format(this_refinement, numeric_att_domain_to_relax, nu
 def LatticeTraversal(selected_attributes, sensitive_attributes, fairness_constraints,
                      numeric_attributes, categorical_attributes, selection_numeric_attributes,
                      selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                     sql_connection, time_limit=5 * 60):
+                     sql_connection, answer_columns, time_limit=5 * 60):
     # whether it's single-direction
     only_smaller_than = True
     only_greater_than = True
@@ -181,19 +182,19 @@ def LatticeTraversal(selected_attributes, sensitive_attributes, fairness_constra
         return LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                            selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                           sql_connection,
+                                           sql_connection, answer_columns,
                                            time_limit=5 * 60)
     elif only_smaller_than:
         return LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                            selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                           sql_connection,
+                                           sql_connection, answer_columns,
                                            time_limit=5 * 60)
     else:
         return LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fairness_constraints,
                                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                              selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                             sql_connection,
+                                             sql_connection, answer_columns,
                                              time_limit=5 * 60)
 
 
@@ -240,7 +241,7 @@ def ProcessNumericAttributeBidirectional(att, selection_numeric_attributes, nume
 def LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fairness_constraints,
                                   numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                   selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                  sql_connection, time_limit=5 * 60):
+                                  sql_connection, answer_columns, time_limit=5 * 60):
     categorical_att_domain_too_remove = []
     for att in categorical_attributes:
         s = [(att, v) for v in selection_categorical_attributes[att]]
@@ -257,9 +258,6 @@ def LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fai
                                      sql_file_read, sql_getinfo_file_read, sql_connection)
 
 
-
-
-
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables_to_add = len(categorical_att_domain_too_add)
     num_cate_variables_to_remove = len(categorical_att_domain_too_remove)
@@ -269,7 +267,8 @@ def LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fai
     minimal_refinements = []
     if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes, sql_file_read, sql_connection):
+                                            selection_categorical_attributes, sql_file_read, sql_connection,
+                                            answer_columns):
         return [0] * num_numeric_att + [0] * (num_cate_variables_to_add + num_cate_variables_to_remove), \
                numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove
         # return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
@@ -291,7 +290,7 @@ def LatticeTraversalBidirectional(selected_attributes, sensitive_attributes, fai
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes,
-                                                    sql_file_read, sql_connection):
+                                                    sql_file_read, sql_connection, answer_columns):
                 # print("{} satisfies".format(this_refinement))
                 minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_relax,
                                                                         num_numeric_att, selection_numeric_attributes,
@@ -395,7 +394,7 @@ def ProcessNumericAttributeContract(att, selection_numeric_attributes, numeric_a
 def LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                sql_connection, time_limit=5 * 60):
+                                sql_connection, answer_columns, time_limit=5 * 60):
     categorical_att_domain_too_remove = []
     for att in categorical_attributes:
         s = [(att, v) for v in selection_categorical_attributes[att]]
@@ -414,7 +413,8 @@ def LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairn
     minimal_refinements = []
     if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes, sql_file_read, sql_connection):
+                                            selection_categorical_attributes, sql_file_read, sql_connection,
+                                            answer_columns):
         return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_contract, \
            [], categorical_att_domain_too_remove
 
@@ -432,7 +432,7 @@ def LatticeTraversalSmallerThan(selected_attributes, sensitive_attributes, fairn
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes,
-                                                    sql_file_read, sql_connection):
+                                                    sql_file_read, sql_connection, answer_columns):
                 minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_contract,
                                                                         num_numeric_att, selection_numeric_attributes,
                                                                         numeric_attributes)
@@ -519,7 +519,7 @@ def ProcessNumericAttributeRelax(att, selection_numeric_attributes, numeric_att_
 def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                                sql_connection, time_limit=5 * 60):
+                                sql_connection, answer_columns, time_limit=5 * 60):
     categorical_att_domain_too_add = []
     for att in categorical_attributes:
         s = [(att, v) for v in categorical_attributes[att] if v not in selection_categorical_attributes[att]]
@@ -538,7 +538,8 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
     minimal_refinements = []
     if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes, sql_file_read, sql_connection):
+                                            selection_categorical_attributes, sql_file_read, sql_connection,
+                                            answer_columns):
         return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_relax, \
                categorical_att_domain_too_add, []
     # I need to remember where I was last time
@@ -555,7 +556,7 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes,
-                                                    sql_file_read, sql_connection):
+                                                    sql_file_read, sql_connection, answer_columns):
                 minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_relax,
                                                                         num_numeric_att, selection_numeric_attributes,
                                                                         numeric_attributes)
@@ -602,7 +603,7 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
 
 
 
-def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file_read, sql_connection):
+def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file_read, sql_connection, answer_column_file):
 
     with open(selection_file) as f:
         info = json.load(f)
@@ -619,6 +620,10 @@ def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file_read, 
     pd.set_option('display.float_format', '{:.3f}'.format)
 
 
+    answer_columns = pd.read_csv(answer_column_file, delimiter=", ", engine='python').columns.tolist()
+    answer_columns = [x.replace('\'', '') for x in answer_columns]
+
+
     for att in selection_numeric_attributes:
         if not isinstance(selection_numeric_attributes[att][1], int):  # date
             selection_numeric_attributes[att][1] = datetime.strptime(selection_numeric_attributes[att][1],
@@ -629,7 +634,7 @@ def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file_read, 
         = LatticeTraversal(selected_attributes, sensitive_attributes, fairness_constraints,
                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
                            selection_categorical_attributes, sql_file_read, sql_getinfo_file_read,
-                           sql_connection, time_limit=5 * 60)
+                           sql_connection, answer_columns, time_limit=5 * 60)
 
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
