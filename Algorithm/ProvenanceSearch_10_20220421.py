@@ -331,25 +331,22 @@ def build_sorted_table_relax_only(data, selected_attributes, numeric_attributes,
     sorted_table_by_column = dict()
 
     # sort first column
-    s = delta_table[columns_delta_table].to_records(index=False)
-    sorted_att_idx = np.argsort(s, order=columns_delta_table)
+    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]])
+              for i in range(len(columns_delta_table))]
+    s2 = list(delta_table[columns_delta_table].itertuples(index=False))
+    s3 = np.array(s2, dtype=dtypes)
+
+    sorted_att_idx = np.argsort(s3, order=columns_delta_table)
     sorted_table_by_column[columns_delta_table[0]] = sorted_att_idx
 
-    tiebreaker_col = delta_table[columns_delta_table[0]]
+    # tiebreaker_col = delta_table[columns_delta_table[0]]
+    tiebreaker_col = [0] * len(sorted_att_idx)
+    for k, v in enumerate(sorted_att_idx):
+        tiebreaker_col[v] = k
 
-    # if len(numeric_attributes) == 0:
-    #     tiebreaker_col = delta_table[columns_delta_table[0]].replace(1, 200)
-    #     tiebreaker_col = tiebreaker_col.replace(-1, -200)
-    # else:
-    #     tiebreaker_col = delta_table[columns_delta_table[0]]
     tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
         values_in_col = delta_table[att]
-        # if att in numeric_attributes:
-        #     values_in_col = delta_table[att]
-        # else:
-        #     values_in_col = delta_table[att].replace(1, 200)
-        #     values_in_col = values_in_col.replace(-1, -200)
         s = np.array(list(zip(values_in_col,
                               tiebreaker_col)),
                      dtype=[('value', delta_table.dtypes[att]),
@@ -501,16 +498,28 @@ def build_sorted_table_bidirectional(data, selected_attributes, numeric_attribut
     sorted_table_by_column = dict()
 
     # sort first column
-    s = delta_table[columns_delta_table].abs().to_records(index=False)
-    sorted_att_idx = np.argsort(s, order=columns_delta_table)
+    # sort first column
+    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]])
+              for i in range(len(columns_delta_table))]
+    s2 = list(delta_table[columns_delta_table].abs().itertuples(index=False))
+    s3 = np.array(s2, dtype=dtypes)
+
+    # s = delta_table[columns_delta_table].abs().to_records(index=False)
+    sorted_att_idx = np.argsort(s3, order=columns_delta_table)
     sorted_table_by_column[columns_delta_table[0]] = sorted_att_idx
 
-    tiebreaker_col = delta_table[columns_delta_table[0]].abs()
+
+
+    # tiebreaker_col = delta_table[columns_delta_table[0]].abs()
+    tiebreaker_col = [0] * len(sorted_att_idx)
+    for k, v in enumerate(sorted_att_idx):
+        tiebreaker_col[v] = k
+
     tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
         values_in_col = delta_table[att]
         s = np.array(list(zip(values_in_col.abs(),
-                              tiebreaker_col.abs())),
+                              tiebreaker_col)),
                      dtype=[('value', delta_table.dtypes[att]),
                             ('tiebreaker', tiebreaker_dtype)])
         sorted_att_idx = np.argsort(s, order=['value', 'tiebreaker'])
@@ -1023,7 +1032,8 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                        selection_numeric, selection_categorical, columns_delta_table,
                                                        num_columns, fairness_constraints_provenance_greater_than,
                                                        fairness_constraints_provenance_smaller_than):
-                        assign_successfully = True
+                        checked_satisfying_constraints.add(t_str)
+                        checked_assignments_satisfying.append(value_assignment)
                         # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
                         this_is_minimal, minimal_added_relaxations = \
                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
@@ -1037,15 +1047,42 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                                         categorical_attributes, categorical_att_columns)
                                 set_stop_line = True
                                 print("stop line: {}".format(stop_line))
-                        checked_satisfying_constraints.add(t_str)
-                        checked_assignments_satisfying.append(value_assignment)
+
+                        continue
                     else:
                         checked_unsatisfying_constraints.add(t_str)
                         checked_assignments_unsatisfying.append(value_assignment)
-            if assign_successfully:
-                continue
+
 
             terms_above = list(sorted_table.loc[:row_num - 1, i])
+            print("============== terms_above: {}".format(terms_above))
+            # check whether all these terms satisfies constraints, if not, no need to check each smaller one
+
+            combo_str = intbitset(terms_above).strbits()
+            if combo_str  in checked_unsatisfying_constraints:
+                continue
+            if combo_str not in checked_satisfying_constraints:
+                combo_w_t = [t] + terms_above
+                combo_str = intbitset(combo_w_t).strbits()
+                if combo_str in checked_unsatisfying_constraints:
+                    continue
+                elif combo_str not in checked_satisfying_constraints:
+                    value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
+                    if value_assignment in checked_assignments_satisfying:
+                        checked_satisfying_constraints.add(combo_str)
+                    elif value_assignment in checked_assignments_unsatisfying:
+                        checked_unsatisfying_constraints.add(combo_str)
+                        continue
+                    else:
+                        if not assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes,
+                                                           selection_numeric, selection_categorical,
+                                                           columns_delta_table, num_columns,
+                                                           fairness_constraints_provenance_greater_than,
+                                                           fairness_constraints_provenance_smaller_than):
+                            print("terms above doesn't satisfy")
+                            continue
+                        print("need to check smaller terms, value assignment for terms above = {}".format(value_assignment))
+            print("need to check smaller terms\n")
             combo_list = [[y] for y in terms_above]
             while len(combo_list) > 0:
                 combo: List[Any] = combo_list.pop(0)
@@ -1058,23 +1095,23 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                 if combo_str in checked_satisfying_constraints:
                     continue
                 if combo_str in checked_unsatisfying_constraints:
-                    # generate children
+                    # generate children  # FIXME: is this correct?
                     idx = terms_above.index(combo[-1])
                     for x in terms_above[idx + 1:]:
                         combo_list.append(combo + [x])
                     continue
-
-                # # optimization 1: if all terms in the set are relaxation/contraction terms, skip
-                # terms_set = delta_table.iloc[combo_w_t]
-                # if terms_set['relaxation_term'].eq(True).all() or terms_set['relaxation_term'].eq(False).all():
-                #     checked_invalid_combination.append(combo_str)
-                #     continue
+                # print("check term set {}".format(combo_w_t))
                 value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
                 if value_assignment in checked_assignments_satisfying:
                     checked_satisfying_constraints.add(combo_str)
                     continue
                 elif value_assignment in checked_assignments_unsatisfying:
                     checked_unsatisfying_constraints.add(combo_str)
+                    # FIXME: do i need to generate children here?
+                    idx = terms_above.index(combo[-1])
+                    for x in terms_above[idx + 1:]:
+                        combo_list.append(combo + [x])
+                    continue
                 else:
                     # check larger term set if this one doesn't satisfy the fairness constraints
                     # if it does, whether minimal or not, don't check larger ones
@@ -1083,7 +1120,8 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                        columns_delta_table, num_columns,
                                                        fairness_constraints_provenance_greater_than,
                                                        fairness_constraints_provenance_smaller_than):
-                        # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
+                        checked_satisfying_constraints.add(combo_str)
+                        checked_assignments_satisfying.append(value_assignment)
                         this_is_minimal, minimal_added_relaxations = \
                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
                         if this_is_minimal:
@@ -1096,8 +1134,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                                         categorical_att_columns)
                                 set_stop_line = True
                                 print("stop line {}".format(stop_line))
-                        checked_satisfying_constraints.add(combo_str)
-                        checked_assignments_satisfying.append(value_assignment)
+
                     else:
                         checked_unsatisfying_constraints.add(combo_str)
                         checked_assignments_unsatisfying.append(value_assignment)
@@ -1372,8 +1409,7 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file, selection_file):
-    data = pd.read_csv(data_file)
+def FindMinimalRefinement(data, selection_file):
     with open(selection_file) as f:
         info = json.load(f)
 
@@ -1478,16 +1514,16 @@ def FindMinimalRefinement(data_file, selection_file):
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
-#
-# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
-#
-#
-# # data_file = r"toy_examples/example2.csv"
-# # selection_file = r"toy_examples/selection2.json"
-#
-# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-#
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
-#
+
+data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+
+
+# data_file = r"toy_examples/example2.csv"
+# selection_file = r"toy_examples/selection2.json"
+
+minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
