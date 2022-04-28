@@ -1059,7 +1059,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
             # check whether all these terms satisfies constraints, if not, no need to check each smaller one
 
             combo_str = intbitset(terms_above).strbits()
-            if combo_str  in checked_unsatisfying_constraints:
+            if combo_str in checked_unsatisfying_constraints:
                 continue
             if combo_str not in checked_satisfying_constraints:
                 combo_w_t = [t] + terms_above
@@ -1518,11 +1518,11 @@ def FindMinimalRefinement(data, selection_file):
 data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
 
-
+data = pd.read_csv(data_file)
 # data_file = r"toy_examples/example2.csv"
 # selection_file = r"toy_examples/selection2.json"
 
-minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data, selection_file)
 
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
