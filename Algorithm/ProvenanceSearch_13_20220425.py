@@ -1,10 +1,9 @@
 """
 executable
 Pure relaxations and refinements are treated differently.
-Difference from 10: recursively search the table
-
-Do the recursion only when there are >2 columns remaining to check
-And remove the current column when enter a new recursion
+Difference from 12:
+12 get rid of the current column when it needs to resort a subset
+13 doesn't remove columns
 
 """
 
@@ -1051,6 +1050,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     stop_line = pd.Series([len(sorted_table)] * num_columns, sorted_table.columns)
     columns_resort = set()
 
+    print("resort_and_search_relax_only, num of terms = {}".format(len(terms)))
+
     def iterrow(row):
         nonlocal row_num
         nonlocal set_stop_line
@@ -1103,13 +1104,13 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                     if stop_line[col] > row_num + 10:
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
-                                        new_columns = columns_delta_table.copy()
-                                        new_columns.remove(col)
-                                        index_of_columns_remained_without_col = [x for x in index_of_columns_remained
-                                                                                 if original_columns_delta_table[x] != col]
+                                        # new_columns = columns_delta_table.copy()
+                                        # new_columns.remove(col)
+                                        # index_of_columns_remained_without_col = [x for x in index_of_columns_remained
+                                        #                                          if original_columns_delta_table[x] != col]
                                         resort_and_search_relax_only(terms_above_stop_line,
                                                                      delta_table.loc[terms_above_stop_line],
-                                                                     new_columns, index_of_columns_remained_without_col,
+                                                                     columns_delta_table, list(range(len(columns_delta_table))),
                                                                      minimal_added_relaxations,
                                                                      original_columns_delta_table,
                                                                      checked_satisfying_constraints,
@@ -1133,7 +1134,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                 print("time2 - time1 = {}".format(time2 - time1))
 
             terms_above = list(sorted_table.loc[:row_num - 1, i])
-            print("============== terms_above: {}".format(terms_above))
+            # print("============== terms_above: {}".format(terms_above))
             # check whether all these terms satisfies constraints, if not, no need to check each smaller one
 
             combo_str = intbitset(terms_above).strbits()
@@ -1160,8 +1161,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                fairness_constraints_provenance_smaller_than):
                             print("terms above doesn't satisfy")
                             continue
-                        print("need to check smaller terms, value assignment for terms above = {}".format(
-                            value_assignment))
+                        print("term above satisfy, need to check smaller terms, "
+                              "value assignment for terms above = {}".format(value_assignment))
             print("need to check smaller terms\n")
 
 
@@ -1221,7 +1222,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
                         time10 = time.time()
                         # print("find minimal, terms: {}, value_assignment: {}".format(combo_w_t, value_assignment))
-
+                        # if num_columns > 2:
                         if not set_stop_line:
                             value_assignment_remained_columns = [value_assignment[i] for i in
                                                                  index_of_columns_remained]
@@ -1240,13 +1241,13 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                     if stop_line[col] > row_num + 10:
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
-                                        new_columns = columns_delta_table.copy()
-                                        new_columns.remove(col)
-                                        index_of_columns_remained_without_col = [x for x in index_of_columns_remained
-                                                                     if original_columns_delta_table[x] != col]
+                                        # new_columns = columns_delta_table.copy()
+                                        # new_columns.remove(col)
+                                        # index_of_columns_remained_without_col = [x for x in index_of_columns_remained
+                                        #                              if original_columns_delta_table[x] != col]
                                         resort_and_search_relax_only(terms_above_stop_line,
                                                                      delta_table.loc[terms_above_stop_line],
-                                                                     new_columns, index_of_columns_remained_without_col,
+                                                                     columns_delta_table, list(range(len(columns_delta_table))),
                                                                      minimal_added_relaxations,
                                                                      original_columns_delta_table,
                                                                      checked_satisfying_constraints,
@@ -1260,13 +1261,14 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                      fairness_constraints_provenance_smaller_than,
                                                                      threshold_to_resort)
                                 col_idx += 1
-                        # else:  # FIXME: !!!~
+                        # else: # FIXME: !!!~
                         #     stop_line = pd.Series([row_num] * num_columns, sorted_table.columns)
                         #     break
-                        if row_num > 80:
-                            print("time9 - time8 = {}".format(time9 - time8))
-                            print("time10 - time9 = {}".format(time10 - time9))
-                    else:
+                        break
+                        # if row_num > 80:
+                        #     print("time9 - time8 = {}".format(time9 - time8))
+                        #     print("time10 - time9 = {}".format(time10 - time9))
+                    else:  # if doesn't satisfy provenance constraints
                         checked_unsatisfying_constraints.add(combo_str)
                         checked_assignments_unsatisfying.append(value_assignment)
                         # generate children
@@ -1347,12 +1349,12 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
                                         new_columns = columns_delta_table.copy()
-                                        new_columns.remove(col)
-                                        index_of_columns_remained = list(range(num_columns))
-                                        index_of_columns_remained.remove(col_idx)
+                                        # new_columns.remove(col)
+                                        # index_of_columns_remained = list(range(num_columns))
+                                        # index_of_columns_remained.remove(col_idx)
                                         resort_and_search_relax_only(terms_above_stop_line,
                                                                      delta_table.loc[terms_above_stop_line],
-                                                                     new_columns, index_of_columns_remained,
+                                                                     columns_delta_table, list(range(len(columns_delta_table))),
                                                                      minimal_added_relaxations,
                                                                      columns_delta_table,
                                                                      checked_satisfying_constraints,
@@ -1899,3 +1901,4 @@ minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefine
 
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
+

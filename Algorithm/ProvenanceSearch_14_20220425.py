@@ -2,8 +2,10 @@
 executable
 Pure relaxations and refinements are treated differently.
 Difference from 13:
-13 doesn't resort when there are only two colmns
+13 doesn't resort when there are only two columns
 14 does
+
+
 
 """
 
@@ -1003,8 +1005,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                  categorical_att_columns, categorical_attributes, selection_numeric,
                                  selection_categorical,
                                  fairness_constraints_provenance_greater_than,
-                                 fairness_constraints_provenance_smaller_than,
-                                 threshold_to_resort):
+                                 fairness_constraints_provenance_smaller_than):
     # if all values in a column are the same, delete this column
     nunique = delta_table[columns_delta_table].nunique()
     cols_to_drop = nunique[nunique == 1].index
@@ -1089,8 +1090,6 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         # even if this is not minimal, it still gives a stop line
                         if not set_stop_line:
                             value_assignment_remained_columns = [value_assignment[i] for i in index_of_columns_remained]
-                            if value_assignment == [0, 3, 0, 0]:
-                                print("stop here!")
                             stop_line = update_stop_line_relax_only([t], stop_line,
                                                                     sorted_table, delta_table[columns_delta_table],
                                                                     delta_table[columns_delta_table],
@@ -1123,8 +1122,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                  categorical_att_columns, categorical_attributes,
                                                                  selection_numeric, selection_categorical,
                                                                  fairness_constraints_provenance_greater_than,
-                                                                 fairness_constraints_provenance_smaller_than,
-                                                                 threshold_to_resort)
+                                                                 fairness_constraints_provenance_smaller_than)
                             col_idx += 1
                     else:
                         checked_unsatisfying_constraints.add(t_str)
@@ -1260,8 +1258,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                  categorical_att_columns, categorical_attributes,
                                                                  selection_numeric, selection_categorical,
                                                                  fairness_constraints_provenance_greater_than,
-                                                                 fairness_constraints_provenance_smaller_than,
-                                                                 threshold_to_resort)
+                                                                 fairness_constraints_provenance_smaller_than)
                             col_idx += 1
                         break # FIXME: can i break here?
                         # if row_num > 80:
@@ -1285,8 +1282,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
 
 def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_attributes,
                       categorical_att_columns, categorical_attributes, selection_numeric, selection_categorical,
-                      fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than,
-                      threshold_to_resort):
+                      fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than):
     minimal_added_relaxations = []  # relaxation to add to original selection conditions
     checked_satisfying_constraints = set()  # set of bit arrays
     checked_unsatisfying_constraints = set()
@@ -1364,8 +1360,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                                      categorical_att_columns, categorical_attributes,
                                                                      selection_numeric, selection_categorical,
                                                                      fairness_constraints_provenance_greater_than,
-                                                                     fairness_constraints_provenance_smaller_than,
-                                                                     threshold_to_resort)
+                                                                     fairness_constraints_provenance_smaller_than)
                                     col_idx += 1
                         continue
                     else:
@@ -1492,8 +1487,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                                      categorical_att_columns, categorical_attributes,
                                                                      selection_numeric, selection_categorical,
                                                                      fairness_constraints_provenance_greater_than,
-                                                                     fairness_constraints_provenance_smaller_than,
-                                                                     threshold_to_resort)
+                                                                     fairness_constraints_provenance_smaller_than)
                                     col_idx += 1
 
                         if row_num > 80:
@@ -1810,7 +1804,6 @@ def FindMinimalRefinement(data_file, selection_file):
     # print(*fairness_constraints_provenance_greater_than, sep="\n")
     # print(*fairness_constraints_provenance_smaller_than, sep="\n")
 
-    threshold_to_resort = 10
 
     if only_greater_than:
         time_table1 = time.time()
@@ -1836,8 +1829,7 @@ def FindMinimalRefinement(data_file, selection_file):
                                                       categorical_attributes, selection_numeric_attributes,
                                                       selection_categorical_attributes,
                                                       fairness_constraints_provenance_greater_than,
-                                                      fairness_constraints_provenance_smaller_than,
-                                                      threshold_to_resort)
+                                                      fairness_constraints_provenance_smaller_than)
         time_search2 = time.time()
         minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
                                                              selection_numeric_attributes,
