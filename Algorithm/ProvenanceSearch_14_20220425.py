@@ -1011,8 +1011,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     cols_to_drop = nunique[nunique == 1].index
     # delta_table.drop(cols_to_drop, axis=1, inplace=True)
     columns_delta_table = [x for x in columns_delta_table if x not in cols_to_drop]
-    index_of_columns_remained = [i for i in index_of_columns_remained if original_columns_delta_table[i] not in cols_to_drop]
-
+    index_of_columns_remained = [i for i in index_of_columns_remained if
+                                 original_columns_delta_table[i] not in cols_to_drop]
 
     sorted_table_by_column = dict()
     # sort first column
@@ -1052,8 +1052,15 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     columns_resort = set()
 
     print("resort_and_search_relax_only, num of terms = {}".format(len(terms)))
+    if len(terms) == 94:
+        print("stop here!!!!!!!!!!")
+
+    if len(terms) == 72 or len(terms) == 69:
+        print(delta_table, sorted_table)
+
 
     def iterrow(row):
+        global value_assignment
         nonlocal row_num
         nonlocal set_stop_line
         nonlocal stop_line
@@ -1064,6 +1071,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                 continue
             if i in columns_resort:
                 continue
+            if len(terms) == 69:
+                print("row_num={}".format(row_num))
             assign_successfully = False
             t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
             time1 = time.time()
@@ -1102,7 +1111,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                             ################## whether to resort ####################
                             col_idx = 0
                             for col in columns_delta_table:
-                                if stop_line[col] > row_num + 10:
+                                if stop_line[col] > row_num + 1:
                                     columns_resort.add(col)
                                     terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
                                     # new_columns = columns_delta_table.copy()
@@ -1134,12 +1143,11 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                 print("time2 - time1 = {}".format(time2 - time1))
 
             terms_above = list(sorted_table.loc[:row_num - 1, i])
-            # print("============== terms_above: {}".format(terms_above))
+            if len(terms) == 94:
+                print("============== terms_above: {}".format(terms_above))
             # check whether all these terms satisfies constraints, if not, no need to check each smaller one
 
             combo_str = intbitset(terms_above).strbits()
-            if combo_str in checked_unsatisfying_constraints:
-                continue
             if combo_str not in checked_satisfying_constraints:
                 combo_w_t = [t] + terms_above
                 combo_str = intbitset(combo_w_t).strbits()
@@ -1159,12 +1167,21 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                original_columns_delta_table, num_columns,
                                                                fairness_constraints_provenance_greater_than,
                                                                fairness_constraints_provenance_smaller_than):
-                         #   print("terms above doesn't satisfy")
+                            if len(terms) == 94:
+                                print("terms above don't satisfy")
                             continue
             #             print("term above satisfy, need to check smaller terms, "
             #                   "value assignment for terms above = {}".format(value_assignment))
             # print("need to check smaller terms\n")
-
+            if len(terms) == 94:
+                print("value_assignment for terms above = {}".format(value_assignment))
+            # check whether value assignment for this term and terms above is tight
+            if whether_value_assignment_is_tight(value_assignment, numeric_attributes, categorical_attributes,
+                                                 selection_numeric, selection_categorical,
+                                                 original_columns_delta_table, num_columns,
+                                                 fairness_constraints_provenance_greater_than,
+                                                 fairness_constraints_provenance_smaller_than):
+                continue
 
             combo_list = [[y] for y in terms_above]
             while len(combo_list) > 0:
@@ -1191,6 +1208,8 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                     continue
                 time6 = time.time()
                 value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
+                if len(terms) == 94:
+                    print("check term set {}, value assignment = {}".format(combo_w_t, value_assignment))
                 time7 = time.time()
                 if row_num > 80:
                     print("time4 - time3 = {}".format(time4 - time3))
@@ -1238,7 +1257,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                             ################## whether to resort ####################
                             col_idx = 0
                             for col in columns_delta_table:
-                                if stop_line[col] > row_num + 10:
+                                if stop_line[col] > row_num + 1:
                                     columns_resort.add(col)
                                     terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
                                     # new_columns = columns_delta_table.copy()
@@ -1260,7 +1279,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                                  fairness_constraints_provenance_greater_than,
                                                                  fairness_constraints_provenance_smaller_than)
                             col_idx += 1
-                        break # FIXME: can i break here?
+                        break  # FIXME: can i break here?
                         # if row_num > 80:
                         #     print("time9 - time8 = {}".format(time9 - time8))
                         #     print("time10 - time9 = {}".format(time10 - time9))
@@ -1278,6 +1297,34 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
 
     sorted_table.apply(iterrow, axis=1)
     return
+
+
+def whether_value_assignment_is_tight(value_assignment, numeric_attributes,
+                                      categorical_attributes,
+                                      selection_numeric, selection_categorical,
+                                      columns_delta_table, num_columns,
+                                      fairness_constraints_provenance_greater_than,
+                                      fairness_constraints_provenance_smaller_than):
+    value_idx = 0
+    for v in value_assignment:
+        if v == 0:
+            continue
+        smaller_value_assignment = value_assignment.copy()
+        att = columns_delta_table[value_idx]
+        if value_idx < len(numeric_attributes):
+            if smaller_value_assignment[value_idx] < 0:
+                smaller_value_assignment[value_idx] += selection_numeric[att][2]
+            elif smaller_value_assignment[value_idx] > 0:
+                smaller_value_assignment[value_idx] -= selection_numeric[att][2]
+        else:
+            smaller_value_assignment[value_idx] = 0
+        if assign_to_provenance_relax_only(smaller_value_assignment, numeric_attributes, categorical_attributes,
+                                           selection_numeric, selection_categorical, columns_delta_table, num_columns,
+                                           fairness_constraints_provenance_greater_than,
+                                           fairness_constraints_provenance_smaller_than):
+            return False
+        value_idx += 1
+    return True
 
 
 def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_attributes,
@@ -1340,7 +1387,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                 ################## whether to resort ####################
                                 col_idx = 0
                                 for col in columns_delta_table:
-                                    if stop_line[col] > row_num + 10:
+                                    if stop_line[col] > row_num + 1:
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
                                         # new_columns = columns_delta_table.copy()
@@ -1349,7 +1396,8 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                         # index_of_columns_remained.remove(col_idx)
                                         resort_and_search_relax_only(terms_above_stop_line,
                                                                      delta_table.loc[terms_above_stop_line],
-                                                                     columns_delta_table, list(range(len(columns_delta_table))),
+                                                                     columns_delta_table,
+                                                                     list(range(len(columns_delta_table))),
                                                                      minimal_added_relaxations,
                                                                      columns_delta_table,
                                                                      checked_satisfying_constraints,
@@ -1370,12 +1418,9 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
             if row_num > 80:
                 print("time2 - time1 = {}".format(time2 - time1))
             terms_above = list(sorted_table.loc[:row_num - 1, i])
-
-            print("============== terms_above: {}".format(terms_above))
+            # print("============== terms_above: {}".format(terms_above))
             # check whether all these terms satisfies constraints, if not, no need to check each smaller one
             combo_str = intbitset(terms_above).strbits()
-            if combo_str in checked_unsatisfying_constraints:
-                continue
             if combo_str not in checked_satisfying_constraints:
                 combo_w_t = [t] + terms_above
                 combo_str = intbitset(combo_w_t).strbits()
@@ -1395,7 +1440,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                                                columns_delta_table, num_columns,
                                                                fairness_constraints_provenance_greater_than,
                                                                fairness_constraints_provenance_smaller_than):
-                         #   print("terms above doesn't satisfy")
+                            #   print("terms above doesn't satisfy")
                             continue
             #             print("need to check smaller terms, value assignment for terms above = {}".format(
             #                 value_assignment))
@@ -1467,7 +1512,7 @@ def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_at
                                 ################## whether to resort ####################
                                 col_idx = 0
                                 for col in columns_delta_table:
-                                    if stop_line[col] > row_num + 10:
+                                    if stop_line[col] > row_num + 1:
                                         columns_resort.add(col)
                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
                                         new_columns = columns_delta_table.copy()
@@ -1623,9 +1668,6 @@ def search_bidirectional(sorted_table, delta_table, delta_table_multifunctional,
     return minimal_added_relaxations
 
 
-
-
-
 def transform_to_refinement_format(minimal_added_refinements, numeric_attributes, selection_numeric_attributes,
                                    selection_categorical_attributes, columns_delta_table):
     minimal_refinements = []
@@ -1677,7 +1719,6 @@ def FindMinimalRefinement(data_file, selection_file):
     # print("provenance_expressions")
     # print(*fairness_constraints_provenance_greater_than, sep="\n")
     # print(*fairness_constraints_provenance_smaller_than, sep="\n")
-
 
     if only_greater_than:
         time_table1 = time.time()
@@ -1766,4 +1807,3 @@ minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefine
 
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
-
