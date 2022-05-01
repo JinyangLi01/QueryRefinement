@@ -1,0 +1,32 @@
+{
+  "categorical_attributes": {
+    "county": ["county1", "county2", "county3", "county4"]
+  },
+  "selection_numeric_attributes": {
+    "income": [">=", 200, 1],
+    "num_children": [">=", 3, 1]
+  },
+  "selection_categorical_attributes": {
+    "county": ["county2", "county4"]
+  },
+  "all_sensitive_attributes": ["race", "age_group"],
+  "number_fairness_constraints": 2,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "race": "race3"
+      },
+      "symbol": ">=",
+      "number": 40
+    },
+    {
+      "sensitive_attributes":
+      {
+        "age_group": "group3"
+      },
+      "symbol": ">=",
+      "number": 20
+    }
+  ]
+}
