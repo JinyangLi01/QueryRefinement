@@ -1503,7 +1503,7 @@ def FindMinimalRefinement(data_file, selection_file):
 
 
 data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection3.json"
+selection_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/selection3.json"
 
 
 # data_file = r"toy_examples/example2.csv"

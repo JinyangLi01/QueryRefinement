@@ -1516,7 +1516,7 @@ def FindMinimalRefinement(data, selection_file):
 
 
 data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+selection_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/selection2.json"
 
 data = pd.read_csv(data_file)
 # data_file = r"toy_examples/example2.csv"
