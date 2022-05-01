@@ -532,7 +532,7 @@ def FindMinimalRefinement(data, selection_file, sql_file_read, sql_connection):
 
 
 data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-selection_file = r"../InputData/Pipelines/healthcare/incomeK/selection2.json"
+selection_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/selection2.json"
 
 
 # data_file = r"toy_examples/example2.csv"

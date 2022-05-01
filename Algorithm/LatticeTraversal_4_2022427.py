@@ -1,7 +1,7 @@
 """
 Executable
 For one or two directions in fairness constraints inequalities
-Difference from 3: support date format of numeric attributes
+Difference from 3:  support date format of numeric attributes
 
 """
 
@@ -552,6 +552,7 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
         # if time.time() - time1 > time_limit:
         #     break
         if att_idx == num_numeric_att + num_cate_variables:
+            # print("test value assignments this_refinement = {}".format(this_refinement))
             if whether_satisfy_fairness_constraints(selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
