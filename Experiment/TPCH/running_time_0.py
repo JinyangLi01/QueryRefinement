@@ -18,7 +18,7 @@ from Algorithm import LatticeTraversal_2_2022405 as lt
 
 
 data_file = r"../../InputData/Pipelines/healthcare/before_selection.csv"
-selection_file = r"../../InputData/Pipelines/healthcare/selection1.json"
+selection_file = r"../../InputData/Pipelines/healthcare/incomeK/relaxation/selection1.json"
 
 minimal_refinements1, running_time1 = ps.FindMinimalRefinement(data_file, selection_file)
 
