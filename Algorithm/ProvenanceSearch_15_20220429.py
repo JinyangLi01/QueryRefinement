@@ -150,27 +150,6 @@ Get provenance expressions
            data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than
 
 
-# # since when we change selection conditions, it may not satisfy
-# # for such a term, we can only remove the corresponding row in delta table (and sorted table)
-# def simplify(row, provenance_expressions, sensitive_attributes):
-#     """
-#     simplify each condition in provenance_expressions about row, since row already satisfies it
-#     :param row: a row in sorted table but with all values zero
-#     :param provenance_expressions: got from subtract_provenance()
-#     """
-#     for fc in provenance_expressions:
-#         if fc['symbol'] == ">" or fc['symbol'] == ">=":
-#             fc['number'] -= 1
-#         else:
-#             raise Exception("provenance_expressions should not have < or <=")
-#         provenance_expression = fc['provenance_expression']
-#         to_remove = pd.Series()
-#         for pe in provenance_expression:
-#             pe_ = pe.drop(sensitive_attributes, axis=1)
-#             if pe_.equals(row):
-#                 to_remove = pe
-#                 break
-#         provenance_expression.remove(to_remove)
 
 
 def compute_delta_numeric_att(value_of_data, symbol, threshold, greater_than=True):
@@ -1078,7 +1057,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     stop_line = pd.Series([len(sorted_table)] * num_columns, sorted_table.columns)
     columns_resort = set()
 
-    # print("resort_and_search_relax_only, num of terms = {}".format(len(terms)))
+    print("resort_and_search_relax_only, num of terms = {}".format(len(terms)))
     def iterrow(row):
         global value_assignment
         nonlocal row_num
@@ -1092,7 +1071,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                 continue
             if i in columns_resort:
                 continue
-            # print("row_num={}".format(row_num))
+            print("row_num={}".format(row_num))
             assign_successfully = False
             t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
             if t_str not in checked_satisfying_constraints \
@@ -1163,13 +1142,15 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                        fairness_constraints_provenance_smaller_than):
                     checked_assignments_unsatisfying.append(value_assignment)
                     checked_unsatisfying_constraints.add(combo_str)
-                    # print("terms above don't satisfy")
+                    print("terms above don't satisfy")
                     continue
                 else:
                     checked_satisfying_constraints.add(combo_str)
                     checked_assignments_satisfying.append(value_assignment)
-            # print("row_num = {}, terms above = {}".format(row_num, [t] + terms_above))
-            # print("terms above satisfy, value assignment = {}".format(value_assignment))
+            print("row_num = {}, terms above = {}".format(row_num, [t] + terms_above))
+            print("terms above satisfy, value assignment = {}".format(value_assignment))
+            if value_assignment == [82, 1, 3, 0, 1]:
+                print("stop here value assignment = {}".format(value_assignment))
             checked_assignments_satisfying.append(value_assignment)
             this_is_minimal, minimal_added_relaxations = \
                 update_minimal_relaxation(minimal_added_relaxations, value_assignment)
@@ -1182,7 +1163,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                          fairness_constraints_provenance_greater_than,
                                                          fairness_constraints_provenance_smaller_than,
                                                          minimal_added_relaxations):
-                # print("{} is tight, no need to check subsets".format(value_assignment))
+                print("{} is tight, no need to check subsets".format(value_assignment))
                 if not set_stop_line:
                     set_stop_line = True
                     only_first_column_to_sort, stop_line, minimal_added_relaxations = \
@@ -1221,7 +1202,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         combo_list.append(combo + [x])
                     continue
                 value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
-                # print("check term set {}, value assignment {}".format(combo_w_t, value_assignment))
+                print("check term set {}, value assignment {}".format(combo_w_t, value_assignment))
                 if value_assignment in checked_assignments_satisfying:
                     checked_satisfying_constraints.add(combo_str)
                     continue
@@ -1243,7 +1224,6 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         checked_satisfying_constraints.add(combo_str)
                         checked_assignments_satisfying.append(value_assignment)
 
-                        # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
                         this_is_minimal, minimal_added_relaxations = \
                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
 
@@ -1267,7 +1247,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                                                          fairness_constraints_provenance_smaller_than
                                                          )
 
-                        break  # FIXME: can i break here?
+                        break
                     else:  # if doesn't satisfy provenance constraints
                         checked_unsatisfying_constraints.add(combo_str)
                         checked_assignments_unsatisfying.append(value_assignment)
@@ -1300,6 +1280,8 @@ def whether_value_assignment_is_tight_minimal(must_included_term_delta_values, v
         att = columns_delta_table[value_idx]
         if value_idx < len(numeric_attributes):  # numeric
             while True:
+                if smaller_value_assignment[value_idx] == 0:
+                    break
                 if smaller_value_assignment[value_idx] < 0:
                     smaller_value_assignment[value_idx] += selection_numeric[att][2]
                     if smaller_value_assignment[value_idx] > 0:
@@ -1328,238 +1310,6 @@ def whether_value_assignment_is_tight_minimal(must_included_term_delta_values, v
         value_idx += 1
     return True
 
-#
-# def search_relax_only(sorted_table, delta_table, columns_delta_table, numeric_attributes,
-#                       categorical_att_columns, categorical_attributes, selection_numeric, selection_categorical,
-#                       fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than):
-#     minimal_added_relaxations = []  # relaxation to add to original selection conditions
-#     checked_satisfying_constraints = set()  # set of bit arrays
-#     checked_unsatisfying_constraints = set()
-#     num_columns = len(sorted_table.columns)
-#     stop_line = pd.Series([len(sorted_table)] * num_columns, sorted_table.columns)
-#     set_stop_line = False
-#     row_num = 0
-#     checked_assignments_satisfying = []
-#     checked_assignments_unsatisfying = []
-#     columns_resort = set()
-#
-#     def iterrow(row):
-#         nonlocal row_num
-#         nonlocal set_stop_line
-#         nonlocal stop_line
-#         nonlocal minimal_added_relaxations
-#         for i, t in row.items():
-#             if stop_line[i] <= row_num:
-#                 continue
-#             if i in columns_resort:
-#                 continue
-#             # print("now I'm at row {}, col {}, term {}".format(row_num, i, t))
-#             assign_successfully = False
-#             t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
-#             time1 = time.time()
-#             if t_str not in checked_satisfying_constraints \
-#                     and t_str not in checked_unsatisfying_constraints:
-#                 value_assignment = get_relaxation_relax_only([t], delta_table)
-#                 if value_assignment in checked_assignments_satisfying:
-#                     checked_satisfying_constraints.add(t_str)
-#                     continue
-#                 elif value_assignment in checked_assignments_unsatisfying:
-#                     checked_unsatisfying_constraints.add(t_str)
-#                 else:
-#                     if assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes,
-#                                                        selection_numeric, selection_categorical, columns_delta_table,
-#                                                        num_columns, fairness_constraints_provenance_greater_than,
-#                                                        fairness_constraints_provenance_smaller_than):
-#                         checked_satisfying_constraints.add(t_str)
-#                         checked_assignments_satisfying.append(value_assignment)
-#
-#                         # value_assignment = [x if isinstance(x, int) else round(x, 2) for x in value_assignment]
-#                         this_is_minimal, minimal_added_relaxations = \
-#                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
-#                         if this_is_minimal:
-#                             print("find minimal terms: {}, value_assignment: {}".format([t], value_assignment))
-#                             if not set_stop_line:
-#                                 stop_line = update_stop_line_relax_only([t], stop_line,
-#                                                                         sorted_table, delta_table,
-#                                                                         delta_table, columns_delta_table,
-#                                                                         value_assignment)
-#                                 set_stop_line = True
-#                                 print("value_assignment: {}".format(value_assignment))
-#                                 print("stop line:\n{}".format(stop_line))
-#
-#                                 ################## whether to resort ####################
-#                                 col_idx = 0
-#                                 for col in columns_delta_table:
-#                                     if stop_line[col] > row_num + 1:
-#                                         columns_resort.add(col)
-#                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
-#                                         # new_columns = columns_delta_table.copy()
-#                                         # new_columns.remove(col)
-#                                         # index_of_columns_remained = list(range(num_columns))
-#                                         # index_of_columns_remained.remove(col_idx)
-#                                         minimal_added_relaxations = resort_and_search_relax_only(terms_above_stop_line,
-#                                                                      delta_table.loc[terms_above_stop_line],
-#                                                                      columns_delta_table,
-#                                                                      list(range(len(columns_delta_table))),
-#                                                                      minimal_added_relaxations,
-#                                                                      columns_delta_table,
-#                                                                      checked_satisfying_constraints,
-#                                                                      checked_unsatisfying_constraints,
-#                                                                      checked_assignments_satisfying,
-#                                                                      checked_assignments_unsatisfying,
-#                                                                      numeric_attributes,
-#                                                                      categorical_att_columns, categorical_attributes,
-#                                                                      selection_numeric, selection_categorical,
-#                                                                      fairness_constraints_provenance_greater_than,
-#                                                                      fairness_constraints_provenance_smaller_than)
-#                                     col_idx += 1
-#                         continue
-#                     else:
-#                         checked_unsatisfying_constraints.add(t_str)
-#                         checked_assignments_unsatisfying.append(value_assignment)
-#             time2 = time.time()
-#             if row_num > 80:
-#                 print("time2 - time1 = {}".format(time2 - time1))
-#             terms_above = list(sorted_table.loc[:row_num - 1, i])
-#             # print("============== terms_above: {}".format(terms_above))
-#             # check whether all these terms satisfies constraints, if not, no need to check each smaller one
-#             combo_str = intbitset(terms_above).strbits()
-#             if combo_str not in checked_satisfying_constraints:
-#                 combo_w_t = [t] + terms_above
-#                 combo_str = intbitset(combo_w_t).strbits()
-#                 if combo_str in checked_unsatisfying_constraints:
-#                     continue
-#                 elif combo_str not in checked_satisfying_constraints:
-#                     value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
-#                     if value_assignment in checked_assignments_satisfying:
-#                         checked_satisfying_constraints.add(combo_str)
-#                     elif value_assignment in minimal_added_relaxations:
-#                         continue
-#                     elif value_assignment in checked_assignments_unsatisfying:
-#                         checked_unsatisfying_constraints.add(combo_str)
-#                         continue
-#                     else:
-#                         if not assign_to_provenance_relax_only(value_assignment, numeric_attributes,
-#                                                                categorical_attributes,
-#                                                                selection_numeric, selection_categorical,
-#                                                                columns_delta_table, num_columns,
-#                                                                fairness_constraints_provenance_greater_than,
-#                                                                fairness_constraints_provenance_smaller_than):
-#                             #   print("terms above doesn't satisfy")
-#                             continue
-#             #             print("need to check smaller terms, value assignment for terms above = {}".format(
-#             #                 value_assignment))
-#             # print("need to check smaller terms\n")
-#             combo_list = [[y] for y in terms_above]
-#             while len(combo_list) > 0:
-#                 time3 = time.time()
-#                 combo: List[Any] = combo_list.pop(0)
-#                 combo_str = intbitset(combo).strbits()
-#                 if combo_str in checked_satisfying_constraints:
-#                     continue
-#                 combo_w_t = [t] + combo
-#                 combo_str = intbitset(combo_w_t).strbits()
-#                 time4 = time.time()
-#                 # combo_str += '0' * (num_columns - len(combo) - 1)
-#                 if combo_str in checked_satisfying_constraints:
-#                     continue
-#                 if combo_str in checked_unsatisfying_constraints:
-#                     # generate children
-#                     idx = terms_above.index(combo[-1])
-#                     for x in terms_above[idx + 1:]:
-#                         combo_list.append(combo + [x])
-#                     time5 = time.time()
-#                     if row_num > 80:
-#                         print("time4 - time3 = {}".format(time4 - time3))
-#                         print("time5 - time4 = {}".format(time5 - time4))
-#                     continue
-#                 time6 = time.time()
-#                 value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
-#                 time7 = time.time()
-#                 if row_num > 80:
-#                     print("time4 - time3 = {}".format(time4 - time3))
-#                     print("time6 - time4 = {}".format(time6 - time4))
-#                     print("time7 - time6 = {}".format(time7 - time6))
-#                 if value_assignment in checked_assignments_satisfying:
-#                     checked_satisfying_constraints.add(combo_str)
-#                     continue
-#                 elif value_assignment in checked_assignments_unsatisfying:
-#                     checked_unsatisfying_constraints.add(combo_str)
-#                     idx = terms_above.index(combo[-1])
-#                     for x in terms_above[idx + 1:]:
-#                         combo_list.append(combo + [x])
-#                     continue
-#                 else:
-#                     # check larger term set if this one doesn't satisfy the fairness constraints
-#                     # if it does, whether minimal or not, don't check larger ones
-#                     time8 = time.time()
-#                     if assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes,
-#                                                        selection_numeric, selection_categorical,
-#                                                        columns_delta_table, num_columns,
-#                                                        fairness_constraints_provenance_greater_than,
-#                                                        fairness_constraints_provenance_smaller_than):
-#                         time9 = time.time()
-#                         checked_satisfying_constraints.add(combo_str)
-#                         checked_assignments_satisfying.append(value_assignment)
-#                         this_is_minimal, minimal_added_relaxations = \
-#                             update_minimal_relaxation(minimal_added_relaxations, value_assignment)
-#                         time10 = time.time()
-#                         if this_is_minimal:
-#                             print("find minimal, terms: {}, value_assignment: {}".format(combo_w_t, value_assignment))
-#                             if not set_stop_line:
-#                                 stop_line = update_stop_line_relax_only(combo_w_t, stop_line,
-#                                                                         sorted_table, delta_table, delta_table,
-#                                                                         columns_delta_table, value_assignment)
-#                                 set_stop_line = True
-#                                 print("value_assignment: {}".format(value_assignment))
-#                                 print("stop line:\n{}".format(stop_line))
-#
-#                                 ################## whether to resort ####################
-#                                 col_idx = 0
-#                                 for col in columns_delta_table:
-#                                     if stop_line[col] > row_num + 1:
-#                                         columns_resort.add(col)
-#                                         terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
-#                                         new_columns = columns_delta_table.copy()
-#                                         new_columns.remove(col)
-#                                         index_of_columns_remained = list(range(num_columns))
-#                                         index_of_columns_remained.remove(col_idx)
-#                                         minimal_added_relaxations = resort_and_search_relax_only(terms_above_stop_line,
-#                                                                      delta_table.loc[terms_above_stop_line],
-#                                                                      new_columns, index_of_columns_remained,
-#                                                                      minimal_added_relaxations,
-#                                                                      columns_delta_table,
-#                                                                      checked_satisfying_constraints,
-#                                                                      checked_unsatisfying_constraints,
-#                                                                      checked_assignments_satisfying,
-#                                                                      checked_assignments_unsatisfying,
-#                                                                      numeric_attributes,
-#                                                                      categorical_att_columns, categorical_attributes,
-#                                                                      selection_numeric, selection_categorical,
-#                                                                      fairness_constraints_provenance_greater_than,
-#                                                                      fairness_constraints_provenance_smaller_than)
-#                                     col_idx += 1
-#
-#                         if row_num > 80:
-#                             print("time9 - time8 = {}".format(time9 - time8))
-#                             print("time10 - time9 = {}".format(time10 - time9))
-#                     else:
-#                         checked_unsatisfying_constraints.add(combo_str)
-#                         checked_assignments_unsatisfying.append(value_assignment)
-#                         # generate children
-#                         idx = terms_above.index(combo[-1])
-#                         for x in terms_above[idx + 1:]:
-#                             combo_list.append(combo + [x])
-#                         time11 = time.time()
-#                         if row_num > 80:
-#                             print("time11 - time8 = {}".format(time11 - time8))
-#         row_num += 1
-#
-#     # sorted_table[:1].apply(iterrow, axis=1)
-#     # max_stop_line = stop_line.max()
-#     sorted_table.apply(iterrow, axis=1)
-#     return minimal_added_relaxations
-#
 
 def search_bidirectional(sorted_table, delta_table, delta_table_multifunctional, columns_delta_table,
                          numeric_attributes,
@@ -1819,14 +1569,13 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
-#
-# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# selection_file = r"../InputData/Pipelines/healthcare/incomeK/not_work/selection6.json"
-#
-# # data_file = r"toy_examples/example2.csv"
-# # selection_file = r"toy_examples/selection2.json"
-#
-# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
-# print("selection file: {}".format(selection_file))
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
+
+data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+
+
+minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
