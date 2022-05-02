@@ -1,11 +1,8 @@
 """
 executable
 Pure relaxations and refinements are treated differently.
-Difference from 13:
-13 doesn't resort when there are only two columns
-14 does
-
-
+Difference from 14:
+Make some repeatative parts into functions, fixed some bugs
 
 """
 
@@ -1149,8 +1146,6 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                     checked_assignments_satisfying.append(value_assignment)
             print("row_num = {}, terms above = {}".format(row_num, [t] + terms_above))
             print("terms above satisfy, value assignment = {}".format(value_assignment))
-            if value_assignment == [82, 1, 3, 0, 1]:
-                print("stop here value assignment = {}".format(value_assignment))
             checked_assignments_satisfying.append(value_assignment)
             this_is_minimal, minimal_added_relaxations = \
                 update_minimal_relaxation(minimal_added_relaxations, value_assignment)
