@@ -34,18 +34,19 @@ def compare(q, c):
     query_file = query_file_prefix + str(q) + ".json"
     constraint_file = constraint_file_prefix + str(c) + ".json"
 
-    print("========================== provenance search ===================================")
-    minimal_refinements1, minimal_added_refinements1, running_time1 = \
-        ps.FindMinimalRefinement(data_file, query_file, constraint_file)
-
-    print("running time = {}".format(running_time1))
-
     print("========================== lattice traversal ===================================")
 
     minimal_refinements2, minimal_added_refinements2, running_time2 = \
         lt.FindMinimalRefinement(data_file, query_file, constraint_file)
 
     print("running time = {}".format(running_time2))
+
+
+    print("========================== provenance search ===================================")
+    minimal_refinements1, minimal_added_refinements1, running_time1 = \
+        ps.FindMinimalRefinement(data_file, query_file, constraint_file)
+
+    print("running time = {}".format(running_time1))
 
 
     print(*minimal_refinements1, sep="\n")
@@ -60,12 +61,7 @@ def compare(q, c):
     result_output.write("\n")
 
 
-compare(1, 1)
-compare(1, 2)
-compare(1, 3)
 compare(4, 1)
-compare(4, 2)
-compare(4, 3)
 
 result_output.close()
 time_output.close()

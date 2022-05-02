@@ -8,17 +8,5 @@
   },
   "selection_categorical_attributes": {
     "county": ["county2", "county3"]
-  },
-  "all_sensitive_attributes": ["race"],
-  "number_fairness_constraints": 1,
-  "fairness_constraints": [
-    {
-      "sensitive_attributes":
-      {
-        "race": "race3"
-      },
-      "symbol": ">=",
-      "number": 30
-    }
-  ]
+  }
 }
