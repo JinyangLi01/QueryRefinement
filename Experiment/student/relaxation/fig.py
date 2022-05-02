@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 15})
 
 
 x_list = list()
