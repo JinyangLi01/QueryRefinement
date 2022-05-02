@@ -1686,10 +1686,10 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
             if att_idx < num_numeric_att:
                 select_numeric[numeric_attributes[att_idx]][1] -= ar[att_idx]
             elif ar[att_idx] == 1:
-                at, va = columns_delta_table[att_idx].split('_')
+                at, va = columns_delta_table[att_idx].rsplit('_', 1)
                 select_categorical[at].append(va)
             elif ar[att_idx] == -1:
-                at, va = columns_delta_table[att_idx].split('_')
+                at, va = columns_delta_table[att_idx].rsplit('_', 1)
                 select_categorical[at].remove(va)
         minimal_refinements.append({'numeric': select_numeric, 'categorical': select_categorical})
     return minimal_refinements
@@ -1698,19 +1698,23 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file, selection_file):
+def FindMinimalRefinement(data_file, query_file, constraint_file):
     data = pd.read_csv(data_file)
-    with open(selection_file) as f:
-        info = json.load(f)
+    with open(query_file) as f:
+        query_info = json.load(f)
 
-    sensitive_attributes = info['all_sensitive_attributes']
-    fairness_constraints = info['fairness_constraints']
-    selection_numeric_attributes = info['selection_numeric_attributes']
-    selection_categorical_attributes = info['selection_categorical_attributes']
+    selection_numeric_attributes = query_info['selection_numeric_attributes']
+    selection_categorical_attributes = query_info['selection_categorical_attributes']
     numeric_attributes = list(selection_numeric_attributes.keys())
-    categorical_attributes = info['categorical_attributes']
+    categorical_attributes = query_info['categorical_attributes']
     selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
+
+    with open(constraint_file) as f:
+        constraint_info = json.load(f)
+
+    sensitive_attributes = constraint_info['all_sensitive_attributes']
+    fairness_constraints = constraint_info['fairness_constraints']
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
