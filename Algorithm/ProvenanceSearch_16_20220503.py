@@ -1,8 +1,12 @@
 """
-executable
+executable but only for relaxation
 Pure relaxations and refinements are treated differently.
 Difference from 15:
-Try to drop duplicated rows for delta table in realxation
+In relaxation: Try to drop duplicated rows for delta table
+
+In bidirectional: implementing
+
+
 """
 
 import copy
@@ -524,110 +528,68 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
     va_dict = dict(zip(columns_delta_table, value_assignment))
     # va_dict = value_assignment.to_dict()
     # greater than
-    for fc in fairness_constraints_provenance_greater_than:
-        sum = 0
-        satisfy_this_fairness_constraint = False
-        for pe in fc['provenance_expression']:
-            fail = False
-            for att in pe:
-                if att == 'occurrence':
-                    continue
-                if pd.isnull(pe[att]):
-                    fail = True
-                    break
-                if att in numeric_attributes:
-                    if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
-                        after_refinement = selection_numeric[att][1] - va_dict[att]
-                        if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
-                            continue
-                        else:
-                            fail = True
-                            break
-                    else:
-                        after_refinement = selection_numeric[att][1] + va_dict[att]
-                        if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
-                            continue
-                        else:
-                            fail = True
-                            break
-                else:  # att in categorical
-                    column_name = att + "_" + pe[att]
-                    if column_name not in columns_delta_table:
-                        continue
-                    if pe[att] in selection_categorical[att]:
-                        if 1 + va_dict[column_name] == 1:
-                            continue
-                        else:
-                            fail = True
-                            break
-                    else:
-                        if va_dict[column_name] == 1:
-                            continue
-                        else:
-                            fail = True
-                            break
-            if not fail:
-                sum += pe['occurrence']
-                if eval(str(sum) + fc['symbol'] + str(fc['number'])):
-                    satisfy_this_fairness_constraint = True
-                    break
-        if not satisfy_this_fairness_constraint:
-            return False
 
-    for fc in fairness_constraints_provenance_smaller_than:
-        sum = 0
-        satisfy_this_fairness_constraint = True
-        for pe in fc['provenance_expression']:
-            fail = False
-            for att in pe:
-                if att == 'occurrence':
-                    continue
-                if pd.isnull(pe[att]):
-                    fail = True
-                    break
-                if att in numeric_attributes:
-                    if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
-                        after_refinement = selection_numeric[att][1] - va_dict[att]
-                        if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
-                            continue
-                        else:
-                            fail = True
-                            break
-                    else:
-                        after_refinement = selection_numeric[att][1] + va_dict[att]
-                        if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
-                            continue
-                        else:
-                            fail = True
-                            break
-                else:  # att in categorical
-                    # TODO: fix the following
-                    column_name = att + "_" + pe[att]
-                    if column_name not in columns_delta_table:
+    def assign(fairness_constraints_provenance, relaxation = True):
+        for fc in fairness_constraints_provenance:
+            sum = 0
+            satisfy_this_fairness_constraint = ~relaxation
+            for pe in fc['provenance_expression']:
+                fail = False
+                for att in pe:
+                    if att == 'occurrence':
                         continue
-                    if pe[att] in selection_categorical[att]:
-                        if 1 + va_dict[column_name] == 1:
-                            continue
+                    if pd.isnull(pe[att]):
+                        fail = True
+                        break
+                    if att in numeric_attributes:
+                        if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
+                            after_refinement = selection_numeric[att][1] - va_dict[att]
+                            if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
+                                continue
+                            else:
+                                fail = True
+                                break
                         else:
-                            fail = True
+                            after_refinement = selection_numeric[att][1] + va_dict[att]
+                            if eval(str(pe[att]) + selection_numeric[att][0] + str(after_refinement)):
+                                continue
+                            else:
+                                fail = True
+                                break
+                    else:  # att in categorical
+                        column_name = att + "_" + pe[att]
+                        if column_name not in columns_delta_table:
+                            continue
+                        if pe[att] in selection_categorical[att]:
+                            if 1 + va_dict[column_name] == 1:
+                                continue
+                            else:
+                                fail = True
+                                break
+                        else:
+                            if va_dict[column_name] == 1:
+                                continue
+                            else:
+                                fail = True
+                                break
+                if not fail:
+                    sum += pe['occurrence']
+                    if relaxation:
+                        if eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                            satisfy_this_fairness_constraint = True
                             break
                     else:
-                        if va_dict[column_name] == 1:
-                            continue
-                        else:
-                            fail = True
+                        if not eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                            satisfy_this_fairness_constraint = False
                             break
-            if not fail:
-                sum += pe['occurrence']
-                if not eval(str(sum) + fc['symbol'] + str(fc['number'])):
-                    satisfy_this_fairness_constraint = False
-                    break
-        if not satisfy_this_fairness_constraint:
-            return False
+            if not satisfy_this_fairness_constraint:
+                return False
+    assign(fairness_constraints_provenance_greater_than, relaxation=True)
+    assign(fairness_constraints_provenance_smaller_than, relaxation=False)
     return True
 
 
-def get_relaxation_relax_only(terms, delta_table):
+def get_relaxation(terms, delta_table):
     """
 To get skyline of all terms in list terms
     :param terms: list of indices of terms. [1,3,5]
@@ -639,7 +601,7 @@ To get skyline of all terms in list terms
     return value_assignment
 
 
-def get_relaxation(terms, delta_table, delta_table_multifunctional):
+def get_refinement(terms, delta_table, delta_table_multifunctional):
     """
 To get skyline of all terms in list terms
     :param terms: list of indices of terms. [1,3,5]
@@ -771,10 +733,8 @@ def update_stop_line_relax_only(combo_w_t, stop_line, sorted_table, delta_table,
     return new_stop_line
 
 
-def update_stop_line_bidirectional(combo_w_t, stop_line, minimal_added_relaxations, sorted_table, delta_table,
-                                   delta_table_multifunctional, columns_delta_table, value_assignment,
-                                   numeric_attributes,
-                                   categorical_attributes, categorical_att_columns):
+def update_stop_line_bidirectional(combo_w_t, stop_line, sorted_table, delta_table,
+                                   delta_table_multifunctional, columns_delta_table, value_assignment):
     column_idx = 0
     rows_to_compare = delta_table.loc[combo_w_t]
     relaxation_terms = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
@@ -849,7 +809,7 @@ def update_minimal_relaxation(minimal_added_relaxations, r):
 
 
 # assume there is no stop line set yet
-def set_stop_line_and_resort(value_assignment, index_of_columns_remained, term_set, stop_line, sorted_table,
+def set_stop_line_and_resort_relax_only(value_assignment, index_of_columns_remained, term_set, stop_line, sorted_table,
                              delta_table, columns_delta_table, only_first_column_to_sort, row_num, columns_resort,
                              minimal_added_relaxations,
                              original_columns_delta_table,
@@ -905,11 +865,70 @@ def set_stop_line_and_resort(value_assignment, index_of_columns_remained, term_s
     return False, stop_line, minimal_added_relaxations
 
 
-def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, index_of_columns_remained,
+# TODO
+# assume there is no stop line set yet
+def set_stop_line_and_resort_bidirectional(value_assignment, index_of_columns_remained, term_set, stop_line, sorted_table,
+                             delta_table, delta_table_multifunctional, columns_delta_table, only_first_column_to_sort, row_num, columns_resort,
+                             minimal_added_relaxations,
+                             original_columns_delta_table,
+                             checked_satisfying_constraints,
+                             checked_unsatisfying_constraints,
+                             checked_assignments_satisfying,
+                             checked_assignments_unsatisfying,
+                             numeric_attributes,
+                             categorical_att_columns, categorical_attributes,
+                             selection_numeric, selection_categorical,
+                             fairness_constraints_provenance_greater_than,
+                             fairness_constraints_provenance_smaller_than
+                             ):
+    value_assignment_remained_columns = [value_assignment[i] for i in
+                                         index_of_columns_remained]
+    stop_line = update_stop_line_bidirectional(term_set, stop_line,
+                                            sorted_table, delta_table[columns_delta_table],
+                                            delta_table_multifunctional[columns_delta_table],
+                                            columns_delta_table,
+                                            value_assignment_remained_columns)
+    # print("row_num: {}, value_assignment: {}".format(row_num, value_assignment))
+    # print("stop line:\n{}".format(stop_line))
+    if not only_first_column_to_sort:
+        for col in columns_delta_table[1:]:
+            if stop_line[col] > row_num + 1:
+                columns_resort.add(col)
+                terms_above_stop_line = list(sorted_table.loc[:stop_line[col] - 1, col])
+                # new_columns = columns_delta_table.copy()
+                # new_columns.remove(col)
+                # index_of_columns_remained_without_col = [x for x in index_of_columns_remained
+                #                              if original_columns_delta_table[x] != col]
+                minimal_added_relaxations = resort_and_search_relax_only(terms_above_stop_line,
+                                                                         delta_table.loc[terms_above_stop_line],
+                                                                         columns_delta_table, index_of_columns_remained,
+                                                                         minimal_added_relaxations,
+                                                                         original_columns_delta_table,
+                                                                         checked_satisfying_constraints,
+                                                                         checked_unsatisfying_constraints,
+                                                                         checked_assignments_satisfying,
+                                                                         checked_assignments_unsatisfying,
+                                                                         numeric_attributes,
+                                                                         categorical_att_columns,
+                                                                         categorical_attributes,
+                                                                         selection_numeric, selection_categorical,
+                                                                         fairness_constraints_provenance_greater_than,
+                                                                         fairness_constraints_provenance_smaller_than)
+        # for first column, don't need to resort since the rank won't change
+        if stop_line[columns_delta_table[0]] > row_num + 1:
+            for col in columns_delta_table[1:]:
+                if stop_line[col] > row_num + 1:
+                    stop_line[col] = 0
+            return True, stop_line, minimal_added_relaxations
+    return False, stop_line, minimal_added_relaxations
+
+
+def resort_and_search_bidirectional(terms, delta_table, delta_table_multifunctional, columns_delta_table,
+                                    index_of_columns_remained,
                                     minimal_added_relaxations, original_columns_delta_table,
                                     checked_satisfying_constraints,
                                     checked_unsatisfying_constraints, checked_assignments_satisfying,
-                                    checked_assignments_unsatisfying,
+                                    checked_assignments_unsatisfying, checked_single_directional_combination,
                                     numeric_attributes,
                                     categorical_att_columns, categorical_attributes, selection_numeric,
                                     selection_categorical,
@@ -923,19 +942,43 @@ def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, ind
     columns_delta_table = [x for x in columns_delta_table if x not in cols_to_drop]
     index_of_columns_remained = [i for i in index_of_columns_remained if
                                  original_columns_delta_table[i] not in cols_to_drop]
+    # delta table drop duplicates
+    # index of first of duplicates
+    first_duplicates_idx = ~delta_table.duplicated(subset=columns_delta_table) & \
+                           delta_table.duplicated(subset=columns_delta_table, keep=False)
+    first_duplicates_idx = first_duplicates_idx[first_duplicates_idx].index
+    if len(first_duplicates_idx) > 0:
+        def get_min_negative_values(row):
+            print("row {}".format(row))
+            nonlocal delta_table
+            nonlocal delta_table_multifunctional
+            p = row[row > 0]
+            dct = p.to_dict()
+            rows_duplicate = delta_table_multifunctional[np.logical_and.reduce([delta_table_multifunctional[k] == v
+                                                                                for k, v in dct.items()])]
+            max_values = rows_duplicate.max()
+            print(max_values)
+            return max_values
 
+        delta_table_multifunctional.loc[first_duplicates_idx] = \
+            delta_table_multifunctional.loc[first_duplicates_idx].apply(get_min_negative_values, axis=1)
 
-
-
+        duplicates_to_drop_idx = delta_table.duplicated(subset=columns_delta_table, keep="first")
+        duplicates_to_drop_idx = duplicates_to_drop_idx[duplicates_to_drop_idx].index
+        delta_table_drop_duplicates = delta_table.drop(duplicates_to_drop_idx)
+        delta_table_multifunctional_drop_duplicates = delta_table_multifunctional.drop(duplicates_to_drop_idx)
+    else:
+        delta_table_drop_duplicates = delta_table
+        delta_table_multifunctional_drop_duplicates = delta_table_multifunctional
 
     sorted_table_by_column = dict()
     # sort first column
-    row_indices = delta_table.index.values
+    row_indices = delta_table_drop_duplicates.index.values
     # s = delta_table[columns_delta_table].to_records(index=False)
 
-    dtypes = [(columns_delta_table[i], delta_table.dtypes[columns_delta_table[i]]) for i in
+    dtypes = [(columns_delta_table[i], delta_table_drop_duplicates.dtypes[columns_delta_table[i]]) for i in
               range(len(columns_delta_table))]
-    s2 = list(delta_table[columns_delta_table].itertuples(index=False))
+    s2 = list(delta_table_drop_duplicates[columns_delta_table].itertuples(index=False))
     s3 = np.array(s2, dtype=dtypes)
 
     sorted_att_idx = np.argsort(s3, order=columns_delta_table)
@@ -947,12 +990,12 @@ def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, ind
         tiebreaker_col[v] = k
     # tiebreaker_col = delta_table[columns_delta_table[0]]
 
-    tiebreaker_dtype = delta_table.dtypes[columns_delta_table[0]]
+    tiebreaker_dtype = delta_table_drop_duplicates.dtypes[columns_delta_table[0]]
     for att in columns_delta_table[1:]:
-        values_in_col = delta_table[att]
+        values_in_col = delta_table_drop_duplicates[att]
         s = np.array(list(zip(values_in_col,
                               tiebreaker_col)),
-                     dtype=[('value', delta_table.dtypes[att]),
+                     dtype=[('value', delta_table_drop_duplicates.dtypes[att]),
                             ('tiebreaker', tiebreaker_dtype)])
         sorted_att_idx = np.argsort(s, order=['value', 'tiebreaker'])
         sorted_delta_idx = row_indices[sorted_att_idx]
@@ -983,34 +1026,75 @@ def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, ind
                 continue
             print("row_num={}".format(row_num))
             assign_successfully = False
-            t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
-            if t_str not in checked_satisfying_constraints \
-                    and t_str not in checked_unsatisfying_constraints:
-                value_assignment = get_relaxation_relax_only([t], delta_table)
+            terms_above = list(sorted_table.loc[:row_num - 1, i])
+            combo_w_t = [t] + terms_above
+            combo_str = intbitset(combo_w_t).strbits()
+            # check whether all these terms satisfies constraints, if not, no need to check each smaller one
+            # optimization 1: if all terms in the set are relaxation/contraction terms, skip
+            terms_set = delta_table.loc[combo_w_t]
+            if terms_set['relaxation_term'].eq(True).all() or terms_set['relaxation_term'].eq(False).all():
+                checked_single_directional_combination.add(combo_str)
+                continue
+            if combo_str in checked_unsatisfying_constraints:
+                continue
+            have_legitimate_value_assignment, value_assignments = \
+                get_refinement(combo_w_t, delta_table_drop_duplicates, delta_table_multifunctional_drop_duplicates)
+            if not have_legitimate_value_assignment:
+                continue
+            for value_assignment in value_assignments:
                 if value_assignment in checked_assignments_satisfying:
-                    checked_satisfying_constraints.add(t_str)
-                    continue
+                    checked_satisfying_constraints.add(combo_str)
                 elif value_assignment in checked_assignments_unsatisfying:
-                    checked_unsatisfying_constraints.add(t_str)
-                else:
-                    if assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes,
-                                                       selection_numeric, selection_categorical,
-                                                       original_columns_delta_table,
-                                                       num_columns, fairness_constraints_provenance_greater_than,
-                                                       fairness_constraints_provenance_smaller_than):
-                        assign_successfully = True
-                        checked_satisfying_constraints.add(t_str)
+                    checked_unsatisfying_constraints.add(combo_str)
+                    continue
+                elif value_assignment in minimal_added_relaxations:
+                    continue
+                if value_assignment not in checked_assignments_satisfying:
+                    if not assign_to_provenance(value_assignment, numeric_attributes,
+                                               categorical_attributes,
+                                               selection_numeric, selection_categorical,
+                                               original_columns_delta_table, num_columns,
+                                               fairness_constraints_provenance_greater_than,
+                                               fairness_constraints_provenance_smaller_than):
+                        checked_assignments_unsatisfying.append(value_assignment)
+                        checked_unsatisfying_constraints.add(combo_str)
+                        value_assignments.remove(value_assignment)
+                        continue
+                    else:
+                        checked_satisfying_constraints.add(combo_str)
                         checked_assignments_satisfying.append(value_assignment)
+                print("row_num = {}, terms above = {}".format(row_num, [t] + terms_above))
+                print("terms above satisfy, value assignment = {}".format(value_assignment))
+                checked_assignments_satisfying.append(value_assignment)
+                this_is_minimal, minimal_added_relaxations = \
+                    update_minimal_relaxation(minimal_added_relaxations, value_assignment)
 
-                        this_is_minimal, minimal_added_relaxations = \
-                            update_minimal_relaxation(minimal_added_relaxations, value_assignment)
-                        # even if this is not minimal, it still gives a stop line
-                        if not set_stop_line:
-                            set_stop_line = True
-                            only_first_column_to_sort, stop_line, minimal_added_relaxations = \
-                                set_stop_line_and_resort(value_assignment, index_of_columns_remained, [t],
-                                                         stop_line, sorted_table,
-                                                         delta_table, columns_delta_table, only_first_column_to_sort,
+                # check whether value assignment for this term and terms above is tight
+                # if yes, no need to check subsets of them
+                if whether_value_assignment_is_tight_minimal(delta_table_drop_duplicates.loc[t].values.tolist(),
+                                                             value_assignment,
+                                                             numeric_attributes, categorical_attributes,
+                                                             selection_numeric, selection_categorical,
+                                                             original_columns_delta_table, num_columns,
+                                                             fairness_constraints_provenance_greater_than,
+                                                             fairness_constraints_provenance_smaller_than,
+                                                             minimal_added_relaxations):
+                    value_assignments.remove(value_assignment)
+
+            if len(value_assignments) == 0:
+                print("no need to check subsets")
+                continue
+            # TODO
+            == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+
+            if not set_stop_line:
+                set_stop_line = True
+                only_first_column_to_sort, stop_line, minimal_added_relaxations = \
+                    set_stop_line_and_resort_bidirectional(value_assignment, index_of_columns_remained, [t] + terms_above,
+                                                             stop_line, sorted_table,
+                                                             delta_table_drop_duplicates,
+                                                           delta_table_multifunctional_drop_duplicates,
+                                                           columns_delta_table, only_first_column_to_sort,
                                                          row_num, columns_resort,
                                                          minimal_added_relaxations,
                                                          original_columns_delta_table,
@@ -1024,73 +1108,6 @@ def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, ind
                                                          fairness_constraints_provenance_greater_than,
                                                          fairness_constraints_provenance_smaller_than
                                                          )
-                    else:
-                        checked_unsatisfying_constraints.add(t_str)
-                        checked_assignments_unsatisfying.append(value_assignment)
-            if assign_successfully:
-                continue
-            terms_above = list(sorted_table.loc[:row_num - 1, i])
-            # check whether all these terms satisfies constraints, if not, no need to check each smaller one
-            combo_w_t = [t] + terms_above
-            combo_str = intbitset(combo_w_t).strbits()
-            if combo_str in checked_unsatisfying_constraints:
-                continue
-            value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
-            if value_assignment in checked_assignments_satisfying:
-                checked_satisfying_constraints.add(combo_str)
-            elif value_assignment in checked_assignments_unsatisfying:
-                checked_unsatisfying_constraints.add(combo_str)
-                continue
-            elif value_assignment in minimal_added_relaxations:
-                continue
-            if value_assignment not in checked_assignments_satisfying:
-                if not assign_to_provenance_relax_only(value_assignment, numeric_attributes,
-                                                       categorical_attributes,
-                                                       selection_numeric, selection_categorical,
-                                                       original_columns_delta_table, num_columns,
-                                                       fairness_constraints_provenance_greater_than,
-                                                       fairness_constraints_provenance_smaller_than):
-                    checked_assignments_unsatisfying.append(value_assignment)
-                    checked_unsatisfying_constraints.add(combo_str)
-                    print("terms above don't satisfy")
-                    continue
-                else:
-                    checked_satisfying_constraints.add(combo_str)
-                    checked_assignments_satisfying.append(value_assignment)
-            print("row_num = {}, terms above = {}".format(row_num, [t] + terms_above))
-            print("terms above satisfy, value assignment = {}".format(value_assignment))
-            checked_assignments_satisfying.append(value_assignment)
-            this_is_minimal, minimal_added_relaxations = \
-                update_minimal_relaxation(minimal_added_relaxations, value_assignment)
-            # check whether value assignment for this term and terms above is tight
-            # if yes, no need to check subsets of them
-            if whether_value_assignment_is_tight_minimal(delta_table.loc[t].values.tolist(), value_assignment,
-                                                         numeric_attributes, categorical_attributes,
-                                                         selection_numeric, selection_categorical,
-                                                         original_columns_delta_table, num_columns,
-                                                         fairness_constraints_provenance_greater_than,
-                                                         fairness_constraints_provenance_smaller_than,
-                                                         minimal_added_relaxations):
-                print("{} is tight, no need to check subsets".format(value_assignment))
-                if not set_stop_line:
-                    set_stop_line = True
-                    only_first_column_to_sort, stop_line, minimal_added_relaxations = \
-                        set_stop_line_and_resort(value_assignment, index_of_columns_remained, [t] + terms_above,
-                                                 stop_line, sorted_table,
-                                                 delta_table, columns_delta_table, only_first_column_to_sort,
-                                                 row_num, columns_resort,
-                                                 minimal_added_relaxations,
-                                                 original_columns_delta_table,
-                                                 checked_satisfying_constraints,
-                                                 checked_unsatisfying_constraints,
-                                                 checked_assignments_satisfying,
-                                                 checked_assignments_unsatisfying,
-                                                 numeric_attributes,
-                                                 categorical_att_columns, categorical_attributes,
-                                                 selection_numeric, selection_categorical,
-                                                 fairness_constraints_provenance_greater_than,
-                                                 fairness_constraints_provenance_smaller_than
-                                                 )
                 continue
             combo_list = [[y] for y in terms_above]
             while len(combo_list) > 0:
@@ -1109,7 +1126,7 @@ def resort_and_search_bidirectional(terms, delta_table, columns_delta_table, ind
                     for x in terms_above[idx + 1:]:
                         combo_list.append(combo + [x])
                     continue
-                value_assignment = get_relaxation_relax_only(combo_w_t, delta_table)
+                value_assignment = get_relaxation(combo_w_t, delta_table)
                 print("check term set {}, value assignment {}".format(combo_w_t, value_assignment))
                 if value_assignment in checked_assignments_satisfying:
                     checked_satisfying_constraints.add(combo_str)
@@ -1190,7 +1207,6 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
     # delta table drop duplicates
     delta_table_dropped_duplicates = delta_table.drop_duplicates(subset=columns_delta_table)
 
-
     sorted_table_by_column = dict()
     # sort first column
     row_indices = delta_table_dropped_duplicates.index.values
@@ -1249,7 +1265,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
             t_str = '0' * t + '1' + '0' * (num_columns - 1 - t)
             if t_str not in checked_satisfying_constraints \
                     and t_str not in checked_unsatisfying_constraints:
-                value_assignment = get_relaxation_relax_only([t], delta_table_dropped_duplicates)
+                value_assignment = get_relaxation([t], delta_table_dropped_duplicates)
                 if value_assignment in checked_assignments_satisfying:
                     checked_satisfying_constraints.add(t_str)
                     continue
@@ -1271,7 +1287,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         if not set_stop_line:
                             set_stop_line = True
                             only_first_column_to_sort, stop_line, minimal_added_relaxations = \
-                                set_stop_line_and_resort(value_assignment, index_of_columns_remained, [t],
+                                set_stop_line_and_resort_relax_only(value_assignment, index_of_columns_remained, [t],
                                                          stop_line, sorted_table,
                                                          delta_table_dropped_duplicates, columns_delta_table,
                                                          only_first_column_to_sort,
@@ -1299,7 +1315,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
             combo_str = intbitset(combo_w_t).strbits()
             if combo_str in checked_unsatisfying_constraints:
                 continue
-            value_assignment = get_relaxation_relax_only(combo_w_t, delta_table_dropped_duplicates)
+            value_assignment = get_relaxation(combo_w_t, delta_table_dropped_duplicates)
             if value_assignment in checked_assignments_satisfying:
                 checked_satisfying_constraints.add(combo_str)
             elif value_assignment in checked_assignments_unsatisfying:
@@ -1340,7 +1356,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                 if not set_stop_line:
                     set_stop_line = True
                     only_first_column_to_sort, stop_line, minimal_added_relaxations = \
-                        set_stop_line_and_resort(value_assignment, index_of_columns_remained, [t] + terms_above,
+                        set_stop_line_and_resort_relax_only(value_assignment, index_of_columns_remained, [t] + terms_above,
                                                  stop_line, sorted_table,
                                                  delta_table_dropped_duplicates, columns_delta_table,
                                                  only_first_column_to_sort,
@@ -1375,7 +1391,7 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                     for x in terms_above[idx + 1:]:
                         combo_list.append(combo + [x])
                     continue
-                value_assignment = get_relaxation_relax_only(combo_w_t, delta_table_dropped_duplicates)
+                value_assignment = get_relaxation(combo_w_t, delta_table_dropped_duplicates)
                 print("check term set {}, value assignment {}".format(combo_w_t, value_assignment))
                 if value_assignment in checked_assignments_satisfying:
                     checked_satisfying_constraints.add(combo_str)
@@ -1404,9 +1420,10 @@ def resort_and_search_relax_only(terms, delta_table, columns_delta_table, index_
                         if not set_stop_line:
                             set_stop_line = True
                             only_first_column_to_sort, stop_line, minimal_added_relaxations = \
-                                set_stop_line_and_resort(value_assignment, index_of_columns_remained, combo_w_t,
+                                set_stop_line_and_resort_relax_only(value_assignment, index_of_columns_remained, combo_w_t,
                                                          stop_line, sorted_table,
-                                                         delta_table_dropped_duplicates, columns_delta_table, only_first_column_to_sort,
+                                                         delta_table_dropped_duplicates, columns_delta_table,
+                                                         only_first_column_to_sort,
                                                          row_num, columns_resort,
                                                          minimal_added_relaxations,
                                                          original_columns_delta_table,
@@ -1536,7 +1553,7 @@ def search_bidirectional(sorted_table, delta_table, delta_table_multifunctional,
                 if terms_set['relaxation_term'].eq(True).all() or terms_set['relaxation_term'].eq(False).all():
                     checked_single_directional_combination.add(combo_str)
                     continue
-                have_legitimate_value_assignment, value_assignments = get_relaxation(combo_w_t,
+                have_legitimate_value_assignment, value_assignments = get_refinement(combo_w_t,
                                                                                      delta_table,
                                                                                      delta_table_multifunctional)
                 if have_legitimate_value_assignment:
@@ -1718,21 +1735,25 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 
     checked_satisfying_constraints = set()  # set of bit arrays
     checked_unsatisfying_constraints = set()
+    checked_single_directional_combination = set()
     checked_assignments_satisfying = []
     checked_assignments_unsatisfying = []
 
-    minimal_added_refinements = resort_and_search_relax_only(delta_table.index.values, delta_table,
-                                                             columns_delta_table, range(len(columns_delta_table)),
-                                                             [], columns_delta_table,
-                                                             checked_satisfying_constraints,
-                                                             checked_unsatisfying_constraints,
-                                                             checked_assignments_satisfying,
-                                                             checked_assignments_unsatisfying, numeric_attributes,
-                                                             categorical_att_columns, categorical_attributes,
-                                                             selection_numeric_attributes,
-                                                             selection_categorical_attributes,
-                                                             fairness_constraints_provenance_greater_than,
-                                                             fairness_constraints_provenance_smaller_than)
+    minimal_added_refinements = resort_and_search_bidirectional(delta_table.index.values, delta_table,
+                                                                delta_table_multifunctional,
+                                                                columns_delta_table, range(len(columns_delta_table)),
+                                                                [], columns_delta_table,
+                                                                checked_satisfying_constraints,
+                                                                checked_unsatisfying_constraints,
+                                                                checked_assignments_satisfying,
+                                                                checked_assignments_unsatisfying,
+                                                                checked_single_directional_combination,
+                                                                numeric_attributes,
+                                                                categorical_att_columns, categorical_attributes,
+                                                                selection_numeric_attributes,
+                                                                selection_categorical_attributes,
+                                                                fairness_constraints_provenance_greater_than,
+                                                                fairness_constraints_provenance_smaller_than)
 
     delta_table.round(2)
     delta_table_multifunctional.round(2)
@@ -1760,9 +1781,13 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
-data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+
+data_file = r"toy_examples/example2.csv"
+query_file = r"toy_examples/query2.json"
+constraint_file = r"toy_examples/constraint2.json"
 
 minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file,
                                                                                      constraint_file)
