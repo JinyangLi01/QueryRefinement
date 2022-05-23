@@ -435,8 +435,10 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
-        return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_relax, \
-               categorical_att_domain_too_add, []
+        return [[0] * num_numeric_att + [0] * num_cate_variables], numeric_att_domain_to_relax, \
+               categorical_att_domain_too_add, [], numeric_attributes_nowhere_to_relax, \
+               categorical_attributes_nowhere_to_relax
+
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
     last_time_selection = [0] * num_numeric_att + [0] * num_cate_variables
@@ -539,14 +541,17 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
 #
+#
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# selection_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/selection3.json"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+#
 #
 # # data_file = r"toy_examples/example2.csv"
 # # selection_file = r"toy_examples/selection2.json"
 #
-# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, selection_file)
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
 #
 # print(*minimal_refinements, sep="\n")
 # print("running time = {}".format(running_time))
-
+#
