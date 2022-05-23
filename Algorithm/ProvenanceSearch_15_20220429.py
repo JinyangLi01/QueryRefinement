@@ -1755,13 +1755,13 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
-
-data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
-
-minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file,
-                                                                                     constraint_file)
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
+#
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+#
+# minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file,
+#                                                                                      constraint_file)
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))

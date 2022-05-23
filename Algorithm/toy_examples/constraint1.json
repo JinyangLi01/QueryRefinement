@@ -1,14 +1,4 @@
 {
-  "categorical_attributes": {
-    "M": ["EE", "CS", "ME"]
-  },
-  "selection_numeric_attributes": {
-    "G": [">=", 60, 1],
-    "I": [">=", 100, 1]
-  },
-  "selection_categorical_attributes": {
-    "M": ["EE"]
-  },
   "all_sensitive_attributes": ["Gender", "Race", "Age group"],
   "number_fairness_constraints": 2,
   "fairness_constraints": [

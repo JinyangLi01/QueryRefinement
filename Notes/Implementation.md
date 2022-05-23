@@ -10,11 +10,52 @@
    1. delete a column if it is the same as the leftmost one
    2. compare with the leftmost column.
 4. Optimization4: merge same terms in the same inequality.
-5. Precision: int is 1, float is 0.05
+5. Precision: int is 1, float is 0.05.
 
 # Apr 19, 2022
 
 1. algorithm without optimization: ProvenanceSearch_3
-2. algorithm without optimization 1: ProvenanceSearch_4
-3. algorithm without optimization 1, 2: ProvenanceSearch_5
-4. !!! example 2, selection 2, our alg missed a result?
+2. algorithm with optimization 1: ProvenanceSearch_4
+3. algorithm with optimization 1, 2: ProvenanceSearch_5
+
+
+
+# Apr 21, 2022
+1. algorithm with optimization 1, 2, 4: ProvenanceSearch_8
+
+
+# Apr 25, 2022 Jag's comments
+1. predict when it takes long time, and use naive method instead
+2. say that we win often, sometimes lose
+3. avoid some traversal which I'm already doing
+
+
+
+# May 3, 2022
+1. relax-only is ok now. Theoretically there are cases with a large number of terms combinations to check, 
+but I haven't encountered this with three small dataset for now.
+2. I'm doing bidirectional.
+
+
+
+
+
+
+
+
+
+
+
+# Experiments
+
+## healthcare
+1. round income to the nearest thousand
+
+## TPCH
+too slow both programs...
+
+
+
+# TODO list for all
+1. how to deal with nan
+2. 
