@@ -40,19 +40,19 @@ def compare(q, c):
 
     print("running time = {}".format(running_time1))
 
-    print("========================== lattice traversal ===================================")
-
-    minimal_refinements2, minimal_added_refinements2, running_time2 = \
-        lt.FindMinimalRefinement(data_file, query_file, constraint_file)
-
-    print("running time = {}".format(running_time2))
+    # print("========================== lattice traversal ===================================")
+    #
+    # minimal_refinements2, minimal_added_refinements2, running_time2 = \
+    #     lt.FindMinimalRefinement(data_file, query_file, constraint_file)
+    #
+    # print("running time = {}".format(running_time2))
 
 
     print(*minimal_refinements1, sep="\n")
 
     result_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
-    time_output.write("{}, {:0.2f}, {:0.2f}\n".format(idx, running_time1, running_time2))
+    # time_output.write("{}, {:0.2f}, {:0.2f}\n".format(idx, running_time1, running_time2))
     result_output.write("{}\n".format(idx))
     result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
     result_output.write("\n")

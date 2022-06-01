@@ -56,6 +56,5 @@ too slow both programs...
 
 
 
-# TODO list for all
-1. how to deal with nan
-2. 
+# general refinement
+1. Things that don't work: 
