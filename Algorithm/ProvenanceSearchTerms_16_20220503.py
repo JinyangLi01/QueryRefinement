@@ -1825,7 +1825,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 
 data_file = r"toy_examples/example2.csv"
 query_file = r"toy_examples/query2.json"
-constraint_file = r"toy_examples/constraint2.json"
+constraint_file = r"toy_examples/constraint3.json"
 
 
 print("\nnaive algorithm:\n")
