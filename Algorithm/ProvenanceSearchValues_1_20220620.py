@@ -238,6 +238,69 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT
 
 
+
+def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
+                         categorical_attributes, selection_numeric, selection_categorical,
+                         sensitive_attributes, fairness_constraints,
+                         fairness_constraints_provenance_greater_than,
+                         fairness_constraints_provenance_smaller_than,
+                         data_rows_greater_than, data_rows_smaller_than
+                         ):
+    """
+    to build the sorted table
+    :param fairness_constraints_provenance_greater_than:
+    :param fairness_constraints_provenance_smaller_than:
+    :param data_rows_smaller_than:
+    :param data_rows_greater_than:
+    :param selected_attributes:
+    :param data: dataframe
+    :param numeric_attributes: list of names of numeric attributes [city, major, state]
+    :param categorical_attributes: dictionary: {city: [domain of city], major: [domain of major]}
+    :param selection_numeric: dictionary: {grade:[80, >], age:[30, <], hours: [100, <=]}
+    :param selection_categorical: dictionary: {city: [accepted cities], major: [accepted majors]}
+    :return: return the whole sorted table, including rows that already satisfy the selection conditions;
+            also return delta table
+    """
+
+    PVT_head = numeric_attributes.copy()
+    for att, domain in categorical_attributes.items():
+        for value in domain:
+            if value in selection_categorical[att]:
+                continue
+            else:
+                PVT_head.append(att + "_" + value)
+
+    # build delta table
+    def iterrow(row, smaller_than=True):  # greater than is symbol in fairness constraint (relaxation term)
+        nonlocal possible_values_sets
+        for att in numeric_attributes:
+            if eval(str(row[att]) + selection_numeric[att][0] + str(selection_numeric[att][1])):
+                possible_values_sets[att].add(row[att])
+    data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
+        subset=selected_attributes,
+        keep='first').reset_index(drop=True)
+    possible_values_sets = {x: set() for x in PVT_head}
+    for att in selection_numeric:
+        possible_values_sets[att].add(selection_numeric[att][1])
+    data_rows_smaller_than.apply(iterrow, args=(True,), axis=1)
+
+    possible_values_lists = {x: list(possible_values_sets[x]) for x in possible_values_sets}
+    for att in PVT_head:
+        if att in selection_numeric:
+            if selection_numeric[att][0] == '<' or selection_numeric[att][0] == '<=':
+                possible_values_lists[att].sort(reverse=True)
+            else:
+                possible_values_lists[att].sort()
+        else:
+            possible_values_lists[att] = [0, 1]
+    # print("possible_values_lists:\n", possible_values_lists)
+    possible_value_table = pd.DataFrame({key: pd.Series(value) for key, value in possible_values_lists.items()})
+    print("possible_value_table:\n", possible_value_table)
+    possible_value_table = possible_value_table.drop_duplicates().reset_index(drop=True)
+    categorical_att_columns = [item for item in PVT_head if item not in numeric_attributes]
+    max_index_PVT = [len(value) - 1 for value in possible_values_lists.values()]
+    return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT
+
 def build_sorted_table_bidirectional(data, selected_attributes, numeric_attributes,
                                      categorical_attributes, selection_numeric, selection_categorical,
                                      sensitive_attributes, fairness_constraints,
@@ -1268,6 +1331,7 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
         while idx_in_this_col > 0:
             idx_in_this_col -= 1
             fixed_value_assignments[PVT_head[col_idx]] = column[idx_in_this_col]
+            # TODO: optimization: fixing this value doesn't dissatisfy inequalities
             new_PVT_head = [PVT_head[x] for x in range(len(PVT_head)) if x != col_idx]
             new_max_index_PVT = max_index_PVT[:col_idx] + max_index_PVT[col_idx + 1:]
             # optimization: if there is only one column left to be moved down,
@@ -1788,6 +1852,50 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     # print(*fairness_constraints_provenance_smaller_than, sep="\n")
 
     if only_greater_than:
+        time_table1 = time.time()
+        PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
+                                                                                     numeric_attributes,
+                                                                                     categorical_attributes,
+                                                                                     selection_numeric_attributes,
+                                                                                     selection_categorical_attributes,
+                                                                                     sensitive_attributes,
+                                                                                     fairness_constraints,
+                                                                                     fairness_constraints_provenance_greater_than,
+                                                                                     fairness_constraints_provenance_smaller_than,
+                                                                                     data_rows_greater_than,
+                                                                                     data_rows_smaller_than)
+        print("max_index_PVT: {}".format(max_index_PVT))
+        time_table2 = time.time()
+        table_time = time_table2 - time_table1
+        # print("delta table:\n{}".format(delta_table))
+        time_search1 = time.time()
+
+        checked_satisfying_constraints = set()  # set of bit arrays
+        checked_unsatisfying_constraints = set()
+        checked_assignments_satisfying = []
+        checked_assignments_unsatisfying = []
+        minimal_refinements = []
+        searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes,
+                  categorical_attributes, selection_numeric_attributes,
+                  selection_categorical_attributes, len(PVT_head),
+                  fairness_constraints_provenance_greater_than, {}, PVT, PVT_head,
+                  minimal_refinements, max_index_PVT,
+                  checked_assignments_satisfying, checked_assignments_unsatisfying)
+        time_search2 = time.time()
+        # print("checked_assignments_satisfying:{}".format(checked_assignments_satisfying))
+        # print("checked_assignments_unsatisfying:{}".format(checked_assignments_unsatisfying))
+        # minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
+        #                                                      selection_numeric_attributes,
+        #                                                      selection_categorical_attributes,
+        #                                                      PVT_head)
+        time2 = time.time()
+        print("provenance time = {}".format(provenance_time))
+        print("table time = {}".format(table_time))
+        print("searching time = {}".format(time_search2 - time_search1))
+        # print("minimal_added_relaxations:{}".format(minimal_added_refinements))
+        return minimal_refinements, time2 - time1
+
+    elif only_smaller_than:
         time_table1 = time.time()
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
                                                                                      numeric_attributes,
