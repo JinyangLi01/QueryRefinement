@@ -1,10 +1,13 @@
 """
-executable but only for relaxation
-Pure relaxations and refinements are treated differently.
+executable but only for relaxation/contraction
+Pure relaxations/contractions and refinements are treated differently.
+Use recursion
+
 
 Difference from 0:
 0: In relaxation, use top-down traversal to find a bounding query
 here: use binary search
+
 
 """
 
