@@ -1333,8 +1333,8 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
             return
         while idx_in_this_col > 0:
             idx_in_this_col -= 1
-            fixed_value_assignments[PVT_head[col_idx]] = column[idx_in_this_col]
             # TODO: optimization: fixing this value doesn't dissatisfy inequalities
+            fixed_value_assignments[PVT_head[col_idx]] = column[idx_in_this_col]
             new_PVT_head = [PVT_head[x] for x in range(len(PVT_head)) if x != col_idx]
             new_max_index_PVT = max_index_PVT[:col_idx] + max_index_PVT[col_idx + 1:]
             # optimization: if there is only one column left to be moved down,
@@ -1345,7 +1345,6 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
                                     max(new_max_index_PVT)+1].reset_index(drop=True)
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
             else:
-
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
             found_relaxation = searchPVT(PVT_for_recursion, new_PVT_head,
                                          categorical_att_columns,
@@ -2011,8 +2010,9 @@ constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constra
 # query_file = r"toy_examples/query2.json"
 # constraint_file = r"toy_examples/constraint3.json"
 
-print("\nnaive algorithm:\n")
-
+#
+# print("\nnaive algorithm:\n")
+#
 # minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
 #                                                                                            constraint_file)
 #
