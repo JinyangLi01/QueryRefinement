@@ -7,6 +7,8 @@ Use recursion
 Difference from 1:
 Add an optimization: before fixing a value, make sure fixing this value doesn't dissatisfy the inequalities
 
+But this uses recursion which is not appreciated
+
 
 """
 
@@ -482,13 +484,12 @@ def assign_to_provenance_relax_only(value_assignment, numeric_attributes, catego
             for att in pe:
                 if att == 'occurrence':
                     continue
-                # FIXME: ??
-                # if att not in value_assignment.keys():
-                #     continue
                 if pd.isnull(pe[att]):
                     fail = True
                     break
                 if att in numeric_attributes:
+                    if att not in value_assignment.keys():
+                        continue
                     if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
                         if eval(str(pe[att]) + selection_numeric[att][0] + str(value_assignment[att])):
                             continue
@@ -504,6 +505,8 @@ def assign_to_provenance_relax_only(value_assignment, numeric_attributes, catego
                 else:  # att in categorical
                     column_name = att + "_" + pe[att]
                     if column_name not in columns_delta_table:
+                        continue
+                    if column_name not in value_assignment.keys():
                         continue
                     if pe[att] in selection_categorical[att]:
                         if 1 + value_assignment[column_name] == 1:
@@ -1236,10 +1239,7 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
     print("fixed_value_assignments: {}".format(fixed_value_assignments))
     # binary search to find a bounding relaxation
     find_bounding_relaxation = False
-    old_bounding_relaxation_location = [1] * len(PVT_head)
-    new_bounding_relaxation_location = [1] * len(PVT_head)
     satisfying_row_id = 0
-    old_value_assignment = []
     new_value_assignment = []
     last_satisfying_full_value_assignment = {}
     last_satisfying_bounding_relaxation_location = []
@@ -1284,9 +1284,6 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
     nan_row = PVT.iloc[satisfying_row_id].isnull()
     if sum(k is False for k in nan_row) > 1:  # need to tighten
         print("try to tighten the result of {}".format([last_satisfying_full_value_assignment[k] for k in PVT_head]))
-        # full_value_assignment = dict(zip(PVT_head, new_value_assignment))
-        # full_value_assignment = {**full_value_assignment, **fixed_value_assignments}
-        # last_satisfying_full_value_assignment = full_value_assignment
         def tighten_result(column):
             nonlocal col_idx
             nonlocal last_satisfying_full_value_assignment
@@ -1295,8 +1292,6 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
                 idx_in_this_col -= 1
                 new_value_assignment[col_idx] = column[idx_in_this_col]
                 full_value_assignment[PVT_head[col_idx]] = column[idx_in_this_col]
-                # full_value_assignment = dict(zip(PVT_head, new_value_assignment))
-                # full_value_assignment = {**full_value_assignment, **fixed_value_assignments}
                 print("value_assignment: ", full_value_assignment)
                 if assign_to_provenance_relax_only(full_value_assignment, numeric_attributes, categorical_attributes,
                                                    selection_numeric, selection_categorical,
@@ -1346,13 +1341,13 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
         while idx_in_this_col > 0:
             idx_in_this_col -= 1
             # TODO: optimization: fixing this value doesn't dissatisfy inequalities
-            # single_fix = {PVT_head[col_idx]: column[idx_in_this_col]}
-            # if not assign_to_provenance_relax_only(single_fix, numeric_attributes, categorical_attributes,
-            #                                    selection_numeric, selection_categorical,
-            #                                    full_PVT_head,
-            #                                    num_columns, fairness_constraints_provenance_greater_than):
-            #     print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
-            #     break
+            single_fix = {PVT_head[col_idx]: column[idx_in_this_col]}
+            if not assign_to_provenance_relax_only(single_fix, numeric_attributes, categorical_attributes,
+                                               selection_numeric, selection_categorical,
+                                               full_PVT_head,
+                                               num_columns, fairness_constraints_provenance_greater_than):
+                print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
+                break
             fixed_value_assignments[PVT_head[col_idx]] = column[idx_in_this_col]
             new_PVT_head = [PVT_head[x] for x in range(len(PVT_head)) if x != col_idx]
             new_max_index_PVT = max_index_PVT[:col_idx] + max_index_PVT[col_idx + 1:]
