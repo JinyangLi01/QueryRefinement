@@ -1238,13 +1238,14 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
     find_bounding_relaxation = False
     old_bounding_relaxation_location = [1] * len(PVT_head)
     new_bounding_relaxation_location = [1] * len(PVT_head)
-    row_idx = 0
+    satisfying_row_id = 0
     old_value_assignment = []
     new_value_assignment = []
     last_satisfying_full_value_assignment = {}
-    no_need_to_tighten = False
+    last_satisfying_bounding_relaxation_location = []
     left = 0
     right = max(max_index_PVT)
+    full_value_assignment = []
     # binary search can't use apply
     while left <= right:
         print("left = {}, right={}".format(left, right))
@@ -1260,12 +1261,13 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
                                            num_columns, fairness_constraints_provenance_greater_than):
             checked_assignments_satisfying.append([full_value_assignment[k] for k in full_PVT_head])
             print("{} satisfies constraints".format(full_value_assignment))
+            satisfying_row_id = cur_row_id
             right = cur_row_id - 1
             last_satisfying_full_value_assignment = full_value_assignment
+            last_satisfying_bounding_relaxation_location = new_bounding_relaxation_location
             find_bounding_relaxation = True
         else:
             print("{} doesn't satisfy constraints".format(full_value_assignment))
-            old_value_assignment = new_value_assignment
             checked_assignments_not_satisfying.append([full_value_assignment[k] for k in full_PVT_head])
             left = cur_row_id + 1
 
@@ -1278,19 +1280,23 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
         minimal_refinements.append(full_value_assignment)
         print("minimal_refinements: {}".format(minimal_refinements))
         return True
-    if not no_need_to_tighten:
-        print("try to tighten the result of {}".format(new_value_assignment))
-
+    full_value_assignment = last_satisfying_full_value_assignment
+    nan_row = PVT.iloc[satisfying_row_id].isnull()
+    if sum(k is False for k in nan_row) > 1:  # need to tighten
+        print("try to tighten the result of {}".format([last_satisfying_full_value_assignment[k] for k in PVT_head]))
+        # full_value_assignment = dict(zip(PVT_head, new_value_assignment))
+        # full_value_assignment = {**full_value_assignment, **fixed_value_assignments}
+        # last_satisfying_full_value_assignment = full_value_assignment
         def tighten_result(column):
             nonlocal col_idx
             nonlocal last_satisfying_full_value_assignment
-            idx_in_this_col = new_bounding_relaxation_location[col_idx]
-            smallest_row = 0
+            idx_in_this_col = last_satisfying_bounding_relaxation_location[col_idx]
             while idx_in_this_col > 0:
                 idx_in_this_col -= 1
                 new_value_assignment[col_idx] = column[idx_in_this_col]
-                full_value_assignment = dict(zip(PVT_head, new_value_assignment))
-                full_value_assignment = {**full_value_assignment, **fixed_value_assignments}
+                full_value_assignment[PVT_head[col_idx]] = column[idx_in_this_col]
+                # full_value_assignment = dict(zip(PVT_head, new_value_assignment))
+                # full_value_assignment = {**full_value_assignment, **fixed_value_assignments}
                 print("value_assignment: ", full_value_assignment)
                 if assign_to_provenance_relax_only(full_value_assignment, numeric_attributes, categorical_attributes,
                                                    selection_numeric, selection_categorical,
@@ -1299,21 +1305,25 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
                     checked_assignments_satisfying.append([full_value_assignment[k] for k in full_PVT_head])
                     print("{} satisfies constraints".format(full_value_assignment))
                     last_satisfying_full_value_assignment = full_value_assignment
+                    last_satisfying_bounding_relaxation_location[col_idx] = idx_in_this_col
                 else:
                     print("{} doesn't satisfy constraints".format(full_value_assignment))
                     checked_assignments_not_satisfying.append([full_value_assignment[k] for k in full_PVT_head])
                     smallest_row = idx_in_this_col + 1
+                    last_satisfying_bounding_relaxation_location[col_idx] = smallest_row
+                    new_value_assignment[col_idx] = column[smallest_row]
+                    full_value_assignment[PVT_head[col_idx]] = column[smallest_row]
                     break
-            new_bounding_relaxation_location[col_idx] = smallest_row
-            new_value_assignment[col_idx] = column[smallest_row]
+
             col_idx += 1
             return
 
         PVT.apply(tighten_result, axis=0)
         print("tight relaxation: {}".format(new_value_assignment))
-
-    full_value_assignment = [last_satisfying_full_value_assignment[k] for k in full_PVT_head]
-    minimal_refinements.append(full_value_assignment)
+    else:
+        print("no need to tighten the result of {}".format(new_value_assignment))
+    # full_value_assignment = [last_satisfying_full_value_assignment[k] for k in full_PVT_head]
+    minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
     print("minimal_refinements: {}".format(minimal_refinements))
     # recursion
     col_idx = 0
@@ -1323,10 +1333,10 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
     def recursion(column):
         nonlocal col_idx
         nonlocal new_value_assignment
-        nonlocal new_bounding_relaxation_location
-        idx_in_this_col = new_bounding_relaxation_location[col_idx]
+        nonlocal last_satisfying_bounding_relaxation_location
+        idx_in_this_col = last_satisfying_bounding_relaxation_location[col_idx]
         # if there are no other columns to be moved down, return
-        if sum(new_bounding_relaxation_location[i] < max_index_PVT[i] for i in range(len(PVT_head)) if
+        if sum(last_satisfying_bounding_relaxation_location[i] < max_index_PVT[i] for i in range(len(PVT_head)) if
                i != col_idx) == 0:
             col_idx += 1
             return
@@ -1350,7 +1360,7 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
             #  this column in the new recursion should start from where it stopped before
             if len(new_PVT_head) == 1:
                 PVT_for_recursion = PVT[new_PVT_head].iloc[
-                                    new_bounding_relaxation_location[1-col_idx]+1:
+                                    last_satisfying_bounding_relaxation_location[1-col_idx]+1:
                                     max(new_max_index_PVT)+1].reset_index(drop=True)
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
             else:
@@ -1368,8 +1378,8 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
                 break
         # avoid repeated checking: for columns that are done with moving up, we need to remove values above the 'stop line'
         seri = PVT[PVT_head[col_idx]]
-        PVT[PVT_head[col_idx]] = seri.shift(periods=-new_bounding_relaxation_location[col_idx])
-        max_index_PVT[col_idx] -= new_bounding_relaxation_location[col_idx]
+        PVT[PVT_head[col_idx]] = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
+        max_index_PVT[col_idx] -= last_satisfying_bounding_relaxation_location[col_idx]
         col_idx += 1
         return
 
