@@ -216,6 +216,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
         for att in numeric_attributes:
             if not eval(str(row[att]) + selection_numeric[att][0] + str(selection_numeric[att][1])):
                 possible_values_sets[att].add(row[att])
+
     data_rows_greater_than = data_rows_greater_than.drop_duplicates(
         subset=selected_attributes,
         keep='first').reset_index(drop=True)
@@ -242,14 +243,13 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT
 
 
-
 def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
-                         categorical_attributes, selection_numeric, selection_categorical,
-                         sensitive_attributes, fairness_constraints,
-                         fairness_constraints_provenance_greater_than,
-                         fairness_constraints_provenance_smaller_than,
-                         data_rows_greater_than, data_rows_smaller_than
-                         ):
+                            categorical_attributes, selection_numeric, selection_categorical,
+                            sensitive_attributes, fairness_constraints,
+                            fairness_constraints_provenance_greater_than,
+                            fairness_constraints_provenance_smaller_than,
+                            data_rows_greater_than, data_rows_smaller_than
+                            ):
     """
     to build the sorted table
     :param fairness_constraints_provenance_greater_than:
@@ -280,6 +280,7 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
         for att in numeric_attributes:
             if eval(str(row[att]) + selection_numeric[att][0] + str(selection_numeric[att][1])):
                 possible_values_sets[att].add(row[att])
+
     data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
         subset=selected_attributes,
         keep='first').reset_index(drop=True)
@@ -304,6 +305,7 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
     categorical_att_columns = [item for item in PVT_head if item not in numeric_attributes]
     max_index_PVT = [len(value) - 1 for value in possible_values_lists.values()]
     return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT
+
 
 def build_sorted_table_bidirectional(data, selected_attributes, numeric_attributes,
                                      categorical_attributes, selection_numeric, selection_categorical,
@@ -1284,6 +1286,7 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
     nan_row = PVT.iloc[satisfying_row_id].isnull()
     if sum(k is False for k in nan_row) > 1:  # need to tighten
         print("try to tighten the result of {}".format([last_satisfying_full_value_assignment[k] for k in PVT_head]))
+
         def tighten_result(column):
             nonlocal col_idx
             nonlocal last_satisfying_full_value_assignment
@@ -1343,9 +1346,9 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
             # TODO: optimization: fixing this value doesn't dissatisfy inequalities
             single_fix = {PVT_head[col_idx]: column[idx_in_this_col]}
             if not assign_to_provenance_relax_only(single_fix, numeric_attributes, categorical_attributes,
-                                               selection_numeric, selection_categorical,
-                                               full_PVT_head,
-                                               num_columns, fairness_constraints_provenance_greater_than):
+                                                   selection_numeric, selection_categorical,
+                                                   full_PVT_head,
+                                                   num_columns, fairness_constraints_provenance_greater_than):
                 print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
                 break
             fixed_value_assignments[PVT_head[col_idx]] = column[idx_in_this_col]
@@ -1355,8 +1358,8 @@ def searchPVT(PVT, PVT_head, categorical_att_columns, numeric_attributes, catego
             #  this column in the new recursion should start from where it stopped before
             if len(new_PVT_head) == 1:
                 PVT_for_recursion = PVT[new_PVT_head].iloc[
-                                    last_satisfying_bounding_relaxation_location[1-col_idx]+1:
-                                    max(new_max_index_PVT)+1].reset_index(drop=True)
+                                    last_satisfying_bounding_relaxation_location[1 - col_idx] + 1:
+                                    max(new_max_index_PVT) + 1].reset_index(drop=True)
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
@@ -2034,26 +2037,26 @@ constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constra
 # print("running time = {}".format(running_time2))
 
 naive_ans = [[300, 4, 5, 1, 1],
-[300, 4, 3, 1, 0],
-[300, 4, 1, 0, 1],
-[300, 5, 6, 1, 1],
-[300, 5, 4, 1, 0],
-[300, 5, 2, 0, 1],
-[300, 5, 0, 0, 0],
-[322, 4, 6, 1, 1],
-[324, 4, 4, 1, 0],
-[324, 5, 5, 1, 0],
-[343, 4, 2, 0, 1],
-[343, 4, 0, 0, 0],
-[343, 5, 3, 0, 1],
-[343, 5, 1, 0, 0],
-[353, 4, 3, 0, 1],
-[382, 5, 4, 0, 1],
-[413, 5, 6, 1, 0],
-[417, 4, 5, 1, 0],
-[418, 5, 7, 1, 1],
-[423, 4, 4, 0, 1],
-[423, 5, 5, 0, 1]]
+             [300, 4, 3, 1, 0],
+             [300, 4, 1, 0, 1],
+             [300, 5, 6, 1, 1],
+             [300, 5, 4, 1, 0],
+             [300, 5, 2, 0, 1],
+             [300, 5, 0, 0, 0],
+             [322, 4, 6, 1, 1],
+             [324, 4, 4, 1, 0],
+             [324, 5, 5, 1, 0],
+             [343, 4, 2, 0, 1],
+             [343, 4, 0, 0, 0],
+             [343, 5, 3, 0, 1],
+             [343, 5, 1, 0, 0],
+             [353, 4, 3, 0, 1],
+             [382, 5, 4, 0, 1],
+             [413, 5, 6, 1, 0],
+             [417, 4, 5, 1, 0],
+             [418, 5, 7, 1, 1],
+             [423, 4, 4, 0, 1],
+             [423, 5, 5, 0, 1]]
 
 print("\nour algorithm:\n")
 
@@ -2061,7 +2064,6 @@ minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file,
 
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
-
 
 print("in naive_ans but not our:\n")
 for na in naive_ans:
