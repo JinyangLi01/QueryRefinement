@@ -49,6 +49,8 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
+
+
 def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
@@ -116,16 +118,30 @@ def update_minimal_refinement(minimal_added_relaxations, r):
     return minimal_added_relaxations
 
 
+def transform_back_to_refinement_format(minimal_added_refinements,
+                                        num_numeric_att,
+                                        selection_numeric_attributes, numeric_attributes):
+    minimal_refinements = []
+    for ar in minimal_added_refinements:
+        minimal_refinement_values = copy.deepcopy(ar)
+        for i in range(num_numeric_att):
+            minimal_refinement_values[i] = minimal_refinement_values[i] + \
+                                               selection_numeric_attributes[numeric_attributes[i]][1]
+        minimal_refinements.append(minimal_refinement_values)
+    return minimal_refinements
+
+
+
 def transform_refinement_format(this_refinement, numeric_attributes_nowhere_to_relax, num_numeric_att,
                                 selection_numeric_attributes, numeric_attributes):
-    minimal_refinement_values = copy.deepcopy(this_refinement)
+    minimal_added_refinement_values = copy.deepcopy(this_refinement)
     for i in range(num_numeric_att):
-        if minimal_refinement_values[i] == -1:
-            minimal_refinement_values[i] = 0
+        if minimal_added_refinement_values[i] == -1:
+            minimal_added_refinement_values[i] = 0
         else:
-            minimal_refinement_values[i] = minimal_refinement_values[i] - \
+            minimal_added_refinement_values[i] = minimal_added_refinement_values[i] - \
                                            selection_numeric_attributes[numeric_attributes[i]][1]
-    return minimal_refinement_values
+    return minimal_added_refinement_values
 
 
 def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -454,11 +470,11 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
                                                     new_selection_numeric_attributes,
                                                     new_selection_categorical_attributes):
-                minimal_refinement_values = transform_refinement_format(this_refinement,
+                minimal_added_refinement_values = transform_refinement_format(this_refinement,
                                                                         numeric_attributes_nowhere_to_relax,
                                                                         num_numeric_att, selection_numeric_attributes,
                                                                         numeric_attributes)
-                minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
+                minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_added_refinement_values)
             att_idx -= 1
         if att_idx < num_numeric_att:  # numeric
             if last_time_selection[att_idx] + 1 == len(numeric_att_domain_to_relax[numeric_attributes[att_idx]]):
@@ -521,6 +537,11 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     pd.set_option('display.float_format', '{:.2f}'.format)
 
     time1 = time.time()
+    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                            selection_categorical_attributes):
+        return [], [], time.time() - time1
+
     minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
     categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
     categorical_attributes_nowhere_to_refine \
@@ -530,25 +551,30 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
-    minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-                                                         selection_numeric_attributes, selection_categorical_attributes,
-                                                         numeric_att_domain_to_relax, categorical_att_domain_to_add,
-                                                         categorical_att_domain_to_remove,
-                                                         numeric_attributes_nowhere_to_refine,
-                                                         categorical_attributes_nowhere_to_refine)
+    # minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
+    #                                                      selection_numeric_attributes, selection_categorical_attributes,
+    #                                                      numeric_att_domain_to_relax, categorical_att_domain_to_add,
+    #                                                      categorical_att_domain_to_remove,
+    #                                                      numeric_attributes_nowhere_to_refine,
+    #                                                      categorical_attributes_nowhere_to_refine)
+
+    minimal_refinements = transform_back_to_refinement_format(minimal_added_refinements, len(numeric_attributes),
+                                                         selection_numeric_attributes, numeric_attributes)
 
     time2 = time.time()
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
-#
+
 #
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint1.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
 #
+
+# data_file = r"toy_examples/example2.csv"
+# query_file = r"toy_examples/query2.json"
+# constraint_file = r"toy_examples/constraint3.json"
 #
-# # data_file = r"toy_examples/example2.csv"
-# # selection_file = r"toy_examples/selection2.json"
 #
 # minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
 #

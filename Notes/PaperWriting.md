@@ -11,3 +11,10 @@
 
 
 
+1. in a broad context not only fairness
+2. justify minimality
+   1. minimal query
+   2. all minimal queries
+   Make up an example with complex constraints, so that change one attribute slightly would result in a large change.
+   But change many other attributes can also result in a smaller change in the result set that also satisfies the conditions.
+   3. 
