@@ -1261,6 +1261,7 @@ def update_minimal_relaxation_and_position(minimal_refinements, minimal_refineme
                                            full_value_assignment, full_value_assignment_positions):
     num = len(minimal_refinements_positions)
     dominated = []
+    dominated_refinements = []
     for i in range(num):
         p = minimal_refinements_positions[i]
         if position_dominate(p, full_value_assignment_positions):
@@ -1268,9 +1269,10 @@ def update_minimal_relaxation_and_position(minimal_refinements, minimal_refineme
         elif position_dominate(full_value_assignment_positions, p):
             dominated.append(p)
             to_remove_refinement = minimal_refinements[i]
-            minimal_refinements.remove(to_remove_refinement)
+            dominated_refinements.append(to_remove_refinement)
     minimal_refinements_positions = [p for p in minimal_refinements_positions if p not in dominated]
     minimal_refinements_positions.append(full_value_assignment_positions)
+    minimal_refinements = [p for p in minimal_refinements if p not in dominated_refinements]
     minimal_refinements.append(full_value_assignment)
     return minimal_refinements, minimal_refinements_positions
 
@@ -1280,7 +1282,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
               full_PVT, full_PVT_head, max_index_PVT,
               checked_assignments_satisfying, checked_assignments_not_satisfying):
     PVT_stack = [PVT]
-    PVT_head_stack = [PVT_head, PVT_head]
+    PVT_head_stack = [PVT_head]
     max_index_PVT_stack = [max_index_PVT]
     parent_PVT_stack = [pd.DataFrame()]
     parent_PVT_head_stack = [[]]
@@ -1288,7 +1290,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
     col_idx_in_parent_PVT_stack = [0]
     idx_in_this_col_in_parent_PVT_stack = [0]
     find_relaxation = {x: [] for x in range(1, len(full_PVT_head) + 1)}
-    fixed_value_assignments_stack = [ {}]
+    fixed_value_assignments_stack = [{}]
     fixed_value_assignments_positions_stack = [{}]
     to_put_to_stack = []
     minimal_refinements = []  # result set
@@ -1358,9 +1360,12 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 left = cur_row_id + 1
 
         col_idx = 0
-        find_relaxation[num_columns].append(find_bounding_relaxation)
+        find_relaxation[num_columns].append(find_bounding_relaxation)  # FIXME: is this find_relaxation necessary?
         if not find_bounding_relaxation:
-            next_col_num_in_stack = len(PVT_head_stack[-1])
+            if len(PVT_head_stack) > 0:
+                next_col_num_in_stack = len(PVT_head_stack[-1])
+            else:
+                next_col_num_in_stack = len(full_PVT_head)
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
@@ -1385,7 +1390,10 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                                                        [full_value_assignment_positions[x] for x in full_PVT_head])
 
             print("minimal_refinements: {}".format(minimal_refinements))
-            next_col_num_in_stack = len(PVT_head_stack[-1])
+            if len(PVT_head_stack) > 0:
+                next_col_num_in_stack = len(PVT_head_stack[-1])
+            else:
+                next_col_num_in_stack = len(full_PVT_head)
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
@@ -1445,7 +1453,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         print("tight relaxation: {}".format(new_value_assignment))
 
         fva = [full_value_assignment[k] for k in full_PVT_head]
-
+        # FIXME: due to optimization, this positions is incorrect
         full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
         full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
 
@@ -1457,14 +1465,14 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         # recursion
         col_idx = 0
 
-        # optimization:
-        # when move up and fix a value, make sure there are other columns that can be moved down
+        index_to_insert_to_stack = len(PVT_stack)
+        index_to_insert_to_put = len(to_put_to_stack)
         def recursion(column):
             nonlocal col_idx
             nonlocal new_value_assignment
             nonlocal last_satisfying_bounding_relaxation_location
             idx_in_this_col = last_satisfying_bounding_relaxation_location[col_idx]
-            # if there are no other columns to be moved down, return
+            # optimization: if there are no other columns to be moved down, return
             if sum(last_satisfying_bounding_relaxation_location[i] < max_index_PVT[i] for i in range(len(PVT_head)) if
                    i != col_idx) == 0:
                 col_idx += 1
@@ -1500,16 +1508,26 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
-            PVT_stack.append(PVT_for_recursion)
-            PVT_head_stack.append(new_PVT_head)
-            max_index_PVT_stack.append(new_max_index_PVT)
-            parent_PVT_stack.append(PVT)
-            parent_PVT_head_stack.append(PVT_head)
-            parent_max_index_PVT_stack.append(max_index_PVT)
-            col_idx_in_parent_PVT_stack.append(col_idx)
-            idx_in_this_col_in_parent_PVT_stack.append(idx_in_this_col)
-            fixed_value_assignments_stack.append(fixed_value_assignments_for_stack)
-            fixed_value_assignments_positions_stack.append(fixed_value_assignments_positions_for_stack)
+            # PVT_stack.append(PVT_for_recursion)
+            # PVT_head_stack.append(new_PVT_head)
+            # max_index_PVT_stack.append(new_max_index_PVT)
+            # parent_PVT_stack.append(PVT)
+            # parent_PVT_head_stack.append(PVT_head)
+            # parent_max_index_PVT_stack.append(max_index_PVT)
+            # col_idx_in_parent_PVT_stack.append(col_idx)
+            # idx_in_this_col_in_parent_PVT_stack.append(idx_in_this_col)
+            # fixed_value_assignments_stack.append(fixed_value_assignments_for_stack)
+            # fixed_value_assignments_positions_stack.append(fixed_value_assignments_positions_for_stack)
+            PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
+            PVT_head_stack.insert(index_to_insert_to_stack, new_PVT_head)
+            max_index_PVT_stack.insert(index_to_insert_to_stack, new_max_index_PVT)
+            parent_PVT_stack.insert(index_to_insert_to_stack, PVT)
+            parent_PVT_head_stack.insert(index_to_insert_to_stack, PVT_head)
+            parent_max_index_PVT_stack.insert(index_to_insert_to_stack, max_index_PVT)
+            col_idx_in_parent_PVT_stack.insert(index_to_insert_to_stack, col_idx)
+            idx_in_this_col_in_parent_PVT_stack.insert(index_to_insert_to_stack, idx_in_this_col)
+            fixed_value_assignments_stack.insert(index_to_insert_to_stack, fixed_value_assignments_for_stack)
+            fixed_value_assignments_positions_stack.insert(index_to_insert_to_stack, fixed_value_assignments_positions_for_stack)
             # to_put_to_stack
             if idx_in_this_col > 0:
                 to_put = dict()
@@ -1527,18 +1545,21 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions_for_stack)
                 fixed_value_assignments_positions_to_put[PVT_head[col_idx]] = idx_in_this_col - 1
                 to_put['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
-                to_put_to_stack.append(to_put)
-            # else:
-            #     to_put_to_stack.append({})
+                # to_put_to_stack.append(to_put)
+                to_put_to_stack.insert(index_to_insert_to_put, to_put)
+
             # TODO: avoid repeated checking: for columns that are done with moving up, we need to remove values above the 'stop line'
-            # seri = PVT[PVT_head[col_idx]]
-            # PVT[PVT_head[col_idx]] = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
-            # max_index_PVT[col_idx] -= last_satisfying_bounding_relaxation_location[col_idx]
+            seri = PVT[PVT_head[col_idx]]
+            PVT[PVT_head[col_idx]] = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
+            max_index_PVT[col_idx] -= last_satisfying_bounding_relaxation_location[col_idx]
             col_idx += 1
             return
 
         PVT.apply(recursion, axis=0)
-        next_col_num_in_stack = len(PVT_head_stack[-1])
+        if len(PVT_head_stack) > 0:
+            next_col_num_in_stack = len(PVT_head_stack[-1])
+        else:
+            next_col_num_in_stack = len(full_PVT_head)
         check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                           PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack, parent_PVT_head_stack,
                           parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack, idx_in_this_col_in_parent_PVT_stack,
@@ -1560,41 +1581,40 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
         return False
     to_put = to_put_to_stack.pop()
     PVT_from_to_put = False
-    if next_col_num_in_stack > this_num_columns:
-        print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
-        if len([k for k in find_relaxation[this_num_columns] if k is True]) > 0:
-            if to_put != {}:
-                PVT_stack.append(to_put['PVT'])
-                PVT_head_stack.append(to_put['PVT_head'])
-                max_index_PVT_stack.append(to_put['max_index_PVT'])
-                parent_PVT_stack.append(to_put['parent_PVT'])
-                parent_PVT_head_stack.append(to_put['parent_PVT_head'])
-                parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
-                col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
-                idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
-                fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
-                fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
+    print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
+    if len([k for k in find_relaxation[this_num_columns] if k is True]) > 0:
+        if to_put != {}:
+            PVT_stack.append(to_put['PVT'])
+            PVT_head_stack.append(to_put['PVT_head'])
+            max_index_PVT_stack.append(to_put['max_index_PVT'])
+            parent_PVT_stack.append(to_put['parent_PVT'])
+            parent_PVT_head_stack.append(to_put['parent_PVT_head'])
+            parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
+            col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
+            idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
+            fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
+            fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
 
-                if idx_in_this_col_in_parent_PVT > 1:
-                    to_put = dict()
-                    to_put['PVT'] = PVT
-                    to_put['PVT_head'] = PVT_head
-                    to_put['max_index_PVT'] = max_index_PVT
-                    to_put['parent_PVT'] = parent_PVT
-                    to_put['parent_PVT_head'] = parent_PVT_head
-                    to_put['parent_max_index_PVT'] = parent_max_index_PVT
-                    to_put['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
-                    to_put['idx_in_this_col_in_parent_PVT'] = idx_in_this_col_in_parent_PVT - 1
-                    fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
-                    fixed_value_assignments_to_put[PVT_head[col_idx_in_parent_PVT]] \
-                        = parent_PVT.iloc[idx_in_this_col_in_parent_PVT - 1, col_idx_in_parent_PVT]
-                    to_put['fixed_value_assignments'] = fixed_value_assignments_to_put
-                    fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
-                    fixed_value_assignments_positions_to_put[PVT_head[col_idx_in_parent_PVT]] \
-                        = idx_in_this_col_in_parent_PVT
-                    to_put['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
-                    to_put_to_stack.append(to_put)
-        find_relaxation[this_num_columns] = []
+            if idx_in_this_col_in_parent_PVT > 1:
+                to_put = dict()
+                to_put['PVT'] = PVT
+                to_put['PVT_head'] = PVT_head
+                to_put['max_index_PVT'] = max_index_PVT
+                to_put['parent_PVT'] = parent_PVT
+                to_put['parent_PVT_head'] = parent_PVT_head
+                to_put['parent_max_index_PVT'] = parent_max_index_PVT
+                to_put['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
+                to_put['idx_in_this_col_in_parent_PVT'] = idx_in_this_col_in_parent_PVT - 1
+                fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
+                fixed_value_assignments_to_put[PVT_head[col_idx_in_parent_PVT]] \
+                    = parent_PVT.iloc[idx_in_this_col_in_parent_PVT - 1, col_idx_in_parent_PVT]
+                to_put['fixed_value_assignments'] = fixed_value_assignments_to_put
+                fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
+                fixed_value_assignments_positions_to_put[PVT_head[col_idx_in_parent_PVT]] \
+                    = idx_in_this_col_in_parent_PVT
+                to_put['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
+                to_put_to_stack.append(to_put)
+    find_relaxation[this_num_columns] = []
     return PVT_from_to_put
 
 
