@@ -9,6 +9,12 @@ Difference from 2:
 
 Here I use loop
 
+Bug: due to optimization, the positions is incorrect since some parts of the columns that
+are already checked are deleted.
+
+This bug hasn't been fixed here.
+
+
 """
 
 import copy
@@ -895,7 +901,6 @@ def set_stop_line_and_resort_relax_only(value_assignment, index_of_columns_remai
     return False, stop_line, minimal_added_relaxations
 
 
-# TODO
 # assume there is no stop line set yet
 def set_stop_line_and_resort_bidirectional(value_assignment, index_of_columns_remained, term_set, stop_line,
                                            sorted_table,
