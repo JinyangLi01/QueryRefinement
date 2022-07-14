@@ -1276,10 +1276,11 @@ def position_dominate(p1, p2):
 
 
 def update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
-                                           full_value_assignment, full_value_assignment_positions):
+                                           full_value_assignment, full_value_assignment_positions, shifted_length):
     num = len(minimal_refinements_positions)
     dominated = []
     dominated_refinements = []
+    full_value_assignment_positions = [full_value_assignment_positions[i] + shifted_length[i] for i in range(len(shifted_length))]
     for i in range(num):
         p = minimal_refinements_positions[i]
         if position_dominate(p, full_value_assignment_positions):
@@ -1312,6 +1313,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
     fixed_value_assignments_positions_stack = [{}]
     fixed_value_assignments_to_tighten_stack = [[]]
     left_side_binary_search_stack = [0]
+    shifted_length_stack = [[0]*num_columns]
     to_put_to_stack = []
     minimal_refinements = []  # result set
     minimal_refinements_positions = []  # positions of result set
@@ -1332,6 +1334,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         idx_in_this_col_in_parent_PVT = idx_in_this_col_in_parent_PVT_stack.pop()
         fixed_value_assignments = fixed_value_assignments_stack.pop()
         fixed_value_assignments_positions = fixed_value_assignments_positions_stack.pop()
+        shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
         last_in_this_level = False
@@ -1339,6 +1342,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         print("PVT_head: {}".format(PVT_head))
         print("PVT:\n{}".format(PVT))
         print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("shifted_length: {}".format(shifted_length))
         # if len(PVT_head_stack) > 0:
         #     len_next_PVT_head = len(PVT_head_stack[0])
         #     if len_next_PVT_head != num_columns:
@@ -1400,13 +1404,15 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
+                # FIXME
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
                                   parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack,
                                   idx_in_this_col_in_parent_PVT_stack,
                                   fixed_value_assignments_stack, fixed_value_assignments_positions_stack,
-                                  fixed_value_assignments_to_tighten_stack,
+                                  fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack,
+                                  shifted_length_stack,
                                   idx_in_this_col_in_parent_PVT,
                                   PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                                   col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
@@ -1516,6 +1522,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                     left = cur_value_id + 1
             if tight_value_idx < idx_in_this_col_in_parent_PVT:
                 # tight this fixed column successfully
+                last_satisfying_bounding_relaxation_location[fixed_att] = tight_value_idx
                 fixed_value_assignments[fixed_att] = values_above[tight_value_idx]
                 idx_in_this_col_in_parent_PVT = tight_value_idx
                 if idx_in_this_col_in_parent_PVT == 0:
@@ -1525,29 +1532,32 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                     to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
                     to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
 
-        # fva = [full_value_assignment[k] for k in full_PVT_head]
-        # # FIXME: due to optimization, this positions is incorrect
-        # full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
-        # full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
-        #
-        # minimal_refinements, minimal_refinements_positions = \
-        #     update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
-        #                                            fva, [full_value_assignment_positions[x] for x in full_PVT_head])
-        
-        minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
+        fva = [full_value_assignment[k] for k in full_PVT_head]
+        full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
+        full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
+
+        minimal_refinements, minimal_refinements_positions = \
+            update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
+                                                   fva, [full_value_assignment_positions[x] for x in full_PVT_head],
+                                                   shifted_length)
+
+        # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
+
         print("minimal_refinements: {}".format(minimal_refinements))
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
+            # FIXME
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
                                   parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack,
                                   idx_in_this_col_in_parent_PVT_stack,
                                   fixed_value_assignments_stack, fixed_value_assignments_positions_stack,
-                                  fixed_value_assignments_to_tighten_stack,
+                                  fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack,
+                                  shifted_length_stack,
                                   idx_in_this_col_in_parent_PVT,
                                   PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                                   col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
@@ -1598,16 +1608,6 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
-            # PVT_stack.append(PVT_for_recursion)
-            # PVT_head_stack.append(new_PVT_head)
-            # max_index_PVT_stack.append(new_max_index_PVT)
-            # parent_PVT_stack.append(PVT)
-            # parent_PVT_head_stack.append(PVT_head)
-            # parent_max_index_PVT_stack.append(max_index_PVT)
-            # col_idx_in_parent_PVT_stack.append(col_idx)
-            # idx_in_this_col_in_parent_PVT_stack.append(idx_in_this_col)
-            # fixed_value_assignments_stack.append(fixed_value_assignments_for_stack)
-            # fixed_value_assignments_positions_stack.append(fixed_value_assignments_positions_for_stack)
             PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
             PVT_head_stack.insert(index_to_insert_to_stack, new_PVT_head)
             max_index_PVT_stack.insert(index_to_insert_to_stack, new_max_index_PVT)
@@ -1621,6 +1621,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
             for_left_binary = max(last_satisfying_bounding_relaxation_location[:col_idx] +
                                                      last_satisfying_bounding_relaxation_location[col_idx+1:])
             left_side_binary_search_stack.insert(index_to_insert_to_stack, for_left_binary)
+            shifted_length_stack.insert(index_to_insert_to_stack, copy.deepcopy(shifted_length))
             if idx_in_this_col > 0:
                 insert_idx = len(fixed_value_assignments_to_tighten_stack)
                 fixed_value_assignments_to_tighten_stack.insert(insert_idx, column[:idx_in_this_col].copy())
@@ -1643,12 +1644,15 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                 if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                     to_put['fixed_value_assignments_to_tighten'] = column[:idx_in_this_col-1].copy()
                 to_put['for_left_binary'] = for_left_binary
+                to_put['shifted_length'] = copy.deepcopy(shifted_length)
                 to_put_to_stack.insert(index_to_insert_to_put, to_put)
 
-            # TODO: avoid repeated checking: for columns that are done with moving up, we need to remove values above the 'stop line'
+            # TODO: avoid repeated checking: for columns that are done with moving up,
+            #  we need to remove values above the 'stop line'
             seri = PVT[PVT_head[col_idx]]
             PVT[PVT_head[col_idx]] = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
             max_index_PVT[col_idx] -= last_satisfying_bounding_relaxation_location[col_idx]
+            shifted_length[full_PVT_head.index(PVT_head[col_idx])] += last_satisfying_bounding_relaxation_location[col_idx]
             col_idx += 1
             return
 
@@ -1661,7 +1665,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                               PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack, parent_PVT_head_stack,
                               parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack, idx_in_this_col_in_parent_PVT_stack,
                               fixed_value_assignments_stack, fixed_value_assignments_positions_stack,
-                              fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack,
+                              fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack, shifted_length_stack,
                               idx_in_this_col_in_parent_PVT,
                               PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                               col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
@@ -1672,7 +1676,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                           PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack, parent_PVT_head_stack,
                           parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack, idx_in_this_col_in_parent_PVT_stack,
                           fixed_value_assignments_stack, fixed_value_assignments_positions_stack,
-                          fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack,
+                          fixed_value_assignments_to_tighten_stack, left_side_binary_search_stack, shifted_length_stack,
                           idx_in_this_col_in_parent_PVT,
                           PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                           col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions):
@@ -1694,6 +1698,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
             fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
             fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
             left_side_binary_search_stack.append(to_put['for_left_binary'])
+            shifted_length_stack.append(to_put['shifted_length'])
             if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
 
@@ -1717,6 +1722,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                     = to_put['idx_in_this_col_in_parent_PVT']
                 to_put2['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
                 to_put2['for_left_binary'] = to_put['for_left_binary']
+                to_put2['shifted_length'] = to_put['shifted_length']
                 if to_put['idx_in_this_col_in_parent_PVT'] > 1:
                     to_put2['fixed_value_assignments_to_tighten'] = to_put['fixed_value_assignments_to_tighten'][:-1]
                 to_put_to_stack.append(to_put2)
