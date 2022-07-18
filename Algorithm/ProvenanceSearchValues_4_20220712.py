@@ -847,7 +847,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                     print("{} doesn't satisfy constraints".format(full_value_assignment))
                     checked_assignments_not_satisfying.append(full_value_assignment_str)
                     left = cur_value_id + 1
-            if tight_value_idx > 0:  # can be tighten
+            if tight_value_idx >= 0:  # can be tightened
                 if tight_value_idx < idx_in_this_col_in_parent_PVT:
                     # tight this fixed column successfully
                     # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
@@ -861,12 +861,21 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                         to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
                         to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
                     fixed_value_assignments = fixed_value_assignments_for_tighten
+                fva = [full_value_assignment[k] for k in full_PVT_head]
+                full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
+                full_value_assignment_positions = {**full_value_assignment_positions,
+                                                   **fixed_value_assignments_positions, fixed_att: tight_value_idx}
             else:
                 full_value_assignment = {**dict(zip(PVT_head, new_value_assignment)),
                                          **fixed_value_assignments}
-        fva = [full_value_assignment[k] for k in full_PVT_head]
-        full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
-        full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
+                fva = [full_value_assignment[k] for k in full_PVT_head]
+                full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
+                full_value_assignment_positions = {**full_value_assignment_positions,
+                                                   **fixed_value_assignments_positions}
+        else:
+            fva = [full_value_assignment[k] for k in full_PVT_head]
+            full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
+            full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
 
         minimal_refinements, minimal_refinements_positions = \
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
@@ -940,6 +949,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                                     last_satisfying_bounding_relaxation_location[1 - col_idx] + 1:
                                     max(new_max_index_PVT) + 1].reset_index(drop=True)
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
+                shifted_length[full_PVT_head.index(PVT_head[col_idx-1])] += idx_in_this_col + 1
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
             PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
