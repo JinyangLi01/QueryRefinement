@@ -683,9 +683,9 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         last_satisfying_full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
         left = left_side_binary_search_stack.pop()
+        left = max(left, 0)
         print("left = {}".format(left))
         right = max(max_index_PVT)
-
         # binary search can't use apply
         while left <= right:
             print("left = {}, right={}".format(left, right))
@@ -949,7 +949,8 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                                     last_satisfying_bounding_relaxation_location[1 - col_idx] + 1:
                                     max(new_max_index_PVT) + 1].reset_index(drop=True)
                 new_max_index_PVT = [len(PVT_for_recursion) - 1]
-                shifted_length[full_PVT_head.index(PVT_head[col_idx-1])] += idx_in_this_col + 1
+                shifted_length[full_PVT_head.index(PVT_head[1-col_idx])] += \
+                    last_satisfying_bounding_relaxation_location[1-col_idx] + 1
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
             PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
