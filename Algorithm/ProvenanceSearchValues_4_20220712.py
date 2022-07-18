@@ -744,10 +744,9 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                                   col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
             continue
 
-        max_index_in_col_tight = satisfying_row_id
+        full_value_assignment = last_satisfying_full_value_assignment
+        new_value_assignment = last_satisfying_new_value_assignment
         if num_columns > 1:
-            full_value_assignment = last_satisfying_full_value_assignment
-            new_value_assignment = last_satisfying_new_value_assignment
             nan_row = PVT.iloc[satisfying_row_id].isnull()
             col_non_tightenable = -1
             if sum(k is False for k in nan_row) == 1:
@@ -945,12 +944,17 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
             # optimization: if there is only one column left to be moved down,
             #  this column in the new recursion should start from where it stopped before
             if len(new_PVT_head) == 1:
-                PVT_for_recursion = PVT[new_PVT_head].iloc[
-                                    last_satisfying_bounding_relaxation_location[1 - col_idx] + 1:
-                                    max(new_max_index_PVT) + 1].reset_index(drop=True)
-                new_max_index_PVT = [len(PVT_for_recursion) - 1]
-                shifted_length[full_PVT_head.index(PVT_head[1-col_idx])] += \
-                    last_satisfying_bounding_relaxation_location[1-col_idx] + 1
+                if col_idx == 0:
+                    PVT_for_recursion = PVT[new_PVT_head].iloc[
+                                        last_satisfying_bounding_relaxation_location[1] + 1:
+                                        max(new_max_index_PVT) + 1].reset_index(drop=True)
+                    shifted_length[full_PVT_head.index(PVT_head[1])] += \
+                        last_satisfying_bounding_relaxation_location[1] + 1
+                    new_max_index_PVT = [len(PVT_for_recursion) - 1]
+                else:
+                    PVT_for_recursion = PVT[new_PVT_head].iloc[: new_max_index_PVT[0] + 1].reset_index(drop=True)
+                    shifted_length[full_PVT_head.index(PVT_head[1])] -= \
+                        last_satisfying_bounding_relaxation_location[1] + 1
             else:
                 PVT_for_recursion = PVT[new_PVT_head].head(max(new_max_index_PVT) + 1)
             PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
