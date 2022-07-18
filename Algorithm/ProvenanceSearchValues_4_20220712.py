@@ -816,15 +816,16 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
             values_above = fixed_value_assignments_to_tighten_stack.pop()
             # binary search to tighten this column
             left = 0
-            right = len(values_above)
+            right = len(values_above) - 1
             fixed_att = list(fixed_value_assignments.keys())[-1]
-            tight_value_idx = 0
-            print("tighten the last fixed column {}: {}".format(fixed_att, values_above))
+            tight_value_idx = -1
+            print("tighten the last fixed column {}:\n {}".format(fixed_att, values_above))
+            fixed_value_assignments_for_tighten = copy.deepcopy(fixed_value_assignments)
             while left <= right:
                 cur_value_id = int((right + left) / 2)
                 cur_fixed_value = values_above[cur_value_id]
-                fixed_value_assignments[fixed_att] = cur_fixed_value
-                full_value_assignment = {**dict(zip(PVT_head, new_value_assignment)), **fixed_value_assignments}
+                fixed_value_assignments_for_tighten[fixed_att] = cur_fixed_value
+                full_value_assignment = {**dict(zip(PVT_head, new_value_assignment)), **fixed_value_assignments_for_tighten}
                 print("value_assignment: ", full_value_assignment)
                 full_value_assignment_str = num2string([full_value_assignment[k] for k in full_PVT_head])
                 if full_value_assignment_str in checked_assignments_satisfying:
@@ -846,19 +847,23 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                     print("{} doesn't satisfy constraints".format(full_value_assignment))
                     checked_assignments_not_satisfying.append(full_value_assignment_str)
                     left = cur_value_id + 1
-            if tight_value_idx < idx_in_this_col_in_parent_PVT:
-                # tight this fixed column successfully
-                # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
-                fixed_value_assignments[fixed_att] = values_above[tight_value_idx]
-                full_value_assignment[fixed_att] = values_above[tight_value_idx]
-                idx_in_this_col_in_parent_PVT = tight_value_idx
-                if idx_in_this_col_in_parent_PVT == 0:
-                    to_put_to_stack.pop()
-                else:
-                    to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = idx_in_this_col_in_parent_PVT - 1
-                    to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-                    to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
-
+            if tight_value_idx > 0:  # can be tighten
+                if tight_value_idx < idx_in_this_col_in_parent_PVT:
+                    # tight this fixed column successfully
+                    # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
+                    fixed_value_assignments_for_tighten[fixed_att] = values_above[tight_value_idx]
+                    full_value_assignment[fixed_att] = values_above[tight_value_idx]
+                    idx_in_this_col_in_parent_PVT = tight_value_idx
+                    if idx_in_this_col_in_parent_PVT == 0:
+                        to_put_to_stack.pop()
+                    else:
+                        to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = idx_in_this_col_in_parent_PVT - 1
+                        to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                        to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
+                    fixed_value_assignments = fixed_value_assignments_for_tighten
+            else:
+                full_value_assignment = {**dict(zip(PVT_head, new_value_assignment)),
+                                         **fixed_value_assignments}
         fva = [full_value_assignment[k] for k in full_PVT_head]
         full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
         full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
