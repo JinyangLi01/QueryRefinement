@@ -945,7 +945,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
             PVT_stack.insert(index_to_insert_to_stack, PVT_for_recursion)
             PVT_head_stack.insert(index_to_insert_to_stack, new_PVT_head)
             max_index_PVT_stack.insert(index_to_insert_to_stack, new_max_index_PVT)
-            parent_PVT_stack.insert(index_to_insert_to_stack, PVT)
+            parent_PVT_stack.insert(index_to_insert_to_stack, PVT.copy())
             parent_PVT_head_stack.insert(index_to_insert_to_stack, PVT_head)
             parent_max_index_PVT_stack.insert(index_to_insert_to_stack, max_index_PVT)
             col_idx_in_parent_PVT_stack.insert(index_to_insert_to_stack, col_idx)
@@ -1051,7 +1051,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 to_put2['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
                 to_put2['idx_in_this_col_in_parent_PVT'] = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
-                fixed_value_assignments_to_put[PVT_head[col_idx_in_parent_PVT]] \
+                fixed_value_assignments_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
                     = parent_PVT.iloc[to_put['idx_in_this_col_in_parent_PVT'] - 1, col_idx_in_parent_PVT]
                 to_put2['fixed_value_assignments'] = fixed_value_assignments_to_put
                 fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
