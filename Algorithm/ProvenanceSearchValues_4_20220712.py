@@ -1165,14 +1165,20 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 
 
 def FindMinimalRefinement(data_file, query_file, constraint_file):
-    data = pd.read_csv(data_file)
+    data = pd.read_csv(data_file, index_col=False)
     with open(query_file) as f:
         query_info = json.load(f)
 
-    selection_numeric_attributes = query_info['selection_numeric_attributes']
-    selection_categorical_attributes = query_info['selection_categorical_attributes']
-    numeric_attributes = list(selection_numeric_attributes.keys())
-    categorical_attributes = query_info['categorical_attributes']
+    numeric_attributes = []
+    categorical_attributes = {}
+    selection_numeric_attributes = {}
+    selection_categorical_attributes = {}
+    if 'selection_numeric_attributes' in query_info:
+        selection_numeric_attributes = query_info['selection_numeric_attributes']
+        numeric_attributes = list(selection_numeric_attributes.keys())
+    if 'selection_categorical_attributes' in query_info:
+        selection_categorical_attributes = query_info['selection_categorical_attributes']
+        categorical_attributes = query_info['categorical_attributes']
     selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
 
@@ -1301,15 +1307,19 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return [], [], time2 - time1
 
 
+data_file = r"../InputData/Adult/adult_sample.csv"
+query_file = r"../InputData/Adult/query1.json"
+constraint_file = r"../InputData/Adult/constraint1.json"
 
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
 # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
 
-data_file = r"toy_examples/example4.csv"
-query_file = r"toy_examples/query2.json"
-constraint_file = r"toy_examples/constraint4.json"
+
+# data_file = r"toy_examples/example4.csv"
+# query_file = r"toy_examples/query2.json"
+# constraint_file = r"toy_examples/constraint4.json"
 
 print("\nnaive algorithm:\n")
 
@@ -1352,12 +1362,12 @@ minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file,
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
 
-print("in naive_ans but not our:\n")
-for na in minimal_refinements2:
-    if na not in minimal_refinements:
-        print(na)
-
-print("in our but not naive_ans:\n")
-for na in minimal_refinements:
-    if na not in minimal_refinements2:
-        print(na)
+# print("in naive_ans but not our:\n")
+# for na in minimal_refinements2:
+#     if na not in minimal_refinements:
+#         print(na)
+#
+# print("in our but not naive_ans:\n")
+# for na in minimal_refinements:
+#     if na not in minimal_refinements2:
+#         print(na)
