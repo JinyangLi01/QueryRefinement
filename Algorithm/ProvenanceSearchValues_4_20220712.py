@@ -664,6 +664,10 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         parent_max_index_PVT = parent_max_index_PVT_stack.pop()
         col_idx_in_parent_PVT = col_idx_in_parent_PVT_stack.pop()
         idx_in_this_col_in_parent_PVT = idx_in_this_col_in_parent_PVT_stack.pop()
+        if idx_in_this_col_in_parent_PVT > 0:
+            values_above = fixed_value_assignments_to_tighten_stack.pop()
+        else:
+            values_above = []
         fixed_value_assignments = fixed_value_assignments_stack.pop()
         fixed_value_assignments_positions = fixed_value_assignments_positions_stack.pop()
         shifted_length = shifted_length_stack.pop()
@@ -812,7 +816,6 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
         # optimization: tighten the last fixed column
         # TODO
         if idx_in_this_col_in_parent_PVT > 0:
-            values_above = fixed_value_assignments_to_tighten_stack.pop()
             # binary search to tighten this column
             left = 0
             right = len(values_above) - 1
@@ -1057,8 +1060,8 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
             shifted_length_stack.append(to_put['shifted_length'])
             if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
-
-            if to_put['idx_in_this_col_in_parent_PVT'] > 0:
+            #
+            # if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 # FIXMe: should I copy from to_put
                 to_put2 = dict()
                 to_put2['PVT'] = PVT
