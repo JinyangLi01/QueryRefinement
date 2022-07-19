@@ -1,0 +1,9 @@
+{
+  "selection_numeric_attributes": {
+    "age": [">", 20, 1],
+    "education-num": [">", 13, 1],
+    "hours-per-week": [">", 20, 1],
+    "capital-gain": [">", 5500, 1]
+  }
+}
+
