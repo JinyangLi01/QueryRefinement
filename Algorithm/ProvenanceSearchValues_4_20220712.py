@@ -814,7 +814,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
             print("tight relaxation: {}".format(new_value_assignment))
 
         # optimization: tighten the last fixed column
-        # TODO
+        # FIXME: need original fixed att for recursion
         if idx_in_this_col_in_parent_PVT > 0:
             # binary search to tighten this column
             left = 0
@@ -885,7 +885,7 @@ def searchPVT(PVT, PVT_head, numeric_attributes, categorical_attributes,
                                                    shifted_length)
 
         # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
-
+        
         print("minimal_refinements: {}".format(minimal_refinements))
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
@@ -1307,9 +1307,9 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return [], [], time2 - time1
 
 
-data_file = r"../InputData/Adult/adult_sample.csv"
-query_file = r"../InputData/Adult/query1.json"
-constraint_file = r"../InputData/Adult/constraint1.json"
+# data_file = r"../InputData/Adult/adult_sample.csv"
+# query_file = r"../InputData/Adult/query1.json"
+# constraint_file = r"../InputData/Adult/constraint1.json"
 
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
@@ -1317,9 +1317,9 @@ constraint_file = r"../InputData/Adult/constraint1.json"
 # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
 
 
-# data_file = r"toy_examples/example4.csv"
-# query_file = r"toy_examples/query2.json"
-# constraint_file = r"toy_examples/constraint4.json"
+data_file = r"toy_examples/example.csv"
+query_file = r"toy_examples/query.json"
+constraint_file = r"toy_examples/constraint.json"
 
 print("\nnaive algorithm:\n")
 
@@ -1362,12 +1362,12 @@ minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file,
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
 
-# print("in naive_ans but not our:\n")
-# for na in minimal_refinements2:
-#     if na not in minimal_refinements:
-#         print(na)
-#
-# print("in our but not naive_ans:\n")
-# for na in minimal_refinements:
-#     if na not in minimal_refinements2:
-#         print(na)
+print("in naive_ans but not our:\n")
+for na in minimal_refinements2:
+    if na not in minimal_refinements:
+        print(na)
+
+print("in our but not naive_ans:\n")
+for na in minimal_refinements:
+    if na not in minimal_refinements2:
+        print(na)
