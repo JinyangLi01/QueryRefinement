@@ -190,13 +190,17 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
         unique_values = data[att].unique().tolist() + [selection_numeric_attributes[att][1]]
         unique_values.sort()  # ascending
         if selection_numeric_attributes[att][0] == ">=":
-            unique_values = [x + 1 if x >= selection_numeric_attributes[att][1] else x for x in unique_values]
+            unique_values = [x + selection_numeric_attributes[att][2] if x >= selection_numeric_attributes[att][1]
+                             else x for x in unique_values]
         elif selection_numeric_attributes[att][0] == ">":
-            unique_values = [x - 1 if x < selection_numeric_attributes[att][1] else x for x in unique_values]
+            unique_values = [x - selection_numeric_attributes[att][2] if x < selection_numeric_attributes[att][1]
+                             else x for x in unique_values]
         elif selection_numeric_attributes[att][0] == "<=":
-            unique_values = [x - 1 if x <= selection_numeric_attributes[att][1] else x for x in unique_values]
+            unique_values = [x - selection_numeric_attributes[att][2] if x <= selection_numeric_attributes[att][1]
+                             else x for x in unique_values]
         else:  # selection_numeric_attributes[att][0] == "<":
-            unique_values = [x + 1 if x > selection_numeric_attributes[att][1] else x for x in unique_values]
+            unique_values = [x + selection_numeric_attributes[att][2] if x > selection_numeric_attributes[att][1]
+                             else x for x in unique_values]
         if selection_numeric_attributes[att][1] not in unique_values:
             unique_values.append(selection_numeric_attributes[att][1])
         # FIXME: DO I need to sort unique_values again? The value in originala selection is appended at lasat.
@@ -224,19 +228,24 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     for k in numeric_attributes:
         new_selection_numeric_attributes[k][1] = numeric_att_domain_to_relax[k][0]
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
+    legal = True
     while att_idx >= 0:
         # if time.time() - time1 > time_limit:
         #     break
         if att_idx == num_numeric_att + num_cate_variables_to_add + num_cate_variables_to_remove:
-            if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
-                                                    fairness_constraints, numeric_attributes, categorical_attributes,
-                                                    new_selection_numeric_attributes,
-                                                    new_selection_categorical_attributes):
-                # print("{} satisfies".format(this_refinement))
-                minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_relax,
-                                                                        num_numeric_att, selection_numeric_attributes,
-                                                                        numeric_attributes)
-                minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
+            if legal:
+                # print(new_selection_numeric_attributes, new_selection_categorical_attributes)
+                if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
+                                                        fairness_constraints, numeric_attributes, categorical_attributes,
+                                                        new_selection_numeric_attributes,
+                                                        new_selection_categorical_attributes):
+                    # print("{} satisfies".format(this_refinement))
+                    minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_relax,
+                                                                            num_numeric_att, selection_numeric_attributes,
+                                                                            numeric_attributes)
+                    minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
+            else:
+                legal = True
             att_idx -= 1
         if att_idx < num_numeric_att:  # numeric
             if last_time_selection[att_idx] + 1 == len(numeric_att_domain_to_relax[numeric_attributes[att_idx]]):
@@ -282,6 +291,9 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
                 new_selection_categorical_attributes[
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][0]].remove(
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][1])
+                if len(new_selection_categorical_attributes[
+                    categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][0]]) == 0:
+                    legal = False
             att_idx += 1
     return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
            categorical_att_domain_too_remove, dict(), dict()
@@ -307,7 +319,10 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
         if selection_numeric_attributes[att][0] == "<" or selection_numeric_attributes[att][0] == "<=":
             unique_values = data[att].unique().tolist()
             unique_values.sort(reverse=True)  # descending
-            domain = unique_values
+            if selection_numeric_attributes[att][0] == "<=":
+                domain = [x + selection_numeric_attributes[att][2] for x in unique_values]
+            else:
+                domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] < selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
@@ -315,7 +330,10 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
         else:
             unique_values = data[att].unique().tolist()
             unique_values.sort()  # ascending
-            domain = unique_values
+            if selection_numeric_attributes[att][0] == ">=":
+                domain = [x + selection_numeric_attributes[att][2] for x in unique_values]
+            else:
+                domain = unique_values
             for idx_domain in range(len(domain)):
                 if domain[idx_domain] > selection_numeric_attributes[att][1]:
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
@@ -534,8 +552,8 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
         categorical_attributes = query_info['categorical_attributes']
     selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
+    print("categorical_attributes:{}".format(categorical_attributes))
 
-    
 
     with open(constraint_file) as f:
         constraint_info = json.load(f)
@@ -574,15 +592,15 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return minimal_refinements, minimal_added_refinements, time2 - time1
 
 
-#
+
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
 # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
-#
 
-# data_file = r"toy_examples/example2.csv"
-# query_file = r"toy_examples/query2.json"
-# constraint_file = r"toy_examples/constraint3.json"
+#
+# data_file = r"toy_examples/example5.csv"
+# query_file = r"toy_examples/query.json"
+# constraint_file = r"toy_examples/constraint.json"
 #
 #
 # minimal_refinements, minimal_added_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
