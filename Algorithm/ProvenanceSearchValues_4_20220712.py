@@ -66,6 +66,7 @@ Get provenance expressions
             break
 
     # threshold for contraction
+    contraction_threshold = {}
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
 
@@ -627,103 +628,6 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
     return survive
 
 
-def get_relaxation(terms, delta_table):
-    """
-To get skyline of all terms in list terms
-    :param terms: list of indices of terms. [1,3,5]
-    :param delta_table: delta table returned by func build_sorted_table()
-    :return: return Ture or false whether terms can have a legitimate value assignment .
-    """
-    column_names = delta_table.columns.tolist()
-    value_assignment = delta_table[column_names].loc[terms].max().tolist()
-    return value_assignment
-
-
-def get_refinement(terms, delta_table, delta_table_multifunctional):
-    """
-To get skyline of all terms in list terms
-    :param terms: list of indices of terms. [1,3,5]
-    :param delta_table: delta table returned by func build_sorted_table()
-    :return: return Ture or false whether terms can have a legitimate value assignment .
-    """
-    column_names = delta_table.columns.tolist()
-
-    column_names.remove('relaxation_term')
-    num_col = len(column_names) + 1
-
-    value_assignments = [[]]
-    mark_satisfied_terms = [0]
-
-    rows_to_compare = delta_table.loc[terms]
-    rows_to_compare_with_multifunctional = delta_table_multifunctional.loc[terms]
-    rows_to_compare_indices = rows_to_compare.index.tolist()
-
-    rows_to_compare.round(2)
-    rows_to_compare_with_multifunctional.round(2)
-
-    all_included = 0
-    for i in rows_to_compare_indices:
-        all_included = (1 << i) | all_included
-    for i in range(num_col):
-        if i == num_col - 1:
-            num_result = len(value_assignments)
-            j = 0
-            while j < num_result:
-                if mark_satisfied_terms[j] != all_included:
-                    del value_assignments[j]
-                    del mark_satisfied_terms[j]
-                    num_result -= 1
-                else:
-                    j += 1
-            return (len(value_assignments) != 0), value_assignments
-        col = column_names[i]
-        max_in_col = rows_to_compare[col].max()
-        if max_in_col > 0:
-            #  term_w_max = rows_to_compare[col].idxmax(axis=0)
-            for va in value_assignments:
-                va.append(max_in_col)
-            positive_terms_int = 0
-            indices = rows_to_compare[rows_to_compare[col] > 0].index.tolist()
-            for d in indices:
-                positive_terms_int = (1 << d) | positive_terms_int
-            for k in range(len(mark_satisfied_terms)):
-                mark_satisfied_terms[k] |= positive_terms_int
-            continue
-        unique_values = rows_to_compare[col].drop_duplicates()
-        non_zeros = unique_values[unique_values < 0].index.tolist()
-        relaxation_terms_idx = rows_to_compare[rows_to_compare['relaxation_term']].index.tolist()
-        if len(non_zeros) == 0:
-            for v in value_assignments:
-                v.append(0)
-            continue
-        mark_satisfied_terms_new = []
-        value_assignments_new = []
-        for n in non_zeros:
-            positive_terms_int = (1 << n)  # | positive_terms_int
-            for k in range(len(mark_satisfied_terms)):
-                if mark_satisfied_terms[k] & positive_terms_int == 0:
-                    maximum_to_contract = rows_to_compare_with_multifunctional[col].loc[relaxation_terms_idx].min()
-                    maximum_to_contract = round(maximum_to_contract, 2)
-                    b = round(rows_to_compare.loc[n][col], 2)
-                    if maximum_to_contract == 0 or maximum_to_contract <= b:
-                        v_ = value_assignments[k].copy()
-                        v_.append(rows_to_compare.loc[n][col])
-                        value_assignments_new.append(v_)
-                        covered = [x for x in non_zeros if rows_to_compare.loc[x][col] >= rows_to_compare.loc[n][col]]
-                        to_append = mark_satisfied_terms[k]
-                        for c in covered:
-                            to_append |= 1 << c
-                        mark_satisfied_terms_new.append(to_append)
-
-        for s in value_assignments:
-            s.append(0)
-            value_assignments_new.append(s)
-        mark_satisfied_terms_new = mark_satisfied_terms_new + mark_satisfied_terms
-        value_assignments = value_assignments_new.copy()
-        mark_satisfied_terms = mark_satisfied_terms_new.copy()
-
-    return True, value_assignments
-
 
 def dominate(a, b):
     """
@@ -753,17 +657,6 @@ def dominated_by_minimal_set(minimal_added_relaxations, r):
             return True
     return False
 
-
-def transform_refinement_format(this_refinement, num_numeric_att,
-                                selection_numeric_attributes, numeric_attributes):
-    minimal_added_refinement_values = copy.deepcopy(this_refinement)
-    for i in range(num_numeric_att):
-        if minimal_added_refinement_values[i] == -1:
-            minimal_added_refinement_values[i] = 0
-        else:
-            minimal_added_refinement_values[i] = minimal_added_refinement_values[i] - \
-                                                 selection_numeric_attributes[numeric_attributes[i]][1]
-    return minimal_added_refinement_values
 
 
 def update_minimal_relaxation(minimal_added_relaxations, r):
@@ -850,8 +743,6 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
 
     while PVT_stack:
         PVT = PVT_stack.pop()
-        # if len(PVT) == 0:
-        #     break
         PVT_head = PVT_head_stack.pop()
         max_index_PVT = max_index_PVT_stack.pop()
         parent_PVT = parent_PVT_stack.pop()
@@ -868,12 +759,11 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        last_in_this_level = False
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("shifted_length: {}".format(shifted_length))
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
         new_value_assignment = []
@@ -2086,7 +1976,7 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
 
 
 def FindMinimalRefinement(data_file, query_file, constraint_file):
-    data = pd.read_csv(data_file, index_col=False)
+    data = pd.read_csv(data_file, index_col=False, delimiter=', ')
     with open(query_file) as f:
         query_info = json.load(f)
 
@@ -2276,9 +2166,9 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     return minimal_refinements, time2 - time1
 
 
-# data_file = r"../InputData/Adult/adult_sample.csv"
-# query_file = r"../InputData/Adult/query1.json"
-# constraint_file = r"../InputData/Adult/constraint1.json"
+data_file = r"../InputData/Adult/adult.data"
+query_file = r"../InputData/Adult/query1.json"
+constraint_file = r"../InputData/Adult/constraint1.json"
 
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
@@ -2286,19 +2176,19 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
 # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
 
 
-data_file = r"toy_examples/example5.csv"
-query_file = r"toy_examples/query.json"
-constraint_file = r"toy_examples/constraint.json"
-
-print("\nnaive algorithm:\n")
-
-minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-                                                                                           constraint_file)
-
-# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-
-print(*minimal_refinements2, sep="\n")
-print("running time = {}".format(running_time2))
+# data_file = r"toy_examples/example5.csv"
+# query_file = r"toy_examples/query.json"
+# constraint_file = r"toy_examples/constraint.json"
+#
+# print("\nnaive algorithm:\n")
+#
+# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+#                                                                                            constraint_file)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
 
 print("\nour algorithm:\n")
 
