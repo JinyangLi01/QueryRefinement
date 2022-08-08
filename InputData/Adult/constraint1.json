@@ -5,10 +5,10 @@
     {
       "sensitive_attributes":
       {
-        "Gender": "Female"
+        "sex": "Female"
       },
       "symbol": ">=",
-      "number": 250
+      "number": 100
     }
   ]
 }
