@@ -744,9 +744,9 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
     fixed_value_assignments_positions = {}
 
     while PVT_stack:
-        if time.time() - time1 > time_limit:
-            print("provenance search alg time out")
-            return minimal_refinements
+        # if time.time() - time1 > time_limit:
+        #     print("provenance search alg time out")
+        #     return minimal_refinements
         PVT = PVT_stack.pop()
         PVT_head = PVT_head_stack.pop()
         max_index_PVT = max_index_PVT_stack.pop()
@@ -764,11 +764,11 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        # print("==========================  searchPVT  ========================== ")
-        # print("PVT_head: {}".format(PVT_head))
-        # print("PVT:\n{}".format(PVT))
-        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        # print("shifted_length: {}".format(shifted_length))
+        print("==========================  searchPVT  ========================== ")
+        print("PVT_head: {}".format(PVT_head))
+        print("PVT:\n{}".format(PVT))
+        print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
         new_value_assignment = []
@@ -782,9 +782,9 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         right = max(max_index_PVT)
         # binary search can't use apply
         while left <= right:
-            if time.time() - time1 > time_limit:
-                print("provenance search alg time out")
-                return minimal_refinements
+            # if time.time() - time1 > time_limit:
+            #     print("provenance search alg time out")
+            #     return minimal_refinements
             cur_row_id = int((right + left) / 2)
             new_bounding_relaxation_location = [cur_row_id if cur_row_id < x else x for x in max_index_PVT]
             new_value_assignment = [PVT.iloc[new_bounding_relaxation_location[x], x] for x in range(len(PVT_head))]
@@ -851,7 +851,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 col_non_tightenable = [x for x in range_lst if x not in true_lst][0]
                 # print("col {} doesn't need to be tightened".format(col_non_tightenable))
 
-            # print("try to tighten the result of {}".format([last_satisfying_full_value_assignment[k] for k in PVT_head]))
+            print("try to tighten the result of {}".format([last_satisfying_full_value_assignment[k] for k in PVT_head]))
 
             tmp_max_idx_of_ol = 0
 
@@ -903,7 +903,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 return
 
             PVT.apply(tighten_result, axis=0)
-            # print("tight relaxation: {}".format(new_value_assignment))
+            print("tight relaxation: {}".format(new_value_assignment))
 
         # optimization: tighten the last fixed column
         # FIXME: need original fixed att for recursion
@@ -979,7 +979,8 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
 
         # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
 
-        # print("minimal_refinements: {}".format(minimal_refinements))
+        print("minimal_refinements: {}".format(minimal_refinements))
+        print("minimal_refinements_positions: {}".format(minimal_refinements_positions))
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
                 next_col_num_in_stack = len(PVT_head_stack[-1])
@@ -1031,8 +1032,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 col_idx += 1
                 return
             if sum(last_satisfying_bounding_relaxation_location[i] < original_max_index_PVT[i] for i in
-                   range(len(PVT_head)) if
-                   i != col_idx) == 0:
+                   range(len(PVT_head)) if i != col_idx) == 0:
                 col_idx += 1
                 return
             idx_in_this_col -= 1
@@ -1595,12 +1595,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
         last_in_this_level = False
-        # print("==========================  searchPVT  ========================== ")
-        # print("PVT_head: {}".format(PVT_head))
-        # print("PVT:\n{}".format(PVT))
-        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        # print("shifted_length: {}".format(shifted_length))
-        # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        print("==========================  searchPVT  ========================== ")
+        print("PVT_head: {}".format(PVT_head))
+        print("PVT:\n{}".format(PVT))
+        print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("shifted_length: {}".format(shifted_length))
+        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
 
         satisfying_row_id = 0
         new_value_assignment = {}
@@ -1628,13 +1628,11 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                 new_value_assignment[col] = possible_values_lists[col][idx_in_col]
                 # print("value_assignment: ", new_value_assignment)
-                # if new_value_assignment['GPA'] == 3.55:
-                #     print("stop here")
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
                 full_value_assignment_str = num2string(
                     [full_value_assignment[k] for k in full_PVT_head if k in full_att])
                 if full_value_assignment_str in checked_assignments_satisfying:
-                    # print("{} satisfies constraints".format(full_value_assignment))
+                    print("{} satisfies constraints".format(full_value_assignment))
                     last_satisfying_bounding_relaxation_location = new_value_assignment_position
                     find_value_this_col = True
                     break
@@ -1646,13 +1644,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                             fairness_constraints_provenance_greater_than,
                                             fairness_constraints_provenance_smaller_than):
                         checked_assignments_satisfying.append(full_value_assignment_str)
-                        # print("{} satisfies constraints".format(new_value_assignment))
+                        print("{} satisfies constraints".format(new_value_assignment))
                         last_satisfying_bounding_relaxation_location = new_value_assignment_position
                         find_base_refinement = True
                         find_value_this_col = True
                         break
                     else:
-                        # print("{} doesn't satisfy constraints".format(full_value_assignment))
+                        print("{} doesn't satisfy constraints".format(full_value_assignment))
                         checked_assignments_not_satisfying.append(full_value_assignment_str)
                 else:
                     if assign_to_provenance_relax_only(full_value_assignment, numeric_attributes,
@@ -1660,12 +1658,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                        selection_numeric, selection_categorical, full_PVT_head,
                                                        fairness_constraints_provenance_greater_than):
                         checked_assignments_satisfying.append(full_value_assignment_str)
-                        # print("{} satisfies constraints".format(new_value_assignment))
+                        print("{} satisfies constraints".format(new_value_assignment))
                         last_satisfying_bounding_relaxation_location = new_value_assignment_position
                         find_value_this_col = True
                         break
                     else:
-                        # print("{} doesn't satisfy constraints".format(full_value_assignment))
+                        print("{} doesn't satisfy constraints".format(full_value_assignment))
                         checked_assignments_not_satisfying.append(full_value_assignment_str)
                 idx_in_col += 1
             if find_value_this_col:
@@ -1676,8 +1674,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 del new_value_assignment[col]
                 att_idx -= 1
 
-        # if find_base_refinement:
-        # print("find base refinement {}".format(new_value_assignment))
+        if find_base_refinement:
+            print("find base refinement {}".format(new_value_assignment))
 
         col_idx = 0
         find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
@@ -1896,12 +1894,12 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 # if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 # FIXMe: should I copy from to_put
                 to_put2 = dict()
-                to_put2['PVT'] = PVT
-                to_put2['PVT_head'] = PVT_head
-                to_put2['max_index_PVT'] = max_index_PVT
-                to_put2['parent_PVT'] = parent_PVT
-                to_put2['parent_PVT_head'] = parent_PVT_head
-                to_put2['parent_max_index_PVT'] = parent_max_index_PVT
+                to_put2['PVT'] = PVT.copy()
+                to_put2['PVT_head'] = PVT_head.copy()
+                to_put2['max_index_PVT'] = max_index_PVT.copy()
+                to_put2['parent_PVT'] = parent_PVT.copy()
+                to_put2['parent_PVT_head'] = parent_PVT_head.copy()
+                to_put2['parent_max_index_PVT'] = parent_max_index_PVT.copy()
                 to_put2['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
                 to_put2['idx_in_this_col_in_parent_PVT'] = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
@@ -2057,7 +2055,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         print("max_index_PVT: {}".format(max_index_PVT))
         time_table2 = time.time()
         table_time = time_table2 - time_table1
-        # print("delta table:\n{}".format(delta_table))
         time_search1 = time.time()
         if time.time() - time1 > time_limit:
             print("time out")
@@ -2194,22 +2191,35 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     return minimal_refinements, time2 - time1
 
+
+data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+query_file = r"../InputData/Healthcare/incomeK/query1.json"
+constraint_file = r"../InputData/Healthcare/incomeK/constraint2.json"
+
+time_limit = 5 * 60
+
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
+
+
+# data_file = r"toy_examples/example5.csv"
+# query_file = r"toy_examples/query.json"
+# constraint_file = r"toy_examples/constraint.json"
 #
-# data_file = r"../InputData/Adult/adult.data"
-# query_file = r"../InputData/Adult/query1.json"
-# constraint_file = r"../InputData/Adult/constraint1.json"
+
+
+print("\nour algorithm:\n")
+
+minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
+
+minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
+
 #
-# time_limit = 5 * 60
-#
-# # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-# # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
-#
-#
-# # data_file = r"toy_examples/example5.csv"
-# # query_file = r"toy_examples/query.json"
-# # constraint_file = r"toy_examples/constraint.json"
-# #
 # print("\nnaive algorithm:\n")
 #
 # minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
@@ -2220,21 +2230,18 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 # print(*minimal_refinements2, sep="\n")
 # print("running time = {}".format(running_time2))
 #
-# print("\nour algorithm:\n")
+# if running_time2 > time_limit:
+#     print("naive alg out of time")
+# else:
+#     print("running time = {}".format(running_time2))
+#     print(*minimal_refinements2, sep="\n")
 #
-# minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
+#     print("in naive_ans but not our:\n")
+#     for na in minimal_refinements2:
+#         if na not in minimal_refinements:
+#             print(na)
 #
-# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-#
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
-#
-# # print("in naive_ans but not our:\n")
-# # for na in minimal_refinements2:
-# #     if na not in minimal_refinements:
-# #         print(na)
-# #
-# # print("in our but not naive_ans:\n")
-# # for na in minimal_refinements:
-# #     if na not in minimal_refinements2:
-# #         print(na)
+#     print("in our but not naive_ans:\n")
+#     for na in minimal_refinements:
+#         if na not in minimal_refinements2:
+#             print(na)

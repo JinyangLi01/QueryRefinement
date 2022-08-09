@@ -1875,7 +1875,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
         return False
     to_put = to_put_to_stack.pop()
     PVT_from_to_put = False
-    print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
+    # print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
     if len([k for k in find_relaxation[this_num_columns] if k is True]) > 0:
         if to_put != {}:
             PVT_stack.append(to_put['PVT'])
@@ -1896,12 +1896,12 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 # if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 # FIXMe: should I copy from to_put
                 to_put2 = dict()
-                to_put2['PVT'] = PVT
-                to_put2['PVT_head'] = PVT_head
-                to_put2['max_index_PVT'] = max_index_PVT
-                to_put2['parent_PVT'] = parent_PVT
-                to_put2['parent_PVT_head'] = parent_PVT_head
-                to_put2['parent_max_index_PVT'] = parent_max_index_PVT
+                to_put2['PVT'] = PVT.copy()
+                to_put2['PVT_head'] = PVT_head.copy()
+                to_put2['max_index_PVT'] = max_index_PVT.copy()
+                to_put2['parent_PVT'] = parent_PVT.copy()
+                to_put2['parent_PVT_head'] = parent_PVT_head.copy()
+                to_put2['parent_max_index_PVT'] = parent_max_index_PVT.copy()
                 to_put2['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
                 to_put2['idx_in_this_col_in_parent_PVT'] = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
