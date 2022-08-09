@@ -344,11 +344,36 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                 PVT_head.append(col)
 
     # build delta table
-    def iterrow(row, greater_than=True):  # greater than is symbol in fairness constraint (relaxation term)
+    def itercol(col):
         nonlocal possible_values_sets
-        for att in numeric_attributes:
-            if not eval(str(row[att]) + selection_numeric[att][0] + str(selection_numeric[att][1])):
-                possible_values_sets[att].add(row[att])
+        nonlocal possible_values_lists
+        att = col.name
+        unique_values = col.unique()
+        if att in selection_numeric:
+            unique_values.sort()
+            if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
+                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                others = unique_values[:idx]
+                possible_values_sets[att].update(others)
+                lst = list(possible_values_sets[att])
+                if len(lst) > 1:
+                    lst.sort()
+                    lst = lst[::-1]
+                    possible_values_lists[att] = lst
+                else:
+                    del possible_values_sets[att]
+                    PVT_head.remove(att)
+            else:
+                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                others = unique_values[idx:]
+                possible_values_sets[att].update(others)
+                lst = list(possible_values_sets[att])
+                if len(lst) > 1:
+                    lst.sort()
+                    possible_values_lists[att] = lst
+                else:
+                    del possible_values_sets[att]
+                    PVT_head.remove(att)
 
     data_rows_greater_than = data_rows_greater_than.drop_duplicates(
         subset=selected_attributes,
@@ -356,18 +381,16 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     possible_values_sets = {x: set() for x in PVT_head}
     for att in selection_numeric:
         possible_values_sets[att].add(selection_numeric[att][1])
-    data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
+    # data_rows_greater_than.apply(iterrow, args=(True,), axis=1)
+    possible_values_lists = dict()
+    data[selection_numeric.keys()].apply(itercol, axis=0)
 
-    possible_values_lists = {x: list(possible_values_sets[x]) for x in possible_values_sets}
     for att in PVT_head:
-        if att in selection_numeric:
-            if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                possible_values_lists[att].sort()
-                possible_values_lists[att] = possible_values_lists[att][::-1]
-            else:
-                possible_values_lists[att].sort()
-        else:
-            possible_values_lists[att] = [0, 1]
+        if att not in selection_numeric:
+            pre, v = att.split('_')
+            if v not in selection_categorical[pre]:
+                possible_values_lists[att] = [0, 1]
+
     # print("possible_values_lists:\n", possible_values_lists)
     possible_value_table = pd.DataFrame({key: pd.Series(value) for key, value in possible_values_lists.items()})
     print("possible_value_table:\n", possible_value_table)
@@ -407,38 +430,36 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
                 PVT_head.append(att + "_" + value)
 
     # build delta table
-    def iterrow(row, smaller_than=True):  # greater than is symbol in fairness constraint (relaxation term)
-        nonlocal possible_values_sets
-        for att in numeric_attributes:
-            if eval(str(row[att]) + selection_numeric[att][0] + str(selection_numeric[att][1])):
-                if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                    possible_values_sets[att].add(row[att] + selection_numeric[att][2])
-                else:
-                    possible_values_sets[att].add(row[att] - selection_numeric[att][2])
-
     def itercol(col):
         nonlocal possible_values_sets
         nonlocal possible_values_lists
         att = col.name
         unique_values = col.unique()
+        unique_values.sort()
         if att in selection_numeric:
             if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                unique_values.sort()
                 idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[idx:]
                 possible_values_sets[att].update([s + selection_numeric[att][2] for s in others])
                 lst = list(possible_values_sets[att])
-                lst.sort()
-                possible_values_lists[att] = lst
+                if len(lst) > 1:
+                    lst.sort()
+                    possible_values_lists[att] = lst
+                else:
+                    del possible_values_sets[att]
+                    PVT_head.remove(att)
             else:
-                unique_values = unique_values[::-1]
-                idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
-                others = unique_values[idx:]
+                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                others = unique_values[:idx+1]
                 possible_values_sets[att].update([s - selection_numeric[att][2] for s in others])
                 lst = list(possible_values_sets[att])
-                lst.sort()
-                lst = lst[::-1]
-                possible_values_lists[att] = lst
+                if len(lst) > 1:
+                    lst.sort()
+                    lst = lst[::-1]
+                    possible_values_lists[att] = lst
+                else:
+                    del possible_values_sets[att]
+                    PVT_head.remove(att)
 
     data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
         subset=selected_attributes,
@@ -768,6 +789,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         print("PVT_head: {}".format(PVT_head))
         print("PVT:\n{}".format(PVT))
         print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
         print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
@@ -948,14 +970,11 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                     # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
                     fixed_value_assignments_for_tighten[fixed_att] = values_above[tight_value_idx]
                     full_value_assignment[fixed_att] = values_above[tight_value_idx]
-                    # idx_in_this_col_in_parent_PVT = tight_value_idx
-                    # if tight_value_idx == 0:
-                    #     to_put_to_stack.pop()
-                    if tight_value_idx > 0:
-                        to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
-                        to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-                        to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
-                    # fixed_value_assignments = fixed_value_assignments_for_tighten
+                    # FIXME: I think I shouldn't have the following, should I?
+                    # if tight_value_idx > 0:
+                    #     to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                    #     to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                    #     to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
                 fva = [full_value_assignment[k] for k in full_PVT_head]
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
@@ -1370,14 +1389,11 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
                     # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
                     fixed_value_assignments_for_tighten[fixed_att] = values_above[tight_value_idx]
                     full_value_assignment[fixed_att] = values_above[tight_value_idx]
-                    # idx_in_this_col_in_parent_PVT = tight_value_idx
-                    # if tight_value_idx == 0:
-                    #     to_put_to_stack.pop()
-                    if tight_value_idx > 0:
-                        to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
-                        to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-                        to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
-                    # fixed_value_assignments = fixed_value_assignments_for_tighten
+                    # FIXME: I think I shouldn't have the following, should I?
+                    # if tight_value_idx > 0:
+                    #     to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                    #     to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                    #     to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
                 fva = [full_value_assignment[k] for k in full_PVT_head]
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
@@ -1902,13 +1918,13 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 to_put2['parent_max_index_PVT'] = parent_max_index_PVT.copy()
                 to_put2['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
                 to_put2['idx_in_this_col_in_parent_PVT'] = to_put['idx_in_this_col_in_parent_PVT'] - 1
-                fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
+                fixed_value_assignments_to_put = copy.deepcopy(to_put['fixed_value_assignments'])
                 fixed_value_assignments_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
                     = parent_PVT.iloc[to_put['idx_in_this_col_in_parent_PVT'] - 1, col_idx_in_parent_PVT]
                 to_put2['fixed_value_assignments'] = fixed_value_assignments_to_put
-                fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
+                fixed_value_assignments_positions_to_put = copy.deepcopy(to_put['fixed_value_assignments_positions'])
                 fixed_value_assignments_positions_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
-                    = to_put['idx_in_this_col_in_parent_PVT']
+                    = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 to_put2['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
                 to_put2['for_left_binary'] = to_put['for_left_binary']
                 to_put2['shifted_length'] = to_put['shifted_length']
@@ -2193,8 +2209,8 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
 
 data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-query_file = r"../InputData/Healthcare/incomeK/query1.json"
-constraint_file = r"../InputData/Healthcare/incomeK/constraint2.json"
+query_file = r"../InputData/Healthcare/incomeK/query2.json"
+constraint_file = r"../InputData/Healthcare/incomeK/constraint1.json"
 
 time_limit = 5 * 60
 
@@ -2219,29 +2235,29 @@ print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
 
 
-#
-# print("\nnaive algorithm:\n")
-#
-# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-#                                                                                            constraint_file)
-#
-# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-#
-# print(*minimal_refinements2, sep="\n")
-# print("running time = {}".format(running_time2))
-#
-# if running_time2 > time_limit:
-#     print("naive alg out of time")
-# else:
-#     print("running time = {}".format(running_time2))
-#     print(*minimal_refinements2, sep="\n")
-#
-#     print("in naive_ans but not our:\n")
-#     for na in minimal_refinements2:
-#         if na not in minimal_refinements:
-#             print(na)
-#
-#     print("in our but not naive_ans:\n")
-#     for na in minimal_refinements:
-#         if na not in minimal_refinements2:
-#             print(na)
+
+print("\nnaive algorithm:\n")
+
+minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+                                                                                           constraint_file)
+
+# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+
+print(*minimal_refinements2, sep="\n")
+print("running time = {}".format(running_time2))
+
+if running_time2 > time_limit:
+    print("naive alg out of time")
+else:
+    print("running time = {}".format(running_time2))
+    print(*minimal_refinements2, sep="\n")
+
+    print("in naive_ans but not our:\n")
+    for na in minimal_refinements2:
+        if na not in minimal_refinements:
+            print(na)
+
+    print("in our but not naive_ans:\n")
+    for na in minimal_refinements:
+        if na not in minimal_refinements2:
+            print(na)
