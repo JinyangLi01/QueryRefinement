@@ -31,15 +31,16 @@ def run_constraint(c):
     print("running query change constraint {}".format(c))
     constraint_file = r"./constraint" + str(c) + ".json"
 
-    time_output_file = r"./query_change_q1c1.csv"
+
+    time_output_file = r"./query_change_q1c2.csv"
     time_output = open(time_output_file, "w")
     time_output.write("income,PS,LT\n")
 
-    result_output_file = r"./result_q1c1.txt"
+    result_output_file = r"./result_q1c2.txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(0, 10):
+    for i in range(1, 6):
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
         minimal_refinements1, running_time1 = \
@@ -62,4 +63,4 @@ def run_constraint(c):
     result_output.close()
     time_output.close()
 
-run_constraint(1)
+run_constraint(2)

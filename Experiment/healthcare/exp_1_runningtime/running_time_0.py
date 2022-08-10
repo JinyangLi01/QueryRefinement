@@ -60,7 +60,7 @@ def compare(q, c, time_output):
         time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
     time_output.write("\n")
-    summary_file.write(("{},{:0.2f}".format(idx, running_time1)))
+    summary_file.write(("{},{:0.2f},".format(idx, running_time1)))
     if running_time2 < time_limit:
         summary_file.write("{:0.2f}\n".format(running_time2))
     else:
