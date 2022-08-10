@@ -1,0 +1,20 @@
+{
+  "selection_numeric_attributes": {
+    "education-num": [">=", 14, 1],
+    "hours-per-week": ["<=", 50, 1]
+  },
+  "categorical_attributes": {
+    "relationship": [
+      "Not-in-family", "Husband", "Wife", "Own-child", "Unmarried", "Other-relative"
+    ],
+    "marital-status": [
+      "Never-married", "Married-civ-spouse", "Divorced",
+      "Married-spouse-absent", "Separated", "Married-AF-spouse", "Widowed"
+    ]
+  },
+  "selection_categorical_attributes": {
+    "relationship": ["Husband", "Wife", "Own-child"],
+    "marital-status": ["Married-civ-spouse", "Separated", "Married-AF-spouse"]
+  }
+}
+

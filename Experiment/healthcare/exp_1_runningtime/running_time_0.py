@@ -14,9 +14,9 @@ import json
 from Algorithm import ProvenanceSearchValues_4_20220712 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
-data_file = r"../../../InputData/Adult/adult.data"
-query_file_prefix = r"../../../InputData/Adult/query"
-constraint_file_prefix = r"../../../InputData/Adult/constraint"
+data_file = r"../../../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+query_file_prefix = r"../../../InputData/Healthcare/incomeK/query"
+constraint_file_prefix = r"../../../InputData/Healthcare/incomeK/constraint"
 
 time_output_prefix = r"./result_"
 
@@ -31,6 +31,7 @@ time_limit = 60 * 5
 
 
 def compare(q, c):
+    print("run with query{} constraint{}".format(q, c))
     query_file = query_file_prefix + str(q) + ".json"
     constraint_file = constraint_file_prefix + str(c) + ".json"
 
@@ -59,8 +60,7 @@ def compare(q, c):
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
     time_output.write("\n")
 
-
-time_output = file(1, 3)
-compare(1, 3)
+time_output = file(2, 1)
+compare(2, 1)
 
 time_output.close()

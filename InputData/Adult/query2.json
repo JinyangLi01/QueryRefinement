@@ -1,26 +1,14 @@
 {
   "selection_numeric_attributes": {
-    "hours-per-week": ["<=", 50, 1],
-    "capital-loss": [">=", 1000, 1]
+    "education-num": [">=", 15, 1],
+    "hours-per-week": ["<=", 40, 1]
   },
   "categorical_attributes": {
-    "occupation": [
-      "State-gov",
-      "Self-emp-not-inc",
-      "Private",
-      "Federal-gov",
-      "Local-gov",
-      "?",
-      "Self-emp-inc",
-      "Without-pay",
-      "Never-worked"
-    ],
     "relationship": [
       "Not-in-family", "Husband", "Wife", "Own-child", "Unmarried", "Other-relative"
     ]
   },
   "selection_categorical_attributes": {
-    "occupation": ["Exec-managerial", "Prof-specialty", "Protective-serv"],
     "relationship": ["Husband", "Wife", "Own-child"]
   }
 }

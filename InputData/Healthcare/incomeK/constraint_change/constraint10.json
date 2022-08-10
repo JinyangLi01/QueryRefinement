@@ -1,15 +1,14 @@
 {
-  "all_sensitive_attributes": ["sex"],
+  "all_sensitive_attributes": ["race"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "sex": "Female"
+        "race": "race3"
       },
       "symbol": ">=",
-      "number": 60
+      "number": 100
     }
   ]
 }
-

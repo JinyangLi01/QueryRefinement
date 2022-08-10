@@ -8,7 +8,7 @@
         "sex": "Female"
       },
       "symbol": ">=",
-      "number": 80
+      "number": 30
     },
     {
       "sensitive_attributes":
@@ -17,7 +17,7 @@
         "race": "White"
       },
       "symbol": "<=",
-      "number": 300
+      "number": 200
     }
   ]
 }
