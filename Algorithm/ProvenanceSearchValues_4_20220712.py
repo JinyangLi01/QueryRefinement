@@ -1214,7 +1214,7 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
         last_satisfying_bounding_relaxation_location = []
         left = left_side_binary_search_stack.pop()
         left = max(left, 0)
-        print("left = {}".format(left))
+        # print("left = {}".format(left))
         right = max(max_index_PVT)
         # binary search can't use apply
         while left <= right:
@@ -1891,7 +1891,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
         return False
     to_put = to_put_to_stack.pop()
     PVT_from_to_put = False
-    print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
+    # print("next_col_num_in_stack = {}, this_num_columns = {}".format(next_col_num_in_stack, this_num_columns))
     if len([k for k in find_relaxation[this_num_columns] if k is True]) > 0:
         if to_put != {}:
             PVT_stack.append(to_put['PVT'])
@@ -2035,6 +2035,11 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
+    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                            selection_categorical_attributes):
+        return {}, time.time() - time1
+
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
     data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than, contraction_threshold \
         = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -2052,12 +2057,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     if only_greater_than:
         time_table1 = time.time()
         already_satisfy = True
-        for fc in fairness_constraints_provenance_greater_than:
-            if not eval('0' + fc['symbol'] + str(fc['number'])):
-                already_satisfy = False
-                break
-        if already_satisfy:
-            return {}, time.time() - time1
 
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
                                                                                      numeric_attributes,
@@ -2073,7 +2072,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         print("max_index_PVT: {}".format(max_index_PVT))
         time_table2 = time.time()
         table_time = time_table2 - time_table1
-        # print("delta table:\n{}".format(delta_table))
         time_search1 = time.time()
         if time.time() - time1 > time_limit:
             print("time out")
@@ -2107,13 +2105,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     elif only_smaller_than:
         time_table1 = time.time()
-        # already_satisfy = False
-        # for fc in fairness_constraints_provenance_smaller_than:
-        #     if not eval('0' + fc['symbol'] + str(fc['number'])):
-        #         already_satisfy = False
-        #         break
-        # if already_satisfy:
-        #     return {}, time.time() - time1
+
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_contract_only(data, selected_attributes,
                                                                                         numeric_attributes,
                                                                                         categorical_attributes,
@@ -2162,15 +2154,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         return minimal_refinements, time2 - time1
 
     time_table1 = time.time()
-    already_satisfy = True
-    fairness_constraints_provenance_all = fairness_constraints_provenance_greater_than + \
-                                          fairness_constraints_provenance_smaller_than
-    for fc in fairness_constraints_provenance_all:
-        if not eval('0' + fc['symbol'] + str(fc['number'])):
-            already_satisfy = False
-            break
-    if already_satisfy:
-        return {}, time.time() - time1
+
     PVT, PVT_head, categorical_att_columns, \
     max_index_PVT, possible_values_lists = build_PVT_refinement(data, selected_attributes,
                                                                 numeric_attributes,
