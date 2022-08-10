@@ -27,7 +27,7 @@ x_naive = list()
 execution_timeps = list()
 execution_timelt = list()
 
-input_path = r'query_change_0.csv'
+input_path = r'./query_change_1.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -40,12 +40,15 @@ for line in Lines:
         continue
     if count < 2:
         continue
-    if count > 9:
+    if count > 11:
         break
     items = line.strip().split(',')
     x_list.append(items[0])
     execution_timeps.append(float(items[1]))
-    execution_timelt.append(float(items[2]))
+    if items[2] != '':
+        execution_timelt.append(float(items[2]))
+    else:
+        execution_timelt.append(0)
 
 print(x_list, execution_timeps, execution_timelt)
 
@@ -64,6 +67,6 @@ plt.yticks([0, 50, 100, 150])
 plt.legend(loc='best')
 # plt.yscale("log")
 plt.tight_layout()
-plt.savefig("healthcare_query_change.png",
+plt.savefig("healthcare_query_change_1.png",
             bbox_inches='tight')
 plt.show()
