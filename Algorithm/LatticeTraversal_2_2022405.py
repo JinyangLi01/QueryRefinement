@@ -161,20 +161,21 @@ def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_c
     if only_greater_than:
         return LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                           selection_categorical_attributes, time_limit=5 * 60)
+                                           selection_categorical_attributes, time_limit)
     elif only_smaller_than:
         return LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                           selection_categorical_attributes, time_limit=5 * 60)
+                                           selection_categorical_attributes, time_limit)
     else:
         return LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                             selection_categorical_attributes, time_limit=5 * 60)
+                                             selection_categorical_attributes, time_limit)
 
 
 def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                   numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                   selection_categorical_attributes, time_limit=5 * 60):
+    time1 = time.time()
     categorical_att_domain_too_remove = []
     for att in categorical_attributes:
         s = [(att, v) for v in selection_categorical_attributes[att]]
@@ -230,8 +231,9 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
     legal = True
     while att_idx >= 0:
-        # if time.time() - time1 > time_limit:
-        #     break
+        if time.time() - time1 > time_limit:
+            return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
+                   categorical_att_domain_too_remove, dict(), dict()
         if att_idx == num_numeric_att + num_cate_variables_to_add + num_cate_variables_to_remove:
             if legal:
                 # print(new_selection_numeric_attributes, new_selection_categorical_attributes)
@@ -303,7 +305,7 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
 def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, time_limit=5 * 60):
-    # TODO
+    time1 = time.time()
     numeric_attributes_nowhere_to_contract = dict()
     categorical_attributes_nowhere_to_contract = dict()
     numeric_idx_attributes_nowhere_to_contract = set()
@@ -356,8 +358,9 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     new_selection_numeric_attributes = copy.deepcopy(selection_numeric_attributes)
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
     while att_idx >= 0:
-        # if time.time() - time1 > time_limit:
-        #     break
+        if time.time() - time1 > time_limit:
+            return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove, \
+                   numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
         if att_idx == num_numeric_att + num_cate_variables:
             if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
@@ -410,6 +413,7 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
 def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, time_limit=5 * 60):
+    time1 = time.time()
     numeric_attributes_nowhere_to_relax = dict()
     categorical_attributes_nowhere_to_relax = dict()
     numeric_idx_attributes_nowhere_to_relax = set()
@@ -481,8 +485,9 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     new_selection_numeric_attributes = copy.deepcopy(selection_numeric_attributes)
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
     while att_idx >= 0:
-        # if time.time() - time1 > time_limit:
-        #     break
+        if time.time() - time1 > time_limit:
+            return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, [], \
+                   numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
         if att_idx == num_numeric_att + num_cate_variables:
             if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
                                                     fairness_constraints, numeric_attributes, categorical_attributes,
@@ -535,8 +540,8 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file, query_file, constraint_file):
-    data = pd.read_csv(data_file)
+def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*60):
+    data = pd.read_csv(data_file, index_col=False)
     with open(query_file) as f:
         query_info = json.load(f)
 
