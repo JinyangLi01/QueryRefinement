@@ -2003,6 +2003,39 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
+def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                         selection_categorical_attributes):
+    # get data selected
+    def select(row):
+        for att in selection_numeric_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if not eval(
+                    str(row[att]) + selection_numeric_attributes[att][0] + str(selection_numeric_attributes[att][1])):
+                return 0
+        for att in selection_categorical_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if row[att] not in selection_categorical_attributes[att]:
+                return 0
+        return 1
+
+    data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
+    data_selected = data[data['satisfy_selection'] == 1]
+    # whether satisfy fairness constraint
+    for fc in fairness_constraints:
+        sensitive_attributes = fc['sensitive_attributes']
+        df1 = data_selected[list(sensitive_attributes.keys())]
+        df2 = pd.DataFrame([sensitive_attributes])
+        data_selected_satisfying_fairness_constraint = df1.merge(df2)
+        num = len(data_selected_satisfying_fairness_constraint)
+        if not eval(str(num) + fc['symbol'] + str(fc['number'])):
+            return False
+    return True
+
+
+
 ########################################################################################################################
 
 
@@ -2033,6 +2066,11 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
+    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                            selection_categorical_attributes):
+        return {}, time.time() - time1
+
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
     data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than, contraction_threshold \
         = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -2050,12 +2088,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     if only_greater_than:
         time_table1 = time.time()
         already_satisfy = True
-        for fc in fairness_constraints_provenance_greater_than:
-            if not eval('0' + fc['symbol'] + str(fc['number'])):
-                already_satisfy = False
-                break
-        if already_satisfy:
-            return {}, time.time() - time1
 
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
                                                                                      numeric_attributes,
@@ -2104,13 +2136,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     elif only_smaller_than:
         time_table1 = time.time()
-        # already_satisfy = False
-        # for fc in fairness_constraints_provenance_smaller_than:
-        #     if not eval('0' + fc['symbol'] + str(fc['number'])):
-        #         already_satisfy = False
-        #         break
-        # if already_satisfy:
-        #     return {}, time.time() - time1
+
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_contract_only(data, selected_attributes,
                                                                                         numeric_attributes,
                                                                                         categorical_attributes,
@@ -2159,15 +2185,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         return minimal_refinements, time2 - time1
 
     time_table1 = time.time()
-    already_satisfy = True
-    fairness_constraints_provenance_all = fairness_constraints_provenance_greater_than + \
-                                          fairness_constraints_provenance_smaller_than
-    for fc in fairness_constraints_provenance_all:
-        if not eval('0' + fc['symbol'] + str(fc['number'])):
-            already_satisfy = False
-            break
-    if already_satisfy:
-        return {}, time.time() - time1
+
     PVT, PVT_head, categorical_att_columns, \
     max_index_PVT, possible_values_lists = build_PVT_refinement(data, selected_attributes,
                                                                 numeric_attributes,
@@ -2208,9 +2226,16 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     return minimal_refinements, time2 - time1
 
 
-data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-query_file = r"../InputData/Healthcare/incomeK/query2.json"
-constraint_file = r"../InputData/Healthcare/incomeK/constraint1.json"
+# data_file = r"../InputData/Compas/compas-scores.csv"
+# query_file = r"../InputData/Compas/query2.json"
+# constraint_file = r"../InputData/Compas/constraint3.json"
+
+data_file = r"../InputData/Adult/adult.data"
+query_file = r"../InputData/Adult/query2.json"
+constraint_file = r"../InputData/Adult/constraint1.json"
+
+
+print(query_file, constraint_file)
 
 time_limit = 5 * 60
 
