@@ -2004,6 +2004,39 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
         minimal_refinements.append({'numeric': select_numeric, 'categorical': select_categorical})
     return minimal_refinements
 
+def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                         selection_categorical_attributes):
+    # get data selected
+    def select(row):
+        for att in selection_numeric_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if not eval(
+                    str(row[att]) + selection_numeric_attributes[att][0] + str(selection_numeric_attributes[att][1])):
+                return 0
+        for att in selection_categorical_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if row[att] not in selection_categorical_attributes[att]:
+                return 0
+        return 1
+
+    data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
+    data_selected = data[data['satisfy_selection'] == 1]
+    # whether satisfy fairness constraint
+    for fc in fairness_constraints:
+        sensitive_attributes = fc['sensitive_attributes']
+        df1 = data_selected[list(sensitive_attributes.keys())]
+        df2 = pd.DataFrame([sensitive_attributes])
+        data_selected_satisfying_fairness_constraint = df1.merge(df2)
+        num = len(data_selected_satisfying_fairness_constraint)
+        if not eval(str(num) + fc['symbol'] + str(fc['number'])):
+            return False
+    return True
+
+
+
 
 ########################################################################################################################
 
