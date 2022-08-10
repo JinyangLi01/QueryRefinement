@@ -5,9 +5,9 @@
     {
       "sensitive_attributes":
       {
-        "race": "race3"
+        "race": "race2"
       },
-      "symbol": ">=",
+      "symbol": "<=",
       "number": 30
     }
   ]
