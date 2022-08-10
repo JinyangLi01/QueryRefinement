@@ -541,6 +541,7 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
 
 
 def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*60):
+    time1 = time.time()
     data = pd.read_csv(data_file, index_col=False)
     with open(query_file) as f:
         query_info = json.load(f)
@@ -568,7 +569,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    time1 = time.time()
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
