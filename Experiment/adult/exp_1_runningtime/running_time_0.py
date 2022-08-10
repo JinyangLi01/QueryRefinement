@@ -30,7 +30,7 @@ def file(q, c):
 time_limit = 60 * 5
 
 
-def compare(q, c):
+def compare(q, c, time_output):
     print("run with query{} constraint{}".format(q, c))
     query_file = query_file_prefix + str(q) + ".json"
     constraint_file = constraint_file_prefix + str(c) + ".json"
@@ -54,13 +54,34 @@ def compare(q, c):
 
 
     time_output.write("\n")
-    idx = "q" + str(q) + "c" + str(c)
+    idx = "Q" + str(q) + "C" + str(c)
     time_output.write("{}, {:0.2f}\n".format(idx, running_time1))
-    time_output.write("{}\n".format(idx))
+    if running_time2 < time_limit:
+        time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
     time_output.write("\n")
+    summary_file.write(("{},{:0.2f}".format(idx, running_time1)))
+    if running_time2 < time_limit:
+        summary_file.write("{:0.2f}\n".format(running_time2))
+    else:
+        summary_file.write("\n")
 
-time_output = file(1, 3)
-compare(1, 3)
+summary_file = open(r"time.csv", "w")
+summary_file.write("file,PS,LT\n")
 
-time_output.close()
+
+def run(q, c):
+    time_output = file(q, c)
+    compare(q, c, time_output)
+    time_output.close()
+
+
+run(1, 1)
+run(1, 2)
+run(1, 3)
+run(2, 1)
+run(2, 2)
+run(2, 3)
+
+summary_file.close()
+
