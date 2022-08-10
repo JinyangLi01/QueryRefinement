@@ -58,12 +58,12 @@ bar_width = 0.35
 fig, ax = plt.subplots(1, 1, figsize=f_size)
 
 plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
-plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
+# plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
 plt.xticks(index + bar_width, x_list)
 
 plt.xlabel('Query and Constraint')
 plt.ylabel('Running time (s)')
-plt.yscale('log')
+# plt.yscale('log')
 plt.legend(loc='best')
 
 plt.tight_layout()
