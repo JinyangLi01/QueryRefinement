@@ -3,10 +3,11 @@
     "M": ["EE", "ME", "CS"]
   },
   "selection_numeric_attributes": {
-    "GPA": [">=", 3.65, 0.05],
-    "IH": [">=", 100, 1]
+    "GPA": [">=", 3.6, 0.05],
+    "IH": [">=", 90, 1]
   },
   "selection_categorical_attributes": {
-    "M": ["CS"]
+    "M": ["EE", "CS"]
   }
 }
+
