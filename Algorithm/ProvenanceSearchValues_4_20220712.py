@@ -270,18 +270,34 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
         if att in selection_numeric:
             if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
                 unique_values.sort()
-                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                except StopIteration:
+                    idx = len(unique_values) - 1
+                # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 possible_values_sets[att].update(unique_values[:idx + 1])
                 others = unique_values[idx:]
-                idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
+                try:
+                    idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
+                except StopIteration:
+                    idx = len(others)-1
+                # idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
                 possible_values_sets[att].update([s + selection_numeric[att][2] for s in others[:idx + 1]])
             else:
                 unique_values.sort()
                 unique_values = unique_values[::-1]
-                idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
+                except StopIteration:
+                    idx = len(unique_values)-1
+                # idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
                 possible_values_sets[att].update(unique_values[:idx + 1])
                 others = unique_values[idx:]
-                idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
+                try:
+                    idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
+                except StopIteration:
+                    idx = len(others) - 1
+                # idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
                 possible_values_sets[att].update([s - selection_numeric[att][2] for s in others[:idx + 1]])
 
     data = data.drop_duplicates(
@@ -352,7 +368,11 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
         if att in selection_numeric:
             unique_values.sort()
             if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                except StopIteration:
+                    idx = len(unique_values)
+                # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[:idx]
                 possible_values_sets[att].update(others)
                 lst = list(possible_values_sets[att])
@@ -364,7 +384,10 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                     del possible_values_sets[att]
                     PVT_head.remove(att)
             else:
-                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                except StopIteration:
+                    idx = 0
                 others = unique_values[idx:]
                 possible_values_sets[att].update(others)
                 lst = list(possible_values_sets[att])
@@ -438,7 +461,11 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
         unique_values.sort()
         if att in selection_numeric:
             if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                except StopIteration:
+                    idx = 0
+                # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[idx:]
                 possible_values_sets[att].update([s + selection_numeric[att][2] for s in others])
                 lst = list(possible_values_sets[att])
@@ -449,7 +476,11 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
                     del possible_values_sets[att]
                     PVT_head.remove(att)
             else:
-                idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                try:
+                    idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                except StopIteration:
+                    idx = len(unique_values)-1
+                # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[:idx + 1]
                 possible_values_sets[att].update([s - selection_numeric[att][2] for s in others])
                 lst = list(possible_values_sets[att])
@@ -2227,47 +2258,57 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     return minimal_refinements, time2 - time1
 
-#
+
 # data_file = r"../InputData/Adult/adult.data"
-# query_file = r"../InputData/Adult/query1.json"
-# constraint_file = r"../InputData/Adult/constraint1.json"
-#
-# time_limit = 5 * 60
-#
-# # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-# # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
-#
-#
-# # data_file = r"toy_examples/example5.csv"
-# # query_file = r"toy_examples/query.json"
-# # constraint_file = r"toy_examples/constraint.json"
-# #
-# print("\nnaive algorithm:\n")
-#
-# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-#                                                                                            constraint_file)
-#
-# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-#
-# print(*minimal_refinements2, sep="\n")
-# print("running time = {}".format(running_time2))
-#
-# print("\nour algorithm:\n")
-#
-# minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
-#
-# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-#
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
-#
-# # print("in naive_ans but not our:\n")
-# # for na in minimal_refinements2:
-# #     if na not in minimal_refinements:
-# #         print(na)
-# #
-# # print("in our but not naive_ans:\n")
-# # for na in minimal_refinements:
-# #     if na not in minimal_refinements2:
-# #         print(na)
+# query_file = r"../Experiment/adult/query_change/query1.json"
+# constraint_file = r"../Experiment/adult/query_change/constraint1.json"
+
+
+data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+query_file = r"../Experiment/Healthcare/query_change/query9.json"
+constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
+
+
+
+time_limit = 5 * 60
+
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
+
+
+# data_file = r"toy_examples/example5.csv"
+# query_file = r"toy_examples/query.json"
+# constraint_file = r"toy_examples/constraint.json"
+
+
+print("\nour algorithm:\n")
+
+minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
+
+minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
+
+print("\nnaive algorithm:\n")
+
+minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+                                                                                           constraint_file)
+
+# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+
+print(*minimal_refinements2, sep="\n")
+print("running time = {}".format(running_time2))
+
+
+print("in naive_ans but not our:\n")
+for na in minimal_refinements2:
+    if na not in minimal_refinements:
+        print(na)
+
+print("in our but not naive_ans:\n")
+for na in minimal_refinements:
+    if na not in minimal_refinements2:
+        print(na)
