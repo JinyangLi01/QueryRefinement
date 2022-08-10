@@ -45,7 +45,10 @@ for line in Lines:
     items = line.strip().split(',')
     x_list.append(items[0])
     execution_timeps.append(float(items[1]))
-    execution_timelt.append(float(items[2]))
+    if len(items) > 2:
+        execution_timelt.append(float(items[2]))
+    else:
+        execution_timelt.append(0)
 
 print(x_list, execution_timeps, execution_timelt)
 
