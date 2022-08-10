@@ -65,7 +65,7 @@ plt.xlabel('Income (K)')
 plt.ylabel('Running time (s)')
 plt.yticks([0, 50, 100, 150])
 plt.legend(loc='best')
-# plt.yscale("log")
+plt.yscale("log")
 plt.tight_layout()
 plt.savefig("healthcare_query_change_1.png",
             bbox_inches='tight')
