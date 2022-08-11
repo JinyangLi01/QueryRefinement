@@ -2120,7 +2120,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     if only_greater_than:
         time_table1 = time.time()
-        already_satisfy = True
 
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
                                                                                      numeric_attributes,
@@ -2141,8 +2140,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
             print("time out")
             return [], time.time() - time1
 
-        checked_satisfying_constraints = set()  # set of bit arrays
-        checked_unsatisfying_constraints = set()
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
         minimal_refinements = searchPVT_relaxation(PVT, PVT_head, numeric_attributes,
@@ -2154,12 +2151,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                    checked_assignments_satisfying,
                                                    checked_assignments_unsatisfying, time_limit)
         time_search2 = time.time()
-        # print("checked_assignments_satisfying:{}".format(checked_assignments_satisfying))
-        # print("checked_assignments_unsatisfying:{}".format(checked_assignments_unsatisfying))
-        # minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-        #                                                      selection_numeric_attributes,
-        #                                                      selection_categorical_attributes,
-        #                                                      PVT_head)
+
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
         print("table time = {}".format(table_time))
@@ -2190,8 +2182,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
             print("time out")
             return [], time.time() - time1
 
-        checked_satisfying_constraints = set()  # set of bit arrays
-        checked_unsatisfying_constraints = set()
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
 
@@ -2204,12 +2194,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                     checked_assignments_satisfying,
                                                     checked_assignments_unsatisfying, time_limit)
         time_search2 = time.time()
-        # print("checked_assignments_satisfying:{}".format(checked_assignments_satisfying))
-        # print("checked_assignments_unsatisfying:{}".format(checked_assignments_unsatisfying))
-        # minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-        #                                                      selection_numeric_attributes,
-        #                                                      selection_categorical_attributes,
-        #                                                      PVT_head)
+
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
         print("table time = {}".format(table_time))
@@ -2240,8 +2225,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         print("time out")
         return [], time.time() - time1
 
-    checked_satisfying_constraints = set()  # set of bit arrays
-    checked_unsatisfying_constraints = set()
     checked_assignments_satisfying = []
     checked_assignments_unsatisfying = []
     minimal_refinements = searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attributes,
@@ -2281,34 +2264,34 @@ time_limit = 5 * 60
 # query_file = r"toy_examples/query.json"
 # constraint_file = r"toy_examples/constraint.json"
 
-
-print("\nour algorithm:\n")
-
-minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
-
-minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
-
-print("\nnaive algorithm:\n")
-
-minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-                                                                                           constraint_file)
-
-# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-
-print(*minimal_refinements2, sep="\n")
-print("running time = {}".format(running_time2))
-
-
-print("in naive_ans but not our:\n")
-for na in minimal_refinements2:
-    if na not in minimal_refinements:
-        print(na)
-
-print("in our but not naive_ans:\n")
-for na in minimal_refinements:
-    if na not in minimal_refinements2:
-        print(na)
+#
+# print("\nour algorithm:\n")
+#
+# minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
+#
+# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#
+# print("\nnaive algorithm:\n")
+#
+# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+#                                                                                            constraint_file)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
+#
+#
+# print("in naive_ans but not our:\n")
+# for na in minimal_refinements2:
+#     if na not in minimal_refinements:
+#         print(na)
+#
+# print("in our but not naive_ans:\n")
+# for na in minimal_refinements:
+#     if na not in minimal_refinements2:
+#         print(na)
