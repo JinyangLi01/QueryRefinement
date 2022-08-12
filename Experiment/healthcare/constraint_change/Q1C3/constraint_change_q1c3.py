@@ -10,7 +10,7 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_4_20220712 as ps
+from Algorithm import ProvenanceSearchValues_4_withcomments as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 
@@ -31,11 +31,11 @@ time_limit = 5*60
 
 def run_query(q):
 
-    time_output_file = r"./constraint_change_q1c3.csv"
+    time_output_file = r"./constraint_change_q1c3_1.csv"
     time_output = open(time_output_file, "w")
     time_output.write("income,PS,LT\n")
 
-    result_output_file = r"./result_q1c3.txt"
+    result_output_file = r"./result_q1c3_1.txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
