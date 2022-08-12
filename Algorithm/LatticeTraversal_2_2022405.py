@@ -308,8 +308,6 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     time1 = time.time()
     numeric_attributes_nowhere_to_contract = dict()
     categorical_attributes_nowhere_to_contract = dict()
-    numeric_idx_attributes_nowhere_to_contract = set()
-    categorical_idx_attributes_nowhere_to_contract = set()
 
     categorical_att_domain_too_remove = []
     for att in categorical_attributes:
@@ -560,7 +558,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
     print("selected_attributes", selected_attributes)
     print("categorical_attributes:{}".format(categorical_attributes))
 
-
     with open(constraint_file) as f:
         constraint_info = json.load(f)
 
@@ -572,6 +569,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
+        print("original query satisfies constraints already")
         return [], [], time.time() - time1
 
     minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
