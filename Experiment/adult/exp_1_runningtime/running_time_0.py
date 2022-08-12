@@ -15,8 +15,8 @@ from Algorithm import ProvenanceSearchValues_4_20220712 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 data_file = r"../../../InputData/Adult/adult.data"
-query_file_prefix = r"../../../InputData/Adult/query"
-constraint_file_prefix = r"../../../InputData/Adult/constraint"
+query_file_prefix = r"query"
+constraint_file_prefix = r"constraint"
 
 time_output_prefix = r"./result_"
 
@@ -60,14 +60,14 @@ def compare(q, c, time_output):
         time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
     time_output.write("\n")
-    summary_file.write(("{},{:0.2f},".format(idx, running_time1)))
-    if running_time2 < time_limit:
-        summary_file.write("{:0.2f}\n".format(running_time2))
-    else:
-        summary_file.write("\n")
+    # summary_file.write(("{},{:0.2f},".format(idx, running_time1)))
+    # if running_time2 < time_limit:
+    #     summary_file.write("{:0.2f}\n".format(running_time2))
+    # else:
+    #     summary_file.write("\n")
 
-summary_file = open(r"time.csv", "w")
-summary_file.write("file,PS,LT\n")
+# summary_file = open(r"time.csv", "w")
+# summary_file.write("file,PS,LT\n")
 
 
 def run(q, c):
@@ -77,11 +77,8 @@ def run(q, c):
 
 
 run(1, 1)
-run(1, 2)
-run(1, 3)
 run(2, 1)
-run(2, 2)
-run(2, 3)
 
-summary_file.close()
+#
+# summary_file.close()
 
