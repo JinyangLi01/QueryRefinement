@@ -1685,8 +1685,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     last_satisfying_bounding_relaxation_location = new_value_assignment_position
                     find_value_this_col = True
                     break
-                elif full_value_assignment_str in checked_assignments_not_satisfying:
-                    print("{} doesn't satisfy constraints".format(new_value_assignment))
+                # elif full_value_assignment_str in checked_assignments_not_satisfying:
+                   # print("{} doesn't satisfy constraints".format(new_value_assignment))
                 elif att_idx + 1 == num_columns:
                     if assign_to_provenance(full_value_assignment, numeric_attributes, categorical_attributes,
                                             selection_numeric, selection_categorical, full_PVT_head,
@@ -2102,6 +2102,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
+        print("original query satisfies constraints already")
         return {}, time.time() - time1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
