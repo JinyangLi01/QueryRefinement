@@ -27,7 +27,7 @@ x_naive = list()
 execution_timeps = list()
 execution_timelt = list()
 
-input_path = r'./query_change_1.csv'
+input_path = r'./query_change_q1c1.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -67,6 +67,6 @@ plt.yticks([0, 50, 100, 150])
 plt.legend(loc='best')
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig("healthcare_query_change_1.png",
+plt.savefig("healthcare_query_change_q1c1.png",
             bbox_inches='tight')
 plt.show()
