@@ -27,7 +27,7 @@ x_naive = list()
 execution_timeps = list()
 execution_timelt = list()
 
-input_path = r'query_change_q1c2.csv'
+input_path = r'query_change_q1c3.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -61,8 +61,8 @@ plt.xticks(index + bar_width, x_list)
 
 plt.xlabel('decile-score')
 plt.ylabel('Running time (s)')
-# plt.yticks([0, 10, 20, 30])
 plt.legend(loc='best')
+plt.yscale("log")
 plt.tight_layout()
-plt.savefig("adult_query_change_q1c2.png", bbox_inches='tight')
+plt.savefig("adult_query_change_q1c3.png", bbox_inches='tight')
 plt.show()
