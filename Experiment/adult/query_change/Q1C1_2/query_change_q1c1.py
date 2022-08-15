@@ -59,7 +59,7 @@ def run_constraint(c):
             print("running time = {}".format(running_time2))
         print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
-        idx = i * 50
+        idx = i * 10
         time_output.write("{},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, running_time2, assign_to_provenance_num))
         result_output.write("{}\n".format(idx))
         result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
