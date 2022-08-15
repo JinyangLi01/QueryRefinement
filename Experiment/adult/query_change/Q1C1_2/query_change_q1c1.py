@@ -35,7 +35,7 @@ def run_constraint(c):
 
     time_output_file = r"./query_change_q1c1.csv"
     time_output = open(time_output_file, "w")
-    time_output.write("income,PS,LT\n")
+    time_output.write("hours-per-week,PS,LT\n")
 
     result_output_file = r"./result_q1c1.txt"
     result_output = open(result_output_file, "w")
