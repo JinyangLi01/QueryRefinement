@@ -14,7 +14,7 @@ import json
 from Algorithm import ProvenanceSearchValues_4_20220712 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
-data_file = r"../../InputData/Compas/compas-scores.csv"
+data_file = r"../../../InputData/Compas/compas-scores.csv"
 query_file_prefix = r"../../InputData/Compas/query"
 constraint_file_prefix = r"../../InputData/Compas/constraint"
 
