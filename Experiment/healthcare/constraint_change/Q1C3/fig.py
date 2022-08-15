@@ -56,12 +56,13 @@ fig, ax = plt.subplots(1, 1, figsize=f_size)
 
 plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
 # plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
-plt.xticks(index + bar_width, x_list)
+plt.xticks(index, x_list)
 
-plt.xlabel('Income (K)')
+plt.xlabel('race = "race3"')
 plt.ylabel('Running time (s)')
-plt.legend(bbox_to_anchor=(1, 0.9), loc="upper right")
-# plt.yscale("log")
+# plt.legend(bbox_to_anchor=(1, 0.9), loc="upper right")
+plt.legend(loc="best")
+plt.yticks([0, 20, 40, 60])
 plt.tight_layout()
 plt.savefig("healthcare_constraint_change_q1c3.png",
             bbox_inches='tight')

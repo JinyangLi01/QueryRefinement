@@ -31,7 +31,7 @@ time_limit = 5*60
 
 def run_query(q):
 
-    time_output_file = r"./constraint_change_q1c3_1.csv"
+    time_output_file = r"./constraint_change_q1c3.csv"
     time_output = open(time_output_file, "w")
     time_output.write("income,PS,LT\n")
 
@@ -49,14 +49,14 @@ def run_query(q):
 
         print("running time = {}".format(running_time1))
         print(*minimal_refinements1, sep="\n")
-        print("========================== lattice traversal ===================================")
-
-        minimal_refinements2, minimal_added_refinements2, running_time2 = \
-            lt.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
-        print("running time = {}".format(running_time2))
-        if running_time2 < time_limit:
-            print(*minimal_refinements2, sep="\n")
-
+        # print("========================== lattice traversal ===================================")
+        #
+        # minimal_refinements2, minimal_added_refinements2, running_time2 = \
+        #     lt.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
+        # print("running time = {}".format(running_time2))
+        # if running_time2 < time_limit:
+        #     print(*minimal_refinements2, sep="\n")
+        running_time2 = 0
         result_output.write("\n")
         idx = i * 50
         time_output.write("{},{:0.2f},{:0.2f}\n".format(idx, running_time1, running_time2))
