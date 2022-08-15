@@ -64,7 +64,7 @@ plt.xticks(index + bar_width, x_list)
 plt.xlabel('Query and Constraint')
 plt.ylabel('Running time (s)')
 plt.yscale('log')
-plt.legend(loc='best')
+plt.legend(loc='upper right', bbox_to_anchor=(1, 0.9))
 
 plt.tight_layout()
 plt.savefig("healthcare_time.png", bbox_inches='tight')

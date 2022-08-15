@@ -15,14 +15,13 @@ from Algorithm import ProvenanceSearchValues_4_20220712 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 data_file = r"../../../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-query_file_prefix = r"../../../InputData/Healthcare/incomeK/query"
-constraint_file_prefix = r"../../../InputData/Healthcare/incomeK/constraint"
-
+query_file_prefix = r"query"
+constraint_file_prefix = r"constraint"
 time_output_prefix = r"./result_"
 
 
 def file(q, c):
-    time_output_file = time_output_prefix + str(q) + str(c) + ".csv"
+    time_output_file = time_output_prefix + str(q) + str(c) + "1.csv"
     time_output = open(time_output_file, "w")
     time_output.write("selection file, running time ps, running time lt\n")
     return time_output
@@ -66,7 +65,7 @@ def compare(q, c, time_output):
     else:
         summary_file.write("\n")
 
-summary_file = open(r"time.csv", "w")
+summary_file = open(r"time1.csv", "w")
 summary_file.write("file,PS,LT\n")
 
 
@@ -76,10 +75,10 @@ def run(q, c):
     time_output.close()
 
 
-run(1, 1)
-run(1, 2)
+# run(1, 1)
+# run(1, 2)
 run(1, 3)
-run(2, 1)
-run(2, 2)
+# run(2, 1)
+# run(2, 2)
 run(2, 3)
 
