@@ -41,11 +41,11 @@ def run_constraint(c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(1, 8):
+    for i in range(1, 9):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1 = \
+        minimal_refinements1, running_time1, assign_num = \
             ps.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
         print("running time = {}".format(running_time1))
 
@@ -59,8 +59,8 @@ def run_constraint(c):
         running_time2 = 0
         print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
-        idx = i * 50
-        time_output.write("{}, {:0.2f}, {:0.2f}\n".format(idx, running_time1, running_time2))
+        idx = i
+        time_output.write("{},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, running_time2, assign_num))
         result_output.write("{}\n".format(idx))
         result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
         result_output.write("\n")
