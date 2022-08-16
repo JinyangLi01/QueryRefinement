@@ -1,5 +1,5 @@
 selection file, result
-education-num
+
 9
 
 [9, 21, 15025]
