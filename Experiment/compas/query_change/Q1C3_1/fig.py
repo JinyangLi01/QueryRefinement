@@ -62,7 +62,7 @@ plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=l
 plt.xticks(index + bar_width, x_list)
 plt.xticks(index + bar_width, x_list)
 
-plt.xlabel('decile-score')
+plt.xlabel('Decile-score')
 plt.ylabel('Running time (s)')
 plt.legend(loc='upper left', bbox_to_anchor=(0, 0.8))
 plt.yscale("log")
