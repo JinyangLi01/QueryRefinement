@@ -59,7 +59,7 @@ fig, ax = plt.subplots(1, 1, figsize=f_size)
 
 plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
 # plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
-plt.xticks(index + bar_width, x_list)
+plt.xticks(index, x_list)
 
 plt.xlabel('Num-children')
 plt.ylabel('Running time (s)')
