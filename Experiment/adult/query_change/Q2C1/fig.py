@@ -27,7 +27,7 @@ x_naive = list()
 execution_timeps = list()
 execution_timelt = list()
 
-input_path = r'query_change_q1c2.csv'
+input_path = r'query_change_q2c1.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -57,7 +57,7 @@ plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
 # plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
 plt.xticks(index, x_list)
 
-plt.xlabel('education-num')
+plt.xlabel('Education-num')
 plt.ylabel('Running time (s)')
 # plt.yscale('log')
 plt.legend(loc='best')

@@ -57,7 +57,7 @@ plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
 # plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
 plt.xticks(index, x_list)
 
-plt.xlabel('Query and Constraint')
+plt.xlabel('Hours-per-week')
 plt.ylabel('Running time (s)')
 # plt.yscale('log')
 plt.legend(loc='best')
