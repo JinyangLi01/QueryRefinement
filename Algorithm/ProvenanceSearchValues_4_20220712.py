@@ -794,7 +794,6 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
     minimal_refinements_positions = []  # positions of result set
     fixed_value_assignments = {}
     fixed_value_assignments_positions = {}
-
     while PVT_stack:
         if time.time() - time1 > time_limit:
             print("provenance search alg time out")
@@ -1206,7 +1205,6 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
     minimal_refinements_positions = []  # positions of result set
     fixed_value_assignments = {}
     fixed_value_assignments_positions = {}
-
     while PVT_stack:
         if time.time() - time1 > time_limit:
             print("provenance search alg time out")
@@ -1228,7 +1226,6 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        last_in_this_level = False
         # print("==========================  searchPVT  ========================== ")
         # print("PVT_head: {}".format(PVT_head))
         # print("PVT:\n{}".format(PVT))
@@ -1617,7 +1614,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
     minimal_refinements_positions = []  # positions of result set
     fixed_value_assignments = {}
     fixed_value_assignments_positions = {}
-
     while PVT_stack:
         if time.time() - time1 > time_limit:
             print("provenance search alg time out")
@@ -2202,6 +2198,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                                 data_rows_greater_than,
                                                                 data_rows_smaller_than, contraction_threshold)
     print("max_index_PVT: {}".format(max_index_PVT))
+    print("PVT_head:{}".format(PVT_head))
     time_table2 = time.time()
     table_time = time_table2 - time_table1
     # print("delta table:\n{}".format(delta_table))
