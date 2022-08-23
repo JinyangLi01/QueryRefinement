@@ -58,10 +58,10 @@ plt.bar(index, execution_timeps, bar_width, color=color[0], label=label[0])
 plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
 plt.xticks(index + bar_width, x_list)
 
-plt.xlabel('Income (K)')
+plt.xlabel('race2')
 plt.ylabel('Running time (s)')
 plt.legend(bbox_to_anchor=(1, 0.9), loc="upper right")
-plt.yscale("log")
+# plt.yscale("log")
 plt.tight_layout()
 plt.savefig("healthcare_constraint_change_q1c2.png",
             bbox_inches='tight')
