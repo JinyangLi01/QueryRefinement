@@ -50,6 +50,7 @@ Get provenance expressions
     :param selected_attributes: attributes in selection conditions
     :return: a list of dictionaries
     """
+    time0 = time.time()
     fairness_constraints_provenance_greater_than = []
     fairness_constraints_provenance_smaller_than = []
     data['protected_greater_than'] = 0
@@ -71,7 +72,8 @@ Get provenance expressions
     contraction_threshold = {}
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
-
+    print("prepare time = {}".format(time.time() - time0))
+    time1 = time.time()
     # if one direction, evaluate whether a row satisfies selection conditions
     def test_satisfying_rows(row):
         terms = row[selected_attributes].to_dict()
@@ -85,8 +87,10 @@ Get provenance expressions
                     return 0
         return 1
 
-    if only_greater_than:
+    if only_greater_than:  # relaxation
         data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+        print("time of test_satisfying_rows = {}".format(time.time() - time1))
+        time2 = time.time()
         all_relevant_attributes = sensitive_attributes + selected_attributes + \
                                   ['protected_greater_than', 'protected_smaller_than', 'satisfy']
         data = data[all_relevant_attributes]
@@ -116,6 +120,7 @@ Get provenance expressions
                                                                         args=(fc_dic, fc),
                                                                         axis=1)
             fairness_constraints_provenance_greater_than.append(fc_dic)
+        print("time of get_provenance_relax_only = {}".format(time.time() - time2))
         data = data[data['satisfy'] == 0]
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
@@ -1040,8 +1045,8 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(full_value_assignment_positions))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(full_value_assignment_positions))
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
         # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
@@ -2126,7 +2131,6 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                             selection_categorical_attributes):
         print("original query satisfies constraints already")
         return {}, time.time() - time1, assign_to_provenance_num
-
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
     data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than, contraction_threshold \
         = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -2265,36 +2269,35 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     return minimal_refinements, time2 - time1, assign_to_provenance_num
 
 
-# data_file = r"../InputData/Adult/adult.data"
-# query_file = r"../Experiment/adult/query_change/query1.json"
-# constraint_file = r"../Experiment/adult/query_change/constraint1.json"
-
-
-data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-query_file = r"../Experiment/Healthcare/query_change/query9.json"
-constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
-
+data_file = r"../InputData/Adult/adult.data"
+query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
+constraint_file = r"../Experiment/adult/exp_1_runningtime/constraint1.json"
 time_limit = 5 * 60
 
+# data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../Experiment/Healthcare/query_change/query9.json"
+# constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
+#
+#
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
 # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
-
-
+#
+#
 # data_file = r"toy_examples/example5.csv"
 # query_file = r"toy_examples/query.json"
 # constraint_file = r"toy_examples/constraint.json"
 
-#
-# print("\nour algorithm:\n")
-#
-# minimal_refinements, running_time = FindMinimalRefinement(data_file, query_file, constraint_file)
-#
-# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-#
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
-#
+
+print("\nour algorithm:\n")
+
+minimal_refinements, running_time, assign_num = FindMinimalRefinement(data_file, query_file, constraint_file)
+
+minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
 #
 # print("\nnaive algorithm:\n")
 #
