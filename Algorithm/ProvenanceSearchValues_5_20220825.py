@@ -4,16 +4,9 @@ Pure relaxations/contractions and refinements are treated differently.
 Use recursion
 
 
-Difference from 2:
-2 uses recursion which is not appreciated
-
-Here I use loop
-
-Bug: due to optimization, the positions is incorrect since some parts of the columns that
-are already checked are deleted.
-
-Fix this bug by tightening the last fixed column after binary search
-
+Difference from 4:
+changes in subtract_provenance():
+remove the test_satisfying_rows which is very time-consuming
 
 """
 
@@ -88,8 +81,9 @@ Get provenance expressions
         return 1
 
     if only_greater_than:  # relaxation
-        data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+        # data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
         print("time of test_satisfying_rows = {}".format(time.time() - time1))
+        data['satisfy'] = 0
         time2 = time.time()
         all_relevant_attributes = sensitive_attributes + selected_attributes + \
                                   ['protected_greater_than', 'protected_smaller_than', 'satisfy']
@@ -101,7 +95,20 @@ Get provenance expressions
             sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
             fairness_value_of_row = row[sensitive_att_of_fc]
             if sensitive_values_of_fc == fairness_value_of_row.to_dict():
-                if row['satisfy'] == 1:
+                satisfy = True
+                terms = row[selected_attributes].to_dict()
+                for k in terms:
+                    if k in selection_numeric_attributes:
+                        if not eval(
+                                str(terms[k]) + selection_numeric_attributes[k][0] + str(
+                                    selection_numeric_attributes[k][1])):
+                            satisfy = False
+                            break
+                    else:
+                        if terms[k] not in selection_categorical_attributes[k]:
+                            satisfy = False
+                            break
+                if satisfy:
                     fc_dic['number'] -= row['occurrence']
                 else:
                     terms = row[selected_attributes]
@@ -109,6 +116,7 @@ Get provenance expressions
                     term_dic['occurrence'] = row['occurrence']
                     fc_dic['provenance_expression'].append(term_dic)
                     row['protected_greater_than'] = 1
+                    row['satisfy'] = 1
             return row
 
         for fc in fairness_constraints:
@@ -122,6 +130,7 @@ Get provenance expressions
             fairness_constraints_provenance_greater_than.append(fc_dic)
         print("time of get_provenance_relax_only = {}".format(time.time() - time2))
         data = data[data['satisfy'] == 0]
+        print("len(data) not satisfying = {}".format(len(data)))
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
