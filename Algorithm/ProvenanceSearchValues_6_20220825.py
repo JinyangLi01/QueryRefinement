@@ -6,7 +6,7 @@ Use recursion
 
 Difference from 4:
 changes in subtract_provenance():
-remove the test_satisfying_rows which is very time-consuming
+remove the test_satisfying_rows which is very time-consuming, and never do it
 
 """
 
@@ -95,28 +95,11 @@ Get provenance expressions
             sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
             fairness_value_of_row = row[sensitive_att_of_fc]
             if sensitive_values_of_fc == fairness_value_of_row.to_dict():
-                satisfy = True
-                terms = row[selected_attributes].to_dict()
-                for k in terms:
-                    if k in selection_numeric_attributes:
-                        if not eval(
-                                str(terms[k]) + selection_numeric_attributes[k][0] + str(
-                                    selection_numeric_attributes[k][1])):
-                            satisfy = False
-                            break
-                    else:
-                        if terms[k] not in selection_categorical_attributes[k]:
-                            satisfy = False
-                            break
-                if satisfy:
-                    fc_dic['number'] -= row['occurrence']
-                else:
-                    terms = row[selected_attributes]
-                    term_dic = terms.to_dict()
-                    term_dic['occurrence'] = row['occurrence']
-                    fc_dic['provenance_expression'].append(term_dic)
-                    row['protected_greater_than'] = 1
-                    row['satisfy'] = 1
+                terms = row[selected_attributes]
+                term_dic = terms.to_dict()
+                term_dic['occurrence'] = row['occurrence']
+                fc_dic['provenance_expression'].append(term_dic)
+                row['protected_greater_than'] = 1
             return row
 
         for fc in fairness_constraints:
@@ -129,7 +112,7 @@ Get provenance expressions
                                                                         axis=1)
             fairness_constraints_provenance_greater_than.append(fc_dic)
         print("time of get_provenance_relax_only = {}".format(time.time() - time2))
-        data = data[data['satisfy'] == 0]
+        # data = data[data['satisfy'] == 0]
         print("len(data) not satisfying = {}".format(len(data)))
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
@@ -2277,54 +2260,54 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     print("assign_to_provenance_num = {}".format(assign_to_provenance_num))
     return minimal_refinements, time2 - time1, assign_to_provenance_num
 
-
-data_file = r"../InputData/Adult/adult.data"
-query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
-constraint_file = r"../Experiment/adult/exp_1_runningtime/constraint1.json"
-time_limit = 5 * 60
-
-# data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-# query_file = r"../Experiment/Healthcare/query_change/query9.json"
-# constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
+#
+# data_file = r"../InputData/Adult/adult.data"
+# query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
+# constraint_file = r"../Experiment/adult/exp_1_runningtime/constraint1.json"
+# time_limit = 5 * 60
+#
+# # data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+# # query_file = r"../Experiment/Healthcare/query_change/query9.json"
+# # constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
+# #
+# #
+# # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
+# #
+# #
+# # data_file = r"toy_examples/example5.csv"
+# # query_file = r"toy_examples/query.json"
+# # constraint_file = r"toy_examples/constraint.json"
 #
 #
-# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
+# print("\nour algorithm:\n")
 #
+# minimal_refinements, running_time, assign_num = FindMinimalRefinement(data_file, query_file, constraint_file)
 #
-# data_file = r"toy_examples/example5.csv"
-# query_file = r"toy_examples/query.json"
-# constraint_file = r"toy_examples/constraint.json"
-
-
-print("\nour algorithm:\n")
-
-minimal_refinements, running_time, assign_num = FindMinimalRefinement(data_file, query_file, constraint_file)
-
-minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
+# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
 #
-# print("\nnaive algorithm:\n")
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
 #
-# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-#                                                                                            constraint_file)
-#
-# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-#
-# print(*minimal_refinements2, sep="\n")
-# print("running time = {}".format(running_time2))
-#
-#
-# print("in naive_ans but not our:\n")
-# for na in minimal_refinements2:
-#     if na not in minimal_refinements:
-#         print(na)
-#
-# print("in our but not naive_ans:\n")
-# for na in minimal_refinements:
-#     if na not in minimal_refinements2:
-#         print(na)
+# #
+# # print("\nnaive algorithm:\n")
+# #
+# # minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+# #                                                                                            constraint_file)
+# #
+# # # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+# #
+# # print(*minimal_refinements2, sep="\n")
+# # print("running time = {}".format(running_time2))
+# #
+# #
+# # print("in naive_ans but not our:\n")
+# # for na in minimal_refinements2:
+# #     if na not in minimal_refinements:
+# #         print(na)
+# #
+# # print("in our but not naive_ans:\n")
+# # for na in minimal_refinements:
+# #     if na not in minimal_refinements2:
+# #         print(na)
