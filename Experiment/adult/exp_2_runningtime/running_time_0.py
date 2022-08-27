@@ -36,28 +36,29 @@ def compare(q, c, time_output):
     constraint_file = constraint_file_prefix + str(c) + ".json"
 
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1 = \
+    minimal_refinements1, running_time1, assign_to_provenance_num, \
+        provenance_time, search_time = \
         ps.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
 
     print("running time = {}".format(running_time1))
     print(*minimal_refinements1, sep="\n")
 
-    print("========================== lattice traversal ===================================")
-
-    minimal_refinements2, minimal_added_refinements2, running_time2 = \
-        lt.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
-    if running_time2 > time_limit:
-        print("naive alg out of time")
-    else:
-        print("running time = {}".format(running_time2))
-        print(*minimal_refinements2, sep="\n")
+    # print("========================== lattice traversal ===================================")
+    #
+    # minimal_refinements2, minimal_added_refinements2, running_time2 = \
+    #     lt.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
+    # if running_time2 > time_limit:
+    #     print("naive alg out of time")
+    # else:
+    #     print("running time = {}".format(running_time2))
+    #     print(*minimal_refinements2, sep="\n")
 
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
     time_output.write("{}, {:0.2f}\n".format(idx, running_time1))
-    if running_time2 < time_limit:
-        time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
+    # if running_time2 < time_limit:
+    #     time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
     time_output.write("\n")
     # summary_file.write(("{},{:0.2f},".format(idx, running_time1)))
