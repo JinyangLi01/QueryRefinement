@@ -67,6 +67,7 @@ Get provenance expressions
                              for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
     time1 = time.time()
+
     # if one direction, evaluate whether a row satisfies selection conditions
     def test_satisfying_rows(row):
         terms = row[selected_attributes].to_dict()
@@ -119,8 +120,11 @@ Get provenance expressions
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
                data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than, contraction_threshold
 
-    elif only_smaller_than:
-        data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+    elif only_smaller_than:  # contraction
+        # data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+        print("time of test_satisfying_rows = {}".format(time.time() - time1))
+        data['satisfy'] = 0
+        time2 = time.time()
         all_relevant_attributes = sensitive_attributes + selected_attributes + \
                                   ['protected_greater_than', 'protected_smaller_than', 'satisfy']
         data = data[all_relevant_attributes]
@@ -131,12 +135,11 @@ Get provenance expressions
             sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
             fairness_value_of_row = row[sensitive_att_of_fc]
             if sensitive_values_of_fc == fairness_value_of_row.to_dict():
-                if row['satisfy'] == 1:
-                    terms = row[selected_attributes]
-                    term_dic = terms.to_dict()
-                    term_dic['occurrence'] = row['occurrence']
-                    fc_dic['provenance_expression'].append(term_dic)
-                    row['protected_greater_than'] = 1
+                terms = row[selected_attributes]
+                term_dic = terms.to_dict()
+                term_dic['occurrence'] = row['occurrence']
+                fc_dic['provenance_expression'].append(term_dic)
+                row['protected_greater_than'] = 1
             return row
 
         for fc in fairness_constraints:
@@ -148,7 +151,8 @@ Get provenance expressions
                                                                         args=(fc_dic, fc),
                                                                         axis=1)
             fairness_constraints_provenance_smaller_than.append(fc_dic)
-        data = data[data['satisfy'] == 0]
+        print("time of get_provenance_contract_only = {}".format(time.time() - time2))
+        # data = data[data['satisfy'] == 0]
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
@@ -169,18 +173,28 @@ Get provenance expressions
         sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
         fairness_value_of_row = row[sensitive_att_of_fc]
         if sensitive_values_of_fc == fairness_value_of_row.to_dict():
-            if only_greater_than and row['satisfy'] == 1:
-                fc_dic['number'] -= row['occurrence']
-            elif not (only_smaller_than and row['satisfy'] == 0):
-                terms = row[selected_attributes]
-                term_dic = terms.to_dict()
-                term_dic['occurrence'] = row['occurrence']
-                fc_dic['provenance_expression'].append(term_dic)
+            terms = row[selected_attributes]
+            term_dic = terms.to_dict()
+            term_dic['occurrence'] = row['occurrence']
+            fc_dic['provenance_expression'].append(term_dic)
             if protected_greater_than:
                 row['protected_greater_than'] = 1
                 row['this_fairness_constraint'] = 1
             else:
                 row['protected_smaller_than'] = 1
+
+            # if only_greater_than and row['satisfy'] == 1:
+            #     fc_dic['number'] -= row['occurrence']
+            # elif not (only_smaller_than and row['satisfy'] == 0):
+            #     terms = row[selected_attributes]
+            #     term_dic = terms.to_dict()
+            #     term_dic['occurrence'] = row['occurrence']
+            #     fc_dic['provenance_expression'].append(term_dic)
+            # if protected_greater_than:
+            #     row['protected_greater_than'] = 1
+            #     row['this_fairness_constraint'] = 1
+            # else:
+            #     row['protected_smaller_than'] = 1
         return row
 
     def get_threshold(col, fc_number):
@@ -211,14 +225,11 @@ Get provenance expressions
         fc_dic['number'] = fc['number']
         fc_dic['provenance_expression'] = []
         data['this_fairness_constraint'] = 0
-        data = data[all_relevant_attributes + ['occurrence', 'this_fairness_constraint']].apply(get_provenance,
-                                                                                                args=(fc_dic,
-                                                                                                      fc,
-                                                                                                      (fc[
-                                                                                                           'symbol'] == ">" or
-                                                                                                       fc[
-                                                                                                           'symbol'] == ">=")),
-                                                                                                axis=1)
+        data = data[all_relevant_attributes +
+                    ['occurrence', 'this_fairness_constraint']].apply(get_provenance, args=(fc_dic, fc,
+                                                                                            (fc['symbol'] == ">"
+                                                                                             or fc['symbol'] == ">=")),
+                                                                      axis=1)
         if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
             fairness_constraints_provenance_smaller_than.append(fc_dic)
         else:
@@ -2122,7 +2133,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                             numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                             selection_categorical_attributes):
         print("original query satisfies constraints already")
-        return {}, time.time() - time1, assign_to_provenance_num
+        return {}, time.time() - time1, assign_to_provenance_num, 0, 0
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
     data_rows_greater_than, data_rows_smaller_than, only_greater_than, only_smaller_than, contraction_threshold \
         = subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -2135,11 +2146,10 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     # print(*fairness_constraints_provenance_smaller_than, sep="\n")
     if time.time() - time1 > time_limit:
         print("time out")
-        return [], time.time() - time1, assign_to_provenance_num
+        return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
     if only_greater_than:
         time_table1 = time.time()
-
         PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_relax_only(data, selected_attributes,
                                                                                      numeric_attributes,
                                                                                      categorical_attributes,
@@ -2151,13 +2161,13 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                                                      fairness_constraints_provenance_smaller_than,
                                                                                      data_rows_greater_than,
                                                                                      data_rows_smaller_than)
-        print("max_index_PVT: {}".format(max_index_PVT))
+        # print("max_index_PVT: {}".format(max_index_PVT))
         time_table2 = time.time()
         table_time = time_table2 - time_table1
         time_search1 = time.time()
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num
+            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
@@ -2169,37 +2179,34 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                    max_index_PVT,
                                                    checked_assignments_satisfying,
                                                    checked_assignments_unsatisfying, time_limit)
-        time_search2 = time.time()
-
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
-        print("table time = {}".format(table_time))
-        print("searching time = {}".format(time_search2 - time_search1))
+        # print("table time = {}".format(table_time))
+        print("searching time = {}".format(time2 - time_table1))
         # print("minimal_added_relaxations:{}".format(minimal_added_refinements))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num
+        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     elif only_smaller_than:
         time_table1 = time.time()
-
-        PVT, PVT_head, categorical_att_columns, max_index_PVT = build_PVT_contract_only(data, selected_attributes,
-                                                                                        numeric_attributes,
-                                                                                        categorical_attributes,
-                                                                                        selection_numeric_attributes,
-                                                                                        selection_categorical_attributes,
-                                                                                        sensitive_attributes,
-                                                                                        fairness_constraints,
-                                                                                        fairness_constraints_provenance_greater_than,
-                                                                                        fairness_constraints_provenance_smaller_than,
-                                                                                        data_rows_greater_than,
-                                                                                        data_rows_smaller_than)
-        print("max_index_PVT: {}".format(max_index_PVT))
+        PVT, PVT_head, categorical_att_columns, \
+        max_index_PVT = build_PVT_contract_only(data, selected_attributes, numeric_attributes,
+                                                categorical_attributes,
+                                                selection_numeric_attributes,
+                                                selection_categorical_attributes,
+                                                sensitive_attributes,
+                                                fairness_constraints,
+                                                fairness_constraints_provenance_greater_than,
+                                                fairness_constraints_provenance_smaller_than,
+                                                data_rows_greater_than,
+                                                data_rows_smaller_than)
+        # print("max_index_PVT: {}".format(max_index_PVT))
         time_table2 = time.time()
         table_time = time_table2 - time_table1
         # print("delta table:\n{}".format(delta_table))
         time_search1 = time.time()
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num
+            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
@@ -2212,14 +2219,12 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                     max_index_PVT,
                                                     checked_assignments_satisfying,
                                                     checked_assignments_unsatisfying, time_limit)
-        time_search2 = time.time()
-
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
-        print("table time = {}".format(table_time))
-        print("searching time = {}".format(time_search2 - time_search1))
+        # print("table time = {}".format(table_time))
+        print("searching time = {}".format(time2 - time_table1))
         # print("minimal_added_relaxations:{}".format(minimal_added_refinements))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num
+        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     time_table1 = time.time()
 
@@ -2235,14 +2240,14 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                                 fairness_constraints_provenance_smaller_than,
                                                                 data_rows_greater_than,
                                                                 data_rows_smaller_than, contraction_threshold)
-    print("max_index_PVT: {}".format(max_index_PVT))
+    # print("max_index_PVT: {}".format(max_index_PVT))
     time_table2 = time.time()
     table_time = time_table2 - time_table1
     # print("delta table:\n{}".format(delta_table))
     time_search1 = time.time()
     if time.time() - time1 > time_limit:
         print("time out")
-        return [], time.time() - time1, assign_to_provenance_num
+        return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
     checked_assignments_satisfying = []
     checked_assignments_unsatisfying = []
@@ -2254,11 +2259,12 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
                                                max_index_PVT,
                                                checked_assignments_satisfying,
                                                checked_assignments_unsatisfying, time_limit)
-    time_search2 = time.time()
-
     time2 = time.time()
+    print("provenance time = {}".format(provenance_time))
+    # print("table time = {}".format(table_time))
+    print("searching time = {}".format(time2 - time_table1))
     print("assign_to_provenance_num = {}".format(assign_to_provenance_num))
-    return minimal_refinements, time2 - time1, assign_to_provenance_num
+    return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
 #
 # data_file = r"../InputData/Adult/adult.data"
