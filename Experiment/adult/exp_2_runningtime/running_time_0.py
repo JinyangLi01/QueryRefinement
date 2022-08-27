@@ -56,7 +56,7 @@ def compare(q, c, time_output):
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
-    time_output.write("{}, {:0.2f}\n".format(idx, running_time1))
+    time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time, search_time))
     # if running_time2 < time_limit:
     #     time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
@@ -77,9 +77,8 @@ def run(q, c):
     time_output.close()
 
 
-run(1, 1)
-run(2, 1)
-
+run(1, 3)
+run(2, 3)
 #
 # summary_file.close()
 
