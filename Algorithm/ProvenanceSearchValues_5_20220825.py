@@ -6,7 +6,7 @@ Use recursion
 
 Difference from 4:
 changes in subtract_provenance():
-remove the test_satisfying_rows which is very time-consuming
+remove the test_satisfying_rows which is very time-consuming, and do it within get_provenance_relax_only
 
 """
 
