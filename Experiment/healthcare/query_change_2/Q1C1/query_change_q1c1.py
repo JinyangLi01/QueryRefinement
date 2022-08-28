@@ -10,10 +10,8 @@ import time
 from intbitset import intbitset
 import json
 
-
-from Algorithm import ProvenanceSearchValues_6_20220825 as ps
+from Algorithm import ProvenanceSearchValues_4_20220712 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
-
 
 
 minimal_refinements1 = []
@@ -25,7 +23,7 @@ minimal_added_refinements2 = []
 running_time2 = []
 
 
-data_file = r"../../../../InputData/Compas/compas-scores.csv"
+data_file = r"../../../../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
 query_file_prefix = r"./query"
 
 time_limit = 5*60
@@ -34,38 +32,32 @@ def run_constraint(c):
     print("running query change constraint {}".format(c))
     constraint_file = r"./constraint" + str(c) + ".json"
 
-
-    time_output_file = r"./query_change_q1c2.csv"
+    time_output_file = r"./query_change_q1c1_1.csv"
     time_output = open(time_output_file, "w")
-    time_output.write("decile-score,PS,LT\n")
+    time_output.write("income,PS,LT\n")
 
-    result_output_file = r"./result_q1c2.txt"
+    result_output_file = r"./result_q1c1_1.txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(1, 9):
-        print("query", i)
+    for i in range(0, 10):
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, assign_to_provenance_num, \
-        provenance_time, search_time = \
+        minimal_refinements1, running_time1 = \
             ps.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
-
         print("running time = {}".format(running_time1))
 
-        running_time2 = 0
-        # print("========================== lattice traversal ===================================")
+        print("========================== lattice traversal ===================================")
         # minimal_refinements2, minimal_added_refinements2, running_time2 = \
         #     lt.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
-        # if running_time2 > time_limit:
-        #     print("naive alg out of time with {} time limit".format(time_limit))
-        # else:
-        #     print("running time = {}".format(running_time2))
+        # print("running time = {}".format(running_time2))
+        # if running_time2 < time_limit:
+        #     print(*minimal_refinements2, sep="\n")
+        running_time2 = 0
         print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
-        idx = i
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time,
-                                                                search_time))
+        idx = i * 50
+        time_output.write("{},{:0.2f},{:0.2f}\n".format(idx, running_time1, running_time2))
         result_output.write("{}\n".format(idx))
         result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
         result_output.write("\n")
@@ -74,4 +66,4 @@ def run_constraint(c):
     result_output.close()
     time_output.close()
 
-run_constraint(2)
+run_constraint(1)
