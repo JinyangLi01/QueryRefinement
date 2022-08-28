@@ -10,7 +10,7 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_7_20220827 as ps
+from Algorithm import ProvenanceSearchValues_4_20220712_global as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 
@@ -23,7 +23,7 @@ minimal_added_refinements2 = []
 running_time2 = []
 
 
-data_file = r"../../../../InputData/Compas/compas-scores.csv"
+data_file = r"../../../../InputData/Adult/adult.data"
 query_file_prefix = r"./query"
 
 time_limit = 5*60
@@ -33,11 +33,11 @@ def run_constraint(c):
     constraint_file = r"./constraint" + str(c) + ".json"
 
 
-    time_output_file = r"./query_change_q1c3.csv"
+    time_output_file = r"./query_change_q1c3_1.csv"
     time_output = open(time_output_file, "w")
-    time_output.write("decile-score,PS,LT\n")
+    time_output.write("income,PS,LT\n")
 
-    result_output_file = r"./result_q1c3.txt"
+    result_output_file = r"./result_q1c3_1.txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
@@ -50,6 +50,7 @@ def run_constraint(c):
             ps.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
 
         print("running time = {}".format(running_time1))
+        print(*minimal_refinements1, sep="\n")
 
         running_time2 = 0
         # print("========================== lattice traversal ===================================")
@@ -59,13 +60,13 @@ def run_constraint(c):
         #     print("naive alg out of time with {} time limit".format(time_limit))
         # else:
         #     print("running time = {}".format(running_time2))
-        print(*minimal_refinements1, sep="\n")
+        # print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
-        idx = i
+        idx = i + 8
         time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time,
                                                                 search_time))
         result_output.write("{}\n".format(idx))
-        result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
+        result_output.write(",".join(str(item) for item in minimal_added_refinements1))
         result_output.write("\n")
         result_output.write("\n".join(str(item) for item in minimal_refinements1))
         result_output.write("\n")
