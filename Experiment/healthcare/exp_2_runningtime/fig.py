@@ -15,7 +15,7 @@ sns.set_style("whitegrid")
 # sns.palplot(sns.color_palette("Paired", 9))
 
 color = ['C1', 'C0', 'C3']
-label = ["PS_provenance", "PS_searching", "LT"]
+label = ["PS-provenance", "PS-searching", "LT"]
 f_size = (14, 10)
 x_list = list()
 x_naive = list()
