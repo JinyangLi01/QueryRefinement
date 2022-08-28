@@ -1476,8 +1476,8 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
                                                    shifted_length)
 
         # print("minimal_refinements: {}".format(minimal_refinements))
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(full_value_assignment_positions))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(full_value_assignment_positions))
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
 

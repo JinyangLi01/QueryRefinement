@@ -21,12 +21,12 @@ constraint_file_prefix = r"constraint"
 time_output_prefix = r"./result_"
 
 
-
 def file(q, c):
     time_output_file = time_output_prefix + str(q) + str(c) + ".csv"
     time_output = open(time_output_file, "w")
     time_output.write("selection file, running time ps, running time lt\n")
     return time_output
+
 
 time_limit = 60 * 5
 
@@ -54,11 +54,10 @@ def compare(q, c, time_output):
     #     print("running time = {}".format(running_time2))
     #     print(*minimal_refinements2, sep="\n")
 
-
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
     time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time,
-                                                                    search_time))
+                                                            search_time))
     # if running_time2 < time_limit:
     #     time_output.write("{}, {:0.2f}\n".format(idx, running_time2))
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
@@ -68,6 +67,7 @@ def compare(q, c, time_output):
     #     summary_file.write("{:0.2f}\n".format(running_time2))
     # else:
     #     summary_file.write("\n")
+
 
 summary_file = open(r"time.csv", "w")
 summary_file.write("file,PS,LT\n")
@@ -87,4 +87,3 @@ run(2, 2)
 run(2, 3)
 
 summary_file.close()
-
