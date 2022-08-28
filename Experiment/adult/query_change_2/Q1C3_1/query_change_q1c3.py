@@ -10,7 +10,7 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_4_20220712_global as ps
+from Algorithm import ProvenanceSearchValues_6_20220825 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 
@@ -45,9 +45,12 @@ def run_constraint(c):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, assign_to_provenance_num = \
+        minimal_refinements1, running_time1, assign_to_provenance_num, \
+        provenance_time, search_time = \
             ps.FindMinimalRefinement(data_file, query_file, constraint_file, time_limit)
+
         print("running time = {}".format(running_time1))
+        print(*minimal_refinements1, sep="\n")
 
         running_time2 = 0
         # print("========================== lattice traversal ===================================")
@@ -60,9 +63,10 @@ def run_constraint(c):
         # print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
         idx = i + 8
-        time_output.write("{},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, running_time2, assign_to_provenance_num))
+        time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time,
+                                                                search_time))
         result_output.write("{}\n".format(idx))
-        result_output.write(", ".join(str(item) for item in minimal_added_refinements1))
+        result_output.write(",".join(str(item) for item in minimal_added_refinements1))
         result_output.write("\n")
         result_output.write("\n".join(str(item) for item in minimal_refinements1))
         result_output.write("\n")
