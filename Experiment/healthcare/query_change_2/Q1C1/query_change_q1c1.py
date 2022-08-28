@@ -10,7 +10,7 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_6_20220825 as ps
+from Algorithm import ProvenanceSearchValues_7_20220827 as ps
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 minimal_refinements1 = []
