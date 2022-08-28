@@ -69,7 +69,7 @@ plt.xticks(index + bar_width, x_list)
 plt.xlabel('Num-children')
 plt.ylabel('Running time (s)')
 plt.yticks([0, 50, 100, 150])
-plt.legend(loc='upper right', bbox_to_anchor=(1, 0.8))
+plt.legend(loc='upper right', bbox_to_anchor=(1, 0.82))
 plt.yscale("log")
 plt.tight_layout()
 plt.savefig("healthcare_query_change_q1c2.png",
