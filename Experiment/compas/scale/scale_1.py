@@ -26,7 +26,6 @@ minimal_added_refinements2 = []
 time_limit = 5*60
 
 
-
 time_output_file = r"time.csv"
 time_output = open(time_output_file, "w")
 time_output.write("data size,running time,provenance time,search time\n")
@@ -35,12 +34,14 @@ result_output_file = r"result.txt"
 result_output = open(result_output_file, "w")
 result_output.write("selection file, result\n")
 
-data_size = ["2k", "2p5k", "5k", "10k"]
+data_size = ["1k", "2k", "2p5k", "5k", "10k"]
 
-for i in range(0, 5):
-    query_file = r"query" + str(i) + ".json"
-    constraint_file = r"constraint" + str(i) + ".json"
-    data_file = "../../InputData/Compas/scale/compas_" + data_size[i] + ".csv"
+for i in range(1, 6):
+    query_file = r"../../../InputData/Compas/scale/query" + str(i) + ".json"
+    constraint_file = r"../../../InputData/Compas/scale/constraint" + str(i) + ".json"
+    data_file = "../../../InputData/Compas/scale/compas_" + data_size[i-1] + ".csv"
+
+    print(data_file, constraint_file, query_file)
 
     print("========================== provenance search ===================================")
     minimal_refinements1, running_time1, assign_to_provenance_num,\

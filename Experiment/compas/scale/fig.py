@@ -14,15 +14,16 @@ sns.set_style("whitegrid")
 # sns.palplot(sns.color_palette("deep", 10))
 # sns.palplot(sns.color_palette("Paired", 9))
 
-color = ['C1', 'C0']
-label = ["PS-provenance", "PS-searching"]
+color = ['C1', 'C0', 'C3']
+label = ['PS-provenance', "PS-searching", "LT"]
+
 f_size = (14, 10)
 
 x_list = list()
 x_naive = list()
-execution_time1 = list()
-execution_time2 = list()
-execution_time3 = list()
+execution_timeps1 = list()
+execution_timeps2 = list()
+execution_timelt = list()
 
 input_path = r'time.csv'
 input_file = open(input_path, "r")
@@ -39,30 +40,31 @@ for line in Lines:
         continue
     items = line.strip().split(',')
     x_list.append(items[0])
-    execution_time1.append(float(items[1]))
-    execution_time2.append(float(items[2]))
-    execution_time3.append(float(items[3]))
-
-print(x_list, execution_time1, execution_time2, execution_time3)
+    execution_timeps1.append(float(items[1]))
+    execution_timeps2.append(float(items[2]))
+    if len(items) == 4:
+        execution_timelt.append(float(items[3]))
+    else:
+        execution_timelt.append(0)
+print(x_list, execution_timeps1, execution_timeps2, execution_timelt)
 
 index = np.arange(len(x_list))
 bar_width = 0.35
 
 fig, ax = plt.subplots(1, 1, figsize=f_size)
 
-plt.bar(index, execution_time2, bar_width, color=color[0], label=label[0])
-plt.bar(index, execution_time3, bar_width, bottom=execution_time2,
-       color=color[1], label=label[1])
-
-# plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[1], label=label[1])
-plt.xticks(index, x_list)
+plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
+plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
+        color=color[1], label=label[1])
+plt.bar(index + bar_width, execution_timelt, bar_width, color=color[2], label=label[2])
+plt.xticks(index + bar_width, x_list)
 
 plt.xlabel('Data size (K)')
 plt.ylabel('Running time (s)')
 plt.legend(loc='best')
 # plt.yscale("log")
-plt.yticks([0, 2, 4, 6])
+# plt.yticks([0, 2, 4, 6])
 plt.tight_layout()
-plt.savefig("scale_datasize.png",
+plt.savefig("scale_datasize_compas.png",
             bbox_inches='tight')
 plt.show()

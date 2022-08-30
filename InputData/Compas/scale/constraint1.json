@@ -8,7 +8,7 @@
         "race": "African-American"
       },
       "symbol": "<=",
-      "number": 8
+      "number": 6
     },
     {
       "sensitive_attributes":
@@ -16,7 +16,7 @@
         "sex": "Male"
       },
       "symbol": "<=",
-      "number": 12
+      "number": 9
     }
   ]
 }
