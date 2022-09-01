@@ -523,6 +523,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file):
     data = pd.read_csv(data_file)
     with open(query_file) as f:
         query_info = json.load(f)
+
     selection_numeric_attributes = query_info['selection_numeric_attributes']
     selection_categorical_attributes = query_info['selection_categorical_attributes']
     numeric_attributes = list(selection_numeric_attributes.keys())
