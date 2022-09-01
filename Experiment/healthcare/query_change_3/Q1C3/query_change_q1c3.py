@@ -12,7 +12,7 @@ import json
 
 
 from Algorithm import ProvenanceSearchValues_7_20220827 as ps
-from Algorithm import LatticeTraversal_2_2022405 as lt
+from Algorithm import LatticeTraversal_4_20220901 as lt
 
 
 

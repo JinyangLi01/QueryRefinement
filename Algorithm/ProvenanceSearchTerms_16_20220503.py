@@ -16,7 +16,7 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
-from Algorithm import LatticeTraversal_2_2022405 as lt
+from Algorithm import LatticeTraversal_4_20220901 as lt
 
 
 def subtract_provenance(data, selected_attributes, sensitive_attributes, fairness_constraints,
