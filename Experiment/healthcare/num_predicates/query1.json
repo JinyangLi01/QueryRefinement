@@ -1,0 +1,5 @@
+{
+  "selection_numeric_attributes": {
+    "income": [">=", 150, 1]
+  }
+}

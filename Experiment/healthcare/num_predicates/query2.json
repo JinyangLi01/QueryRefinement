@@ -1,0 +1,6 @@
+{
+  "selection_numeric_attributes": {
+    "income": [">=", 150, 1],
+    "num-children": ["<=", 4, 1]
+  }
+}
