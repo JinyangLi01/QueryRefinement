@@ -604,21 +604,32 @@ def LatticeTraversalGreaterThan(selected_attributes, sensitive_attributes, fairn
 
 
 
-def FindMinimalRefinement(selection_file, sql_file_read, sql_getinfo_file_read, sql_connection, answer_column_file):
+def FindMinimalRefinement(query_file, constraint_file, sql_file_read, sql_getinfo_file_read,
+                          sql_connection, answer_column_file):
 
-    with open(selection_file) as f:
-        info = json.load(f)
+    with open(query_file) as f:
+        query_info = json.load(f)
 
-    sensitive_attributes = info['all_sensitive_attributes']
-    fairness_constraints = info['fairness_constraints']
-    selection_numeric_attributes = info['selection_numeric_attributes']
-    selection_categorical_attributes = info['selection_categorical_attributes']
-    numeric_attributes = list(selection_numeric_attributes.keys())
-    categorical_attributes = info['categorical_attributes']
-    selected_attributes = list(categorical_attributes.keys()) + numeric_attributes
+    numeric_attributes = []
+    categorical_attributes = {}
+    selection_numeric_attributes = {}
+    selection_categorical_attributes = {}
+    if 'selection_numeric_attributes' in query_info:
+        selection_numeric_attributes = query_info['selection_numeric_attributes']
+        numeric_attributes = list(selection_numeric_attributes.keys())
+    if 'selection_categorical_attributes' in query_info:
+        selection_categorical_attributes = query_info['selection_categorical_attributes']
+        categorical_attributes = query_info['categorical_attributes']
+    selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
 
-    pd.set_option('display.float_format', '{:.3f}'.format)
+    with open(constraint_file) as f:
+        constraint_info = json.load(f)
+
+    sensitive_attributes = constraint_info['all_sensitive_attributes']
+    fairness_constraints = constraint_info['fairness_constraints']
+
+    pd.set_option('display.float_format', '{:.2f}'.format)
 
 
     answer_columns = pd.read_csv(answer_column_file, delimiter=", ", engine='python').columns.tolist()
