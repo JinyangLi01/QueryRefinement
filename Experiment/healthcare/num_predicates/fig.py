@@ -25,7 +25,7 @@ execution_timeps1 = list()
 execution_timeps2 = list()
 execution_timelt = list()
 
-input_path = r'./num_predicates_c3.csv'
+input_path = r'./num_predicates_c2.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -66,7 +66,8 @@ plt.ylabel('Running time (s)')
 # plt.legend(loc='upper right', bbox_to_anchor=(1.02, 0.9))
 plt.legend(loc="best")
 plt.yscale("log")
+plt.yticks([0.1, 1, 10, 100])
 plt.tight_layout()
-plt.savefig("healthcare_num_predicates_c3.png",
+plt.savefig("healthcare_num_predicates_c2.png",
             bbox_inches='tight')
 plt.show()
