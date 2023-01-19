@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["c_custkey", "l_shipmode"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_custkey": 10
+      },
+      "symbol": ">=",
+      "number": 5
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipmode": "MAIL"
+      },
+      "symbol": ">=",
+      "number": 5
+    }
+  ]
+}
+
