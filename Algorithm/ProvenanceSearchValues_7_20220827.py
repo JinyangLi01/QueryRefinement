@@ -2410,54 +2410,59 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
     print("assign_to_provenance_num = {}".format(assign_to_provenance_num))
     return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
-#
+
 # data_file = r"../InputData/Adult/adult.data"
 # query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
 # constraint_file = r"../Experiment/adult/exp_1_runningtime/constraint1.json"
 # time_limit = 5 * 60
-#
-# # data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-# # query_file = r"../Experiment/Healthcare/query_change/query9.json"
-# # constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
-# #
-# #
-# # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
-# # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
-# # constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
-# #
-# #
-# # data_file = r"toy_examples/example5.csv"
-# # query_file = r"toy_examples/query.json"
-# # constraint_file = r"toy_examples/constraint.json"
+
+# data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../Experiment/Healthcare/query_change/query9.json"
+# constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
 #
 #
-# print("\nour algorithm:\n")
+# data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
+# query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
+# constraint_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/constraint2.json"
 #
-# minimal_refinements, running_time, assign_num = FindMinimalRefinement(data_file, query_file, constraint_file)
 #
-# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+# data_file = r"toy_examples/example5.csv"
+# query_file = r"toy_examples/query.json"
+# constraint_file = r"toy_examples/constraint.json"
+
+data_file = r"../InputData/Student/student-mat_cat_ranked.csv"
+query_file = r"../Experiment/student/demo/query1.json"
+constraint_file = r"../Experiment/student/demo/constraint1.json"
+time_limit = 5 * 60
+
+print("\nour algorithm:\n")
+
+minimal_refinements, running_time, assign_num, _, _ = FindMinimalRefinement(data_file, query_file, constraint_file)
+
+
+minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+
+print(*minimal_refinements, sep="\n")
+print("running time = {}".format(running_time))
+
 #
-# print(*minimal_refinements, sep="\n")
-# print("running time = {}".format(running_time))
+# print("\nnaive algorithm:\n")
 #
-# #
-# # print("\nnaive algorithm:\n")
-# #
-# # minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-# #                                                                                            constraint_file)
-# #
-# # # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-# #
-# # print(*minimal_refinements2, sep="\n")
-# # print("running time = {}".format(running_time2))
-# #
-# #
-# # print("in naive_ans but not our:\n")
-# # for na in minimal_refinements2:
-# #     if na not in minimal_refinements:
-# #         print(na)
-# #
-# # print("in our but not naive_ans:\n")
-# # for na in minimal_refinements:
-# #     if na not in minimal_refinements2:
-# #         print(na)
+# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+#                                                                                            constraint_file)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
+#
+#
+# print("in naive_ans but not our:\n")
+# for na in minimal_refinements2:
+#     if na not in minimal_refinements:
+#         print(na)
+#
+# print("in our but not naive_ans:\n")
+# for na in minimal_refinements:
+#     if na not in minimal_refinements2:
+#         print(na)
