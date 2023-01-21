@@ -49,11 +49,22 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
+def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, selected_attributes, sensitive_attributes,
+                                         fairness_constraints, numeric_attributes, categorical_attributes,
+                                         selection_numeric_attributes, selection_categorical_attributes):
+    if len(tables) == 1:  # no join
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+    else:
+        print(data_file_prefix + tables[0] + ".tbl")
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        print(data[:3])
+        for idx in range(1, len(tables)):
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep='|')
+            print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
+            data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
+                            right_on=joinkeys[idx - 1][1])
+    print("length of data", len(data))
 
-
-def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                         selection_categorical_attributes):
     # get data selected
     def select(row):
         for att in selection_numeric_attributes:
@@ -71,6 +82,41 @@ def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_at
 
     data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
     data_selected = data[data['satisfy_selection'] == 1]
+    data.drop(columns=['satisfy_selection'], inplace=True, axis=1)
+    # whether satisfy fairness constraint
+    for fc in fairness_constraints:
+        sensitive_attributes = fc['sensitive_attributes']
+        df1 = data_selected[list(sensitive_attributes.keys())]
+        df2 = pd.DataFrame([sensitive_attributes])
+        data_selected_satisfying_fairness_constraint = df1.merge(df2)
+        num = len(data_selected_satisfying_fairness_constraint)
+        if not eval(str(num) + fc['symbol'] + str(fc['number'])):
+            return False, data
+    return True, data
+
+
+def whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                   fairness_constraints, numeric_attributes, categorical_attributes,
+                                                   selection_numeric_attributes, selection_categorical_attributes):
+    print("test {} {} ".format(selection_numeric_attributes, selection_categorical_attributes))
+    # get data selected
+    def select(row):
+        for att in selection_numeric_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if not eval(
+                    str(row[att]) + selection_numeric_attributes[att][0] + str(selection_numeric_attributes[att][1])):
+                return 0
+        for att in selection_categorical_attributes:
+            if pd.isnull(row[att]):
+                return 0
+            if row[att] not in selection_categorical_attributes[att]:
+                return 0
+        return 1
+
+    data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
+    data_selected = data[data['satisfy_selection'] == 1]
+    data.drop(columns=['satisfy_selection'], inplace=True, axis=1)
     # whether satisfy fairness constraint
     for fc in fairness_constraints:
         sensitive_attributes = fc['sensitive_attributes']
@@ -126,10 +172,9 @@ def transform_back_to_refinement_format(minimal_added_refinements,
         minimal_refinement_values = copy.deepcopy(ar)
         for i in range(num_numeric_att):
             minimal_refinement_values[i] = minimal_refinement_values[i] + \
-                                               selection_numeric_attributes[numeric_attributes[i]][1]
+                                           selection_numeric_attributes[numeric_attributes[i]][1]
         minimal_refinements.append(minimal_refinement_values)
     return minimal_refinements
-
 
 
 def transform_refinement_format(this_refinement, numeric_attributes_nowhere_to_relax, num_numeric_att,
@@ -140,7 +185,7 @@ def transform_refinement_format(this_refinement, numeric_attributes_nowhere_to_r
             minimal_added_refinement_values[i] = 0
         else:
             minimal_added_refinement_values[i] = minimal_added_refinement_values[i] - \
-                                           selection_numeric_attributes[numeric_attributes[i]][1]
+                                                 selection_numeric_attributes[numeric_attributes[i]][1]
     return minimal_added_refinement_values
 
 
@@ -213,11 +258,13 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     # print("categorical_att_domain_too_remove:\n", categorical_att_domain_too_remove)
     # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes):
+    if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                      fairness_constraints,
+                                                      numeric_attributes, categorical_attributes,
+                                                      selection_numeric_attributes,
+                                                      selection_categorical_attributes):
         return [0] * num_numeric_att + [0] * (num_cate_variables_to_add + num_cate_variables_to_remove), \
-               numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove
+            numeric_att_domain_to_relax, categorical_att_domain_too_add, categorical_att_domain_too_remove
         # return [{'numeric': selection_numeric_attributes, 'categorical': selection_categorical_attributes}]
 
     # I need to remember where I was last time
@@ -233,17 +280,20 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
     while att_idx >= 0:
         if time.time() - time1 > time_limit:
             return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
-                   categorical_att_domain_too_remove, dict(), dict()
+                categorical_att_domain_too_remove, dict(), dict()
         if att_idx == num_numeric_att + num_cate_variables_to_add + num_cate_variables_to_remove:
             if legal:
                 # print(new_selection_numeric_attributes, new_selection_categorical_attributes)
-                if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
-                                                        fairness_constraints, numeric_attributes, categorical_attributes,
-                                                        new_selection_numeric_attributes,
-                                                        new_selection_categorical_attributes):
-                    # print("{} satisfies".format(this_refinement))
-                    minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_relax,
-                                                                            num_numeric_att, selection_numeric_attributes,
+                if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                                  fairness_constraints, numeric_attributes,
+                                                                  categorical_attributes,
+                                                                  new_selection_numeric_attributes,
+                                                                  new_selection_categorical_attributes):
+                    print("{} satisfies".format(this_refinement))
+                    minimal_refinement_values = transform_refinement_format(this_refinement,
+                                                                            numeric_att_domain_to_relax,
+                                                                            num_numeric_att,
+                                                                            selection_numeric_attributes,
                                                                             numeric_attributes)
                     minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
             else:
@@ -294,11 +344,12 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][0]].remove(
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][1])
                 if len(new_selection_categorical_attributes[
-                    categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][0]]) == 0:
+                           categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][
+                               0]]) == 0:
                     legal = False
             att_idx += 1
     return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
-           categorical_att_domain_too_remove, dict(), dict()
+        categorical_att_domain_too_remove, dict(), dict()
 
 
 # it only considers contraction
@@ -341,13 +392,15 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables = len(categorical_att_domain_too_remove)
     print("categorical_att_domain_too_add:\n", categorical_att_domain_too_remove)
-    print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_contract)
+    # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_contract)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes):
+    if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                      fairness_constraints,
+                                                      numeric_attributes, categorical_attributes,
+                                                      selection_numeric_attributes,
+                                                      selection_categorical_attributes):
         return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_contract, \
-               [], categorical_att_domain_too_remove
+            [], categorical_att_domain_too_remove
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
@@ -358,12 +411,14 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     while att_idx >= 0:
         if time.time() - time1 > time_limit:
             return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove, \
-                   numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
+                numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
-                                                    fairness_constraints, numeric_attributes, categorical_attributes,
-                                                    new_selection_numeric_attributes,
-                                                    new_selection_categorical_attributes):
+            if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                              fairness_constraints, numeric_attributes,
+                                                              categorical_attributes,
+                                                              new_selection_numeric_attributes,
+                                                              new_selection_categorical_attributes):
+                print("{} satisfies".format(this_refinement))
                 minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_contract,
                                                                         num_numeric_att, selection_numeric_attributes,
                                                                         numeric_attributes)
@@ -404,7 +459,7 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
                     categorical_att_domain_too_remove[att_idx - num_numeric_att][1])
             att_idx += 1
     return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove, \
-           numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
+        numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
 
 
 # it only considers relaxation
@@ -451,7 +506,8 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
 
     categorical_att_domain_too_add = []
     for att in categorical_attributes:
-        s = [(att, v) for v in categorical_attributes[att] if v not in selection_categorical_attributes[att]]
+        domain = data[att].unique().tolist()
+        s = [(att, v) for v in domain if v not in selection_categorical_attributes[att]]
         if len(s) == 0:
             categorical_attributes_nowhere_to_relax[att] = selection_categorical_attributes[att]
             categorical_idx_attributes_nowhere_to_relax.add(att_idx)
@@ -468,12 +524,14 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
     print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes):
+    if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                      fairness_constraints,
+                                                      numeric_attributes, categorical_attributes,
+                                                      selection_numeric_attributes,
+                                                      selection_categorical_attributes):
         return [[0] * num_numeric_att + [0] * num_cate_variables], numeric_att_domain_to_relax, \
-               categorical_att_domain_too_add, [], numeric_attributes_nowhere_to_relax, \
-               categorical_attributes_nowhere_to_relax
+            categorical_att_domain_too_add, [], numeric_attributes_nowhere_to_relax, \
+            categorical_attributes_nowhere_to_relax
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
@@ -485,16 +543,19 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     while att_idx >= 0:
         if time.time() - time1 > time_limit:
             return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, [], \
-                   numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
+                numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes,
-                                                    fairness_constraints, numeric_attributes, categorical_attributes,
-                                                    new_selection_numeric_attributes,
-                                                    new_selection_categorical_attributes):
+            if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                                                              fairness_constraints, numeric_attributes,
+                                                              categorical_attributes,
+                                                              new_selection_numeric_attributes,
+                                                              new_selection_categorical_attributes):
+                print("{} satisfies".format(this_refinement))
                 minimal_added_refinement_values = transform_refinement_format(this_refinement,
-                                                                        numeric_attributes_nowhere_to_relax,
-                                                                        num_numeric_att, selection_numeric_attributes,
-                                                                        numeric_attributes)
+                                                                              numeric_attributes_nowhere_to_relax,
+                                                                              num_numeric_att,
+                                                                              selection_numeric_attributes,
+                                                                              numeric_attributes)
                 minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_added_refinement_values)
             att_idx -= 1
         if att_idx < num_numeric_att:  # numeric
@@ -532,18 +593,21 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
                     categorical_att_domain_too_add[att_idx - num_numeric_att][1])
             att_idx += 1
     return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, [], \
-           numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
+        numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
 
 
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*60):
+def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_limit=5 * 60):
     time1 = time.time()
-    data = pd.read_csv(data_file, index_col=False)
     with open(query_file) as f:
         query_info = json.load(f)
 
+    tables = query_info['tables']
+    joinkeys = []
+    if "joinkeys" in query_info:
+        joinkeys = query_info["joinkeys"]
     numeric_attributes = []
     categorical_attributes = {}
     selection_numeric_attributes = {}
@@ -553,7 +617,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
         numeric_attributes = list(selection_numeric_attributes.keys())
     if 'selection_categorical_attributes' in query_info:
         selection_categorical_attributes = query_info['selection_categorical_attributes']
-        categorical_attributes = query_info['categorical_attributes']
+        categorical_attributes = list(selection_categorical_attributes.keys())  # query_info['categorical_attributes']
     selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
     print("categorical_attributes:{}".format(categorical_attributes))
@@ -566,18 +630,22 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes):
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys,
+                                                                 selected_attributes,
+                                                                 sensitive_attributes, fairness_constraints,
+                                                                 numeric_attributes, categorical_attributes,
+                                                                 selection_numeric_attributes,
+                                                                 selection_categorical_attributes)
+    if whether_satisfy:
         print("original query satisfies constraints already")
         return [], [], time.time() - time1
 
     minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
-    categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
-    categorical_attributes_nowhere_to_refine \
+        categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
+        categorical_attributes_nowhere_to_refine \
         = LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                           selection_categorical_attributes, time_limit=5 * 60)
+                           selection_categorical_attributes, time_limit)
 
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
 
@@ -589,11 +657,10 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
     #                                                      categorical_attributes_nowhere_to_refine)
 
     minimal_refinements = transform_back_to_refinement_format(minimal_added_refinements, len(numeric_attributes),
-                                                         selection_numeric_attributes, numeric_attributes)
+                                                              selection_numeric_attributes, numeric_attributes)
 
     time2 = time.time()
     return minimal_refinements, minimal_added_refinements, time2 - time1
-
 
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
@@ -611,3 +678,19 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5*6
 # print(*minimal_refinements, sep="\n")
 # print("running time = {}".format(running_time))
 #
+
+
+data_file = r"../InputData/TPC-H/1Mdata/"
+query_file = r"../Experiment/TPCH/1M/q3/q3.json"
+constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
+time_limit = 30 * 60
+
+print("\nnaive algorithm:\n")
+
+minimal_refinements2, minimal_added_refinements2, running_time2 = FindMinimalRefinement(data_file, query_file,
+                                                                                        constraint_file, time_limit)
+
+# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+
+print(*minimal_refinements2, sep="\n")
+print("running time = {}".format(running_time2))
