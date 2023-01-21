@@ -107,7 +107,7 @@ Get provenance expressions
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-               data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold
 
     elif only_smaller_than:  # contraction
         # data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
@@ -145,7 +145,7 @@ Get provenance expressions
         data_rows_greater_than = data[data['protected_greater_than'] == 1]
         data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-               data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold
 
     all_relevant_attributes = sensitive_attributes + selected_attributes + \
                               ['protected_greater_than', 'protected_smaller_than', 'satisfy']
@@ -230,7 +230,7 @@ Get provenance expressions
     data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
 
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-           data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+        data_rows_greater_than, data_rows_smaller_than, contraction_threshold
 
 
 def subtract_provenance_refinement(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -347,7 +347,7 @@ Get provenance expressions
     data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
 
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-           data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+        data_rows_greater_than, data_rows_smaller_than, contraction_threshold
 
 
 def build_PVT_refinement(data, selected_attributes, numeric_attributes,
@@ -373,11 +373,13 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
             also return delta table
     """
     PVT_head = numeric_attributes.copy()
-    for att, domain in categorical_attributes.items():
+    for att in categorical_attributes:
+        domain = data[att].unique().tolist()
         for value in domain:
             if value not in contraction_threshold[att]:
-                col = att + "_" + value
+                col = att + "__" + value
                 PVT_head.append(col)
+    print("PVT_head: {}".format(PVT_head))
 
     def itercol(col):
         nonlocal possible_values_sets
@@ -430,7 +432,7 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
         if att in selection_numeric:
             possible_values_lists[att].sort(key=lambda p: abs(p - selection_numeric[att][1]))
         else:
-            pre, v = att.split('_')
+            pre, v = att.split("__")
             if v not in selection_categorical[pre]:
                 possible_values_lists[att] = [0, 1]
             else:
@@ -467,13 +469,13 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
             also return delta table
     """
     PVT_head = numeric_attributes.copy()
-    for att, domain in categorical_attributes.items():
+    for att in categorical_attributes:
+        domain = data[att].unique().tolist()
         for value in domain:
-            if value in selection_categorical[att]:
-                continue
-            else:
-                col = att + "_" + value
+            if value not in selection_categorical[att]:
+                col = att + "__" + value
                 PVT_head.append(col)
+    print("PVT_head: {}".format(PVT_head))
 
     # build delta table
     def itercol(col):
@@ -514,9 +516,9 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                     del possible_values_sets[att]
                     PVT_head.remove(att)
 
-    data_rows_greater_than = data_rows_greater_than.drop_duplicates(
-        subset=selected_attributes,
-        keep='first').reset_index(drop=True)
+    # data_rows_greater_than = data_rows_greater_than.drop_duplicates(
+    #     subset=selected_attributes,
+    #     keep='first').reset_index(drop=True)
     possible_values_sets = {x: set() for x in PVT_head}
     for att in selection_numeric:
         possible_values_sets[att].add(selection_numeric[att][1])
@@ -526,7 +528,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
 
     for att in PVT_head:
         if att not in selection_numeric:
-            pre, v = att.split('_')
+            pre, v = att.split('__')
             if v not in selection_categorical[pre]:
                 possible_values_lists[att] = [0, 1]
 
@@ -563,10 +565,13 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
     """
 
     PVT_head = numeric_attributes.copy()
-    for att, domain in categorical_attributes.items():
+
+    for att in categorical_attributes:
+        domain = data[att].unique().tolist()
         for value in domain:
             if value in selection_categorical[att]:
-                PVT_head.append(att + "_" + value)
+                col = att + "__" + value
+                PVT_head.append(col)
 
     # build delta table
     def itercol(col):
@@ -620,7 +625,7 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
 
     for att in PVT_head:
         if att not in selection_numeric:
-            pre, v = att.split('_')
+            pre, v = att.split("__")
             if v in selection_categorical[pre]:
                 possible_values_lists[att] = [1, 0]
     # print("possible_values_lists:\n", possible_values_lists)
@@ -665,7 +670,7 @@ def assign_to_provenance_relax_only(value_assignment, numeric_attributes, catego
                             fail = True
                             break
                 else:  # att in categorical
-                    column_name = att + "_" + pe[att]
+                    column_name = att + "__" + pe[att]
                     if column_name not in columns_delta_table:
                         continue
                     if column_name not in value_assignment.keys():
@@ -718,7 +723,7 @@ def assign_to_provenance_contract_only(value_assignment, numeric_attributes, cat
                             fail = True
                             break
                 else:  # att in categorical
-                    column_name = att + "_" + pe[att]
+                    column_name = att + "__" + pe[att]
                     if column_name not in columns_delta_table:
                         continue
                     if column_name not in value_assignment.keys():
@@ -774,7 +779,7 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
                                 fail = True
                                 break
                     else:  # att in categorical
-                        column_name = att + "_" + pe[att]
+                        column_name = att + "__" + pe[att]
                         if column_name not in columns_delta_table:
                             continue
                         if column_name not in value_assignment.keys():
@@ -2162,18 +2167,31 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
             if att_idx < num_numeric_att:
                 select_numeric[numeric_attributes[att_idx]][1] -= ar[att_idx]
             elif ar[att_idx] == 1:
-                at, va = columns_delta_table[att_idx].rsplit('_', 1)
+                at, va = columns_delta_table[att_idx].rsplit("__", 1)
                 select_categorical[at].append(va)
             elif ar[att_idx] == -1:
-                at, va = columns_delta_table[att_idx].rsplit('_', 1)
+                at, va = columns_delta_table[att_idx].rsplit("__", 1)
                 select_categorical[at].remove(va)
         minimal_refinements.append({'numeric': select_numeric, 'categorical': select_categorical})
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                         selection_categorical_attributes):
+def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, selected_attributes, sensitive_attributes,
+                                         fairness_constraints, numeric_attributes, categorical_attributes,
+                                         selection_numeric_attributes, selection_categorical_attributes):
+    if len(tables) == 1:  # no join
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+    else:
+        print(data_file_prefix + tables[0] + ".tbl")
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        print(data[:3])
+        for idx in range(1, len(tables)):
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep='|')
+            print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
+            data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
+                            right_on=joinkeys[idx - 1][1])
+    print("length of data", len(data))
+
     # get data selected
     def select(row):
         for att in selection_numeric_attributes:
@@ -2199,21 +2217,25 @@ def whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_at
         data_selected_satisfying_fairness_constraint = df1.merge(df2)
         num = len(data_selected_satisfying_fairness_constraint)
         if not eval(str(num) + fc['symbol'] + str(fc['number'])):
-            return False
-    return True
+            return False, data
+    return True, data
 
 
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_limit=5 * 60):
     time1 = time.time()
     global assign_to_provenance_num
     assign_to_provenance_num = 0
-    data = pd.read_csv(data_file, index_col=False)
+    # data = pd.read_csv(data_file, index_col=False)
     with open(query_file) as f:
         query_info = json.load(f)
 
+    tables = query_info['tables']
+    joinkeys = []
+    if "joinkeys" in query_info:
+        joinkeys = query_info["joinkeys"]
     numeric_attributes = []
     categorical_attributes = {}
     selection_numeric_attributes = {}
@@ -2223,7 +2245,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         numeric_attributes = list(selection_numeric_attributes.keys())
     if 'selection_categorical_attributes' in query_info:
         selection_categorical_attributes = query_info['selection_categorical_attributes']
-        categorical_attributes = query_info['categorical_attributes']
+        categorical_attributes = list(selection_categorical_attributes.keys())  # query_info['categorical_attributes']
     selected_attributes = numeric_attributes + [x for x in categorical_attributes]
     print("selected_attributes", selected_attributes)
 
@@ -2235,9 +2257,14 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    if whether_satisfy_fairness_constraints(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                                            selection_categorical_attributes):
+    # data:after join
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys,
+                                                                 selected_attributes,
+                                                                 sensitive_attributes, fairness_constraints,
+                                                                 numeric_attributes, categorical_attributes,
+                                                                 selection_numeric_attributes,
+                                                                 selection_categorical_attributes)
+    if whether_satisfy:
         print("original query satisfies constraints already")
         return {}, time.time() - time1, assign_to_provenance_num, 0, 0
 
@@ -2254,7 +2281,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     if only_greater_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -2306,7 +2333,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
     elif only_smaller_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -2321,16 +2348,16 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 
         time_table1 = time.time()
         PVT, PVT_head, categorical_att_columns, \
-        max_index_PVT = build_PVT_contract_only(data, selected_attributes, numeric_attributes,
-                                                categorical_attributes,
-                                                selection_numeric_attributes,
-                                                selection_categorical_attributes,
-                                                sensitive_attributes,
-                                                fairness_constraints,
-                                                fairness_constraints_provenance_greater_than,
-                                                fairness_constraints_provenance_smaller_than,
-                                                data_rows_greater_than,
-                                                data_rows_smaller_than)
+            max_index_PVT = build_PVT_contract_only(data, selected_attributes, numeric_attributes,
+                                                    categorical_attributes,
+                                                    selection_numeric_attributes,
+                                                    selection_categorical_attributes,
+                                                    sensitive_attributes,
+                                                    fairness_constraints,
+                                                    fairness_constraints_provenance_greater_than,
+                                                    fairness_constraints_provenance_smaller_than,
+                                                    data_rows_greater_than,
+                                                    data_rows_smaller_than)
         # print("max_index_PVT: {}".format(max_index_PVT))
         time_table2 = time.time()
         table_time = time_table2 - time_table1
@@ -2359,7 +2386,7 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-    data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+        data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
         = subtract_provenance_refinement(data, selected_attributes, sensitive_attributes,
                                          fairness_constraints,
                                          numeric_attributes, categorical_attributes,
@@ -2373,17 +2400,17 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
         return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
     time_table1 = time.time()
     PVT, PVT_head, categorical_att_columns, \
-    max_index_PVT, possible_values_lists = build_PVT_refinement(data, selected_attributes,
-                                                                numeric_attributes,
-                                                                categorical_attributes,
-                                                                selection_numeric_attributes,
-                                                                selection_categorical_attributes,
-                                                                sensitive_attributes,
-                                                                fairness_constraints,
-                                                                fairness_constraints_provenance_greater_than,
-                                                                fairness_constraints_provenance_smaller_than,
-                                                                data_rows_greater_than,
-                                                                data_rows_smaller_than, contraction_threshold)
+        max_index_PVT, possible_values_lists = build_PVT_refinement(data, selected_attributes,
+                                                                    numeric_attributes,
+                                                                    categorical_attributes,
+                                                                    selection_numeric_attributes,
+                                                                    selection_categorical_attributes,
+                                                                    sensitive_attributes,
+                                                                    fairness_constraints,
+                                                                    fairness_constraints_provenance_greater_than,
+                                                                    fairness_constraints_provenance_smaller_than,
+                                                                    data_rows_greater_than,
+                                                                    data_rows_smaller_than, contraction_threshold)
     # print("max_index_PVT: {}".format(max_index_PVT))
     time_table2 = time.time()
     table_time = time_table2 - time_table1
@@ -2430,39 +2457,43 @@ def FindMinimalRefinement(data_file, query_file, constraint_file, time_limit=5 *
 # query_file = r"toy_examples/query.json"
 # constraint_file = r"toy_examples/constraint.json"
 
-data_file = r"../InputData/Student/student-mat_cat_ranked.csv"
-query_file = r"../Experiment/student/demo/query1.json"
-constraint_file = r"../Experiment/student/demo/constraint1.json"
+# data_file = r"../InputData/Student/student-mat_cat_ranked.csv"
+# query_file = r"../Experiment/student/demo/query1.json"
+# constraint_file = r"../Experiment/student/demo/constraint1.json"
+# time_limit = 5 * 60
+
+data_file = r"../InputData/TPC-H/1Mdata/"
+query_file = r"../Experiment/TPCH/1M/q3/q3.json"
+constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
 time_limit = 5 * 60
 
 print("\nour algorithm:\n")
 
 minimal_refinements, running_time, assign_num, _, _ = FindMinimalRefinement(data_file, query_file, constraint_file)
 
-
 minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
 
 print(*minimal_refinements, sep="\n")
 print("running time = {}".format(running_time))
 
-#
-# print("\nnaive algorithm:\n")
-#
-# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-#                                                                                            constraint_file)
-#
-# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-#
-# print(*minimal_refinements2, sep="\n")
-# print("running time = {}".format(running_time2))
-#
-#
-# print("in naive_ans but not our:\n")
-# for na in minimal_refinements2:
-#     if na not in minimal_refinements:
-#         print(na)
-#
-# print("in our but not naive_ans:\n")
-# for na in minimal_refinements:
-#     if na not in minimal_refinements2:
-#         print(na)
+
+print("\nnaive algorithm:\n")
+
+minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+                                                                                           constraint_file)
+
+# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+
+print(*minimal_refinements2, sep="\n")
+print("running time = {}".format(running_time2))
+
+
+print("in naive_ans but not our:\n")
+for na in minimal_refinements2:
+    if na not in minimal_refinements:
+        print(na)
+
+print("in our but not naive_ans:\n")
+for na in minimal_refinements:
+    if na not in minimal_refinements2:
+        print(na)
