@@ -258,19 +258,6 @@ Get provenance expressions
     print("prepare time = {}".format(time.time() - time0))
     time1 = time.time()
 
-    # if one direction, evaluate whether a row satisfies selection conditions
-    def test_satisfying_rows(row):
-        terms = row[selected_attributes].to_dict()
-        for k in terms:
-            if k in selection_numeric_attributes:
-                if not eval(
-                        str(terms[k]) + selection_numeric_attributes[k][0] + str(selection_numeric_attributes[k][1])):
-                    return 0
-            else:
-                if terms[k] not in selection_categorical_attributes[k]:
-                    return 0
-        return 1
-
     all_relevant_attributes = sensitive_attributes + selected_attributes + \
                               ['protected_greater_than', 'protected_smaller_than', 'satisfy']
     data = data[all_relevant_attributes]
@@ -567,11 +554,9 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
     PVT_head = numeric_attributes.copy()
 
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
-        for value in domain:
-            if value in selection_categorical[att]:
-                col = att + "__" + value
-                PVT_head.append(col)
+        for value in selection_categorical[att]:
+            col = att + "__" + value
+            PVT_head.append(col)
 
     # build delta table
     def itercol(col):
@@ -613,9 +598,9 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
                     del possible_values_sets[att]
                     PVT_head.remove(att)
 
-    data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
-        subset=selected_attributes,
-        keep='first').reset_index(drop=True)
+    # data_rows_smaller_than = data_rows_smaller_than.drop_duplicates(
+    #     subset=selected_attributes,
+    #     keep='first').reset_index(drop=True)
     possible_values_sets = {x: set() for x in PVT_head}
     for att in selection_numeric:
         possible_values_sets[att].add(selection_numeric[att][1])
@@ -627,7 +612,10 @@ def build_PVT_contract_only(data, selected_attributes, numeric_attributes,
         if att not in selection_numeric:
             pre, v = att.split("__")
             if v in selection_categorical[pre]:
-                possible_values_lists[att] = [1, 0]
+                if len(selection_categorical[pre]) == 1:  # if there is only one value in original query, can't remote it
+                    possible_values_lists[att] = [1]
+                else:
+                    possible_values_lists[att] = [1, 0]
     # print("possible_values_lists:\n", possible_values_lists)
     possible_value_table = pd.DataFrame({key: pd.Series(value) for key, value in possible_values_lists.items()})
     print("possible_value_table:\n", possible_value_table)
@@ -1587,8 +1575,8 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
                                                    shifted_length)
 
         # print("minimal_refinements: {}".format(minimal_refinements))
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(full_value_assignment_positions))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(full_value_assignment_positions))
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
 
@@ -1785,12 +1773,15 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         shifted_length = shifted_length_stack.pop()
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
-        # print("==========================  searchPVT  ========================== ")
-        # print("PVT_head: {}".format(PVT_head))
-        # print("PVT:\n{}".format(PVT))
-        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        # print("shifted_length: {}".format(shifted_length))
-        # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        print("==========================  searchPVT  ========================== ")
+        print("PVT_head: {}".format(PVT_head))
+        print("PVT:\n{}".format(PVT))
+        print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("shifted_length: {}".format(shifted_length))
+        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+
+        if len(PVT_head) == 3:
+            print("PVT_head: {}".format(PVT_head))
 
         new_value_assignment = {}
         full_value_assignment = {}
@@ -2462,38 +2453,40 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 # constraint_file = r"../Experiment/student/demo/constraint1.json"
 # time_limit = 5 * 60
 
-data_file = r"../InputData/TPC-H/1Mdata/"
-query_file = r"../Experiment/TPCH/1M/q3/q3.json"
-constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
-time_limit = 5 * 60
 
-print("\nour algorithm:\n")
-
-minimal_refinements, running_time, assign_num, _, _ = FindMinimalRefinement(data_file, query_file, constraint_file)
-
-minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
-
-print(*minimal_refinements, sep="\n")
-print("running time = {}".format(running_time))
-
-
-print("\nnaive algorithm:\n")
-
-minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
-                                                                                           constraint_file)
-
-# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-
-print(*minimal_refinements2, sep="\n")
-print("running time = {}".format(running_time2))
-
-
-print("in naive_ans but not our:\n")
-for na in minimal_refinements2:
-    if na not in minimal_refinements:
-        print(na)
-
-print("in our but not naive_ans:\n")
-for na in minimal_refinements:
-    if na not in minimal_refinements2:
-        print(na)
+#
+# data_file_prefix = r"../InputData/TPC-H/1Mdata/"
+# query_file = r"../Experiment/TPCH/1M/q3/q3.json"
+# constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
+# time_limit = 5 * 60
+#
+# print("\nour algorithm:\n")
+#
+# minimal_refinements, running_time, assign_num, _, _ = FindMinimalRefinement(data_file_prefix, query_file, constraint_file)
+#
+# minimal_refinements = [[float(y) for y in x] for x in minimal_refinements]
+#
+# print(*minimal_refinements, sep="\n")
+# print("running time = {}".format(running_time))
+#
+#
+# print("\nnaive algorithm:\n")
+#
+# minimal_refinements2, minimal_added_refinements2, running_time2 = lt.FindMinimalRefinement(data_file, query_file,
+#                                                                                            constraint_file)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
+#
+#
+# print("in naive_ans but not our:\n")
+# for na in minimal_refinements2:
+#     if na not in minimal_refinements:
+#         print(na)
+#
+# print("in our but not naive_ans:\n")
+# for na in minimal_refinements:
+#     if na not in minimal_refinements2:
+#         print(na)
