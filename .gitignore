@@ -4,6 +4,7 @@ InputData/TPC-H/SQLServer7902ce96-21b7-47f7-a9be-3c3f065caa26-tpc-h-tool/
 InputData/TPC-H/7902ce96-21b7-47f7-a9be-3c3f065caa26-tpc-h-tool.zip
 InputData/TPCH1/
 InputData/TPC-H/1Gdata
+InputData/TPC-H/1Gquery
 # Experiment/TPCH/
 *__pycache__/
 InputData/compas-analysis-master/
