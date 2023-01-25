@@ -205,13 +205,13 @@ def assign_to_provenance_relax_only(numeric_attributes, categorical_attributes,
         pe_dataframe = fc["provenance_expression"]
         for va in new_selection_numeric_attributes:
             if new_selection_numeric_attributes[va][0] == '>':
-                pe_dataframe = pe_dataframe[pe_dataframe[va] > new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] > new_selection_numeric_attributes[va][1]]
             elif new_selection_numeric_attributes[va][0] == ">=":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] >= new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] >= new_selection_numeric_attributes[va][1]]
             elif new_selection_numeric_attributes[va][0] == "<":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] < new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] < new_selection_numeric_attributes[va][1]]
             else:
-                pe_dataframe = pe_dataframe[pe_dataframe[va] <= new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] <= new_selection_numeric_attributes[va][1]]
         for at in new_selection_categorical_attributes:
             pe_dataframe = pe_dataframe[pe_dataframe[at].isin(new_selection_categorical_attributes[at])]
 
