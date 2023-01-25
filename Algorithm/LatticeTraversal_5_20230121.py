@@ -238,7 +238,7 @@ def assign_to_provenance_contract_only(numeric_attributes, categorical_attribute
             else:
                 pe_dataframe = pe_dataframe[pe_dataframe[va] <= new_selection_numeric_attributes[va][1]]
         for at in new_selection_categorical_attributes:
-            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(new_selection_categorical_attributes[at][1])]
+            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(new_selection_categorical_attributes[at])]
         if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
             return False
     return True
@@ -262,6 +262,7 @@ def assign_to_provenance(numeric_attributes, categorical_attributes,
                                                  new_selection_categorical_attributes,
                                                  fairness_constraints_provenance_smaller_than)
     return survive
+
 
 #
 # def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -449,7 +450,8 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
 
     categorical_att_domain_too_add = []
     for att in categorical_attributes:
-        s = [(att, v) for v in categorical_attributes[att] if v not in selection_categorical_attributes[att]]
+        domain = data[att].unique().tolist()
+        s = [(att, v) for v in domain if v not in selection_categorical_attributes[att]]
         categorical_att_domain_too_add += s
 
     numeric_att_domain_to_relax = dict()
@@ -756,9 +758,10 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
             return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, [], \
                 numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
         if att_idx == num_numeric_att + num_cate_variables:
-            if assign_to_provenance_relax_only(numeric_attributes, categorical_attributes,
-                                               new_selection_numeric_attributes, new_selection_categorical_attributes,
-                                               fairness_constraints_provenance_greater_than):
+            if assign_to_provenance(numeric_attributes, categorical_attributes,
+                                    new_selection_numeric_attributes, new_selection_categorical_attributes,
+                                    fairness_constraints_provenance_greater_than,
+                                    fairness_constraints_provenance_smaller_than):
                 # print("{} satisfies".format(this_refinement))
                 minimal_added_refinement_values = transform_refinement_format(this_refinement,
                                                                               numeric_attributes_nowhere_to_relax,
