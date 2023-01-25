@@ -230,15 +230,15 @@ def assign_to_provenance_contract_only(numeric_attributes, categorical_attribute
         pe_dataframe = fc["provenance_expression"]
         for va in new_selection_numeric_attributes:
             if new_selection_numeric_attributes[va][0] == '>':
-                pe_dataframe = pe_dataframe[pe_dataframe[va] > new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] > new_selection_numeric_attributes[va][1]]
             elif new_selection_numeric_attributes[va][0] == ">=":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] >= new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] >= new_selection_numeric_attributes[va][1]]
             elif new_selection_numeric_attributes[va][0] == "<":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] < new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] < new_selection_numeric_attributes[va][1]]
             else:
-                pe_dataframe = pe_dataframe[pe_dataframe[va] <= new_selection_numeric_attributes[va]]
+                pe_dataframe = pe_dataframe[pe_dataframe[va] <= new_selection_numeric_attributes[va][1]]
         for at in new_selection_categorical_attributes:
-            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(new_selection_categorical_attributes[at])]
+            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(new_selection_categorical_attributes[at][1])]
         if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
             return False
     return True
