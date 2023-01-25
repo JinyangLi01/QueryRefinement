@@ -508,15 +508,16 @@ def assign_to_provenance_contract_only(value_assignment, numeric_attributes, cat
     # smaller than
     for fc in fairness_constraints_provenance_smaller_than:
         pe_dataframe = fc["provenance_expression"]
-        for va in value_assignment:
-            if selection_numeric[va][0] == '>':
-                pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
-            elif selection_numeric[va][0] == ">=":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
-            elif selection_numeric[va][0] == "<":
-                pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
-            else:
-                pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
+        for va in numeric_attributes:
+            if va in value_assignment:
+                if selection_numeric[va][0] == '>':
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
+                elif selection_numeric[va][0] == ">=":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
+                elif selection_numeric[va][0] == "<":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
+                else:
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
 
         not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
         included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
