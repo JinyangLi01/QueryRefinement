@@ -1,6 +1,6 @@
 """
 copied from LatticeTraversal_2
-
+use provenance to test
 """
 
 import copy
@@ -9,6 +9,8 @@ import time
 
 import numpy as np
 import pandas as pd
+
+assign_to_provenance_num = 0
 
 
 def num2string(pattern):
@@ -47,7 +49,8 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, selected_attributes, sensitive_attributes,
+def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys, selected_attributes,
+                                         sensitive_attributes,
                                          fairness_constraints, numeric_attributes, categorical_attributes,
                                          selection_numeric_attributes, selection_categorical_attributes):
     if len(tables) == 1:  # no join
@@ -61,6 +64,10 @@ def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, sel
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
+        # compare keys
+        if len(comparekeys) > 0:
+            for ck in comparekeys:
+                data = data[data[ck[0]] < data[ck[1]]]
     print("length of data", len(data))
 
     # get data selected
@@ -97,6 +104,7 @@ def whether_satisfy_fairness_constraints_with_data(data, selected_attributes, se
                                                    fairness_constraints, numeric_attributes, categorical_attributes,
                                                    selection_numeric_attributes, selection_categorical_attributes):
     print("test {} {} ".format(selection_numeric_attributes, selection_categorical_attributes))
+
     # get data selected
     def select(row):
         for att in selection_numeric_attributes:
@@ -187,6 +195,149 @@ def transform_refinement_format(this_refinement, numeric_attributes_nowhere_to_r
     return minimal_added_refinement_values
 
 
+def assign_to_provenance_relax_only(numeric_attributes, categorical_attributes,
+                                    selection_numeric_attributes, selection_categorical_attributes,
+                                    fairness_constraints_provenance_greater_than):
+    # global assign_to_provenance_num
+    # assign_to_provenance_num += 1
+    # greater than
+    for fc in fairness_constraints_provenance_greater_than:
+        sum = 0
+        satisfy_this_fairness_constraint = False
+        for pe in fc['provenance_expression']:
+            fail = False
+            for att in pe:
+                if att == 'occurrence':
+                    continue
+                if pd.isnull(pe[att]):
+                    fail = True
+                    break
+                if att in numeric_attributes:
+                    if eval(str(pe[att]) + selection_numeric_attributes[att][0] + str(
+                            selection_numeric_attributes[att][1])):
+                        continue
+                    else:
+                        fail = True
+                        break
+                else:  # att in categorical
+                    if pe[att] not in selection_categorical_attributes[att]:
+                        fail = True
+                        break
+            if not fail:
+                sum += pe['occurrence']
+                if eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                    satisfy_this_fairness_constraint = True
+                    break
+        if not satisfy_this_fairness_constraint:
+            return False
+    return True
+
+
+def assign_to_provenance_contract_only(numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                       selection_categorical_attributes,
+                                       fairness_constraints_provenance_smaller_than):
+    # global assign_to_provenance_num
+    # assign_to_provenance_num += 1
+    # smaller than
+    for fc in fairness_constraints_provenance_smaller_than:
+        sum = 0
+        satisfy_this_fairness_constraint = True
+        for pe in fc['provenance_expression']:
+            fail = False
+            for att in pe:
+                if att == 'occurrence':
+                    continue
+                if pd.isnull(pe[att]):
+                    fail = True
+                    break
+                if att in numeric_attributes:
+                    if eval(str(pe[att]) + selection_numeric_attributes[att][0] + str(
+                            selection_numeric_attributes[att][1])):
+                        continue
+                    else:
+                        fail = True
+                        break
+                else:  # att in categorical
+                    if pe[att] not in selection_categorical_attributes[att]:
+                        fail = True
+                        break
+            if not fail:
+                sum += pe['occurrence']
+                if not eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                    satisfy_this_fairness_constraint = False
+                    break
+        if not satisfy_this_fairness_constraint:
+            return False
+    return True
+
+
+def assign_to_provenance(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
+                         selection_categorical, columns_delta_table,
+                         fairness_constraints_provenance_greater_than,
+                         fairness_constraints_provenance_smaller_than):
+    global assign_to_provenance_num
+    assign_to_provenance_num += 1
+
+    # greater than
+    def assign(fairness_constraints_provenance, relaxation=True):
+        for fc in fairness_constraints_provenance:
+            sum = 0
+            satisfy_this_fairness_constraint = not relaxation
+            for pe in fc['provenance_expression']:
+                fail = False
+                for att in pe:
+                    if att == 'occurrence':
+                        continue
+                    if pd.isnull(pe[att]):
+                        fail = True
+                        break
+                    if att in numeric_attributes:
+                        if att not in value_assignment.keys():
+                            continue
+                        if selection_numeric[att][0] == ">=" or selection_numeric[att][0] == ">":
+                            if eval(str(pe[att]) + selection_numeric[att][0] + str(value_assignment[att])):
+                                continue
+                            else:
+                                fail = True
+                                break
+                        else:
+                            if eval(str(pe[att]) + selection_numeric[att][0] + str(value_assignment[att])):
+                                continue
+                            else:
+                                fail = True
+                                break
+                    else:  # att in categorical
+                        column_name = att + "__" + pe[att]
+                        if column_name not in columns_delta_table:
+                            continue
+                        if column_name not in value_assignment.keys():
+                            continue
+                        if value_assignment[column_name] == 1:
+                            continue
+                        else:
+                            fail = True
+                            break
+                if not fail:
+                    sum += pe['occurrence']
+                    if relaxation:
+                        if eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                            satisfy_this_fairness_constraint = True
+                            break
+                    else:
+                        if not eval(str(sum) + fc['symbol'] + str(fc['number'])):
+                            satisfy_this_fairness_constraint = False
+                            break
+            if not satisfy_this_fairness_constraint:
+                return False
+        return True
+
+    survive = assign(fairness_constraints_provenance_greater_than, relaxation=True)
+    if not survive:
+        return False
+    survive = assign(fairness_constraints_provenance_smaller_than, relaxation=False)
+    return survive
+
+
 def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
                      numeric_attributes, categorical_attributes, selection_numeric_attributes,
                      selection_categorical_attributes, time_limit=5 * 60):
@@ -215,7 +366,197 @@ def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_c
                                              selection_categorical_attributes, time_limit)
 
 
-def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
+def subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes, fairness_constraints,
+                                               numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                               selection_categorical_attributes, only_greater_than, only_smaller_than):
+    """
+Get provenance expressions
+    :param all_sensitive_attributes: list of all att involved in fairness constraints
+    :param fairness_constraints: [{'Gender': 'F', 'symbol': '>=', 'number': 3}]
+    :param data: dataframe
+    :param selected_attributes: attributes in selection conditions
+    :return: a list of dictionaries
+    """
+    time0 = time.time()
+    fairness_constraints_provenance_greater_than = []
+    fairness_constraints_provenance_smaller_than = []
+    data['protected_greater_than'] = 0
+    data['protected_smaller_than'] = 0
+    data['satisfy'] = 0
+
+    # threshold for contraction
+    contraction_threshold = {}
+    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
+                             for att in selection_numeric_attributes}
+    print("prepare time = {}".format(time.time() - time0))
+    time1 = time.time()
+
+    # if one direction, evaluate whether a row satisfies selection conditions
+    def test_satisfying_rows(row):
+        terms = row[selected_attributes].to_dict()
+        for k in terms:
+            if k in selection_numeric_attributes:
+                if not eval(
+                        str(terms[k]) + selection_numeric_attributes[k][0] + str(selection_numeric_attributes[k][1])):
+                    return 0
+            else:
+                if terms[k] not in selection_categorical_attributes[k]:
+                    return 0
+        return 1
+
+    if only_greater_than:  # relaxation
+        # data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+        print("time of test_satisfying_rows = {}".format(time.time() - time1))
+        data['satisfy'] = 0
+        time2 = time.time()
+        all_relevant_attributes = sensitive_attributes + selected_attributes + \
+                                  ['protected_greater_than', 'protected_smaller_than', 'satisfy']
+        data = data[all_relevant_attributes]
+        data = data.groupby(all_relevant_attributes, dropna=False, sort=False).size().reset_index(name='occurrence')
+
+        def get_provenance_relax_only(row, fc_dic, fc):
+            sensitive_att_of_fc = list(fc["sensitive_attributes"].keys())
+            sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
+            fairness_value_of_row = row[sensitive_att_of_fc]
+            if sensitive_values_of_fc == fairness_value_of_row.to_dict():
+                terms = row[selected_attributes]
+                term_dic = terms.to_dict()
+                term_dic['occurrence'] = row['occurrence']
+                fc_dic['provenance_expression'].append(term_dic)
+                row['protected_greater_than'] = 1
+            return row
+
+        for fc in fairness_constraints:
+            fc_dic = dict()
+            fc_dic['symbol'] = fc['symbol']
+            fc_dic['number'] = fc['number']
+            fc_dic['provenance_expression'] = []
+            data = data[all_relevant_attributes + ['occurrence']].apply(get_provenance_relax_only,
+                                                                        args=(fc_dic, fc),
+                                                                        axis=1)
+            fairness_constraints_provenance_greater_than.append(fc_dic)
+        print("time of get_provenance_relax_only = {}".format(time.time() - time2))
+        # data = data[data['satisfy'] == 0]
+        print("len(data) not satisfying = {}".format(len(data)))
+        data_rows_greater_than = data[data['protected_greater_than'] == 1]
+        data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
+        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+
+    elif only_smaller_than:  # contraction
+        # data['satisfy'] = data.apply(test_satisfying_rows, axis=1)
+        print("time of test_satisfying_rows = {}".format(time.time() - time1))
+        data['satisfy'] = 0
+        time2 = time.time()
+        all_relevant_attributes = sensitive_attributes + selected_attributes + \
+                                  ['protected_greater_than', 'protected_smaller_than', 'satisfy']
+        data = data[all_relevant_attributes]
+        data = data.groupby(all_relevant_attributes, dropna=False, sort=False).size().reset_index(name='occurrence')
+
+        def get_provenance_contract_only(row, fc_dic, fc):
+            sensitive_att_of_fc = list(fc["sensitive_attributes"].keys())
+            sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
+            fairness_value_of_row = row[sensitive_att_of_fc]
+            if sensitive_values_of_fc == fairness_value_of_row.to_dict():
+                terms = row[selected_attributes]
+                term_dic = terms.to_dict()
+                term_dic['occurrence'] = row['occurrence']
+                fc_dic['provenance_expression'].append(term_dic)
+                row['protected_greater_than'] = 1
+            return row
+
+        for fc in fairness_constraints:
+            fc_dic = dict()
+            fc_dic['symbol'] = fc['symbol']
+            fc_dic['number'] = fc['number']
+            fc_dic['provenance_expression'] = []
+            data = data[all_relevant_attributes + ['occurrence']].apply(get_provenance_contract_only,
+                                                                        args=(fc_dic, fc),
+                                                                        axis=1)
+            fairness_constraints_provenance_smaller_than.append(fc_dic)
+        print("time of get_provenance_contract_only = {}".format(time.time() - time2))
+        # data = data[data['satisfy'] == 0]
+        data_rows_greater_than = data[data['protected_greater_than'] == 1]
+        data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
+        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+
+    all_relevant_attributes = sensitive_attributes + selected_attributes + \
+                              ['protected_greater_than', 'protected_smaller_than', 'satisfy']
+    data = data[all_relevant_attributes]
+    data = data.groupby(all_relevant_attributes, dropna=False, sort=False).size().reset_index(name='occurrence')
+
+    for att in selection_categorical_attributes:
+        contraction_threshold[att] = set()
+
+    def get_provenance(row, fc_dic, fc, protected_greater_than):
+        nonlocal contraction_threshold
+        nonlocal satisfying_rows
+        sensitive_att_of_fc = list(fc["sensitive_attributes"].keys())
+        sensitive_values_of_fc = {k: fc["sensitive_attributes"][k] for k in sensitive_att_of_fc}
+        fairness_value_of_row = row[sensitive_att_of_fc]
+        if sensitive_values_of_fc == fairness_value_of_row.to_dict():
+            terms = row[selected_attributes]
+            term_dic = terms.to_dict()
+            term_dic['occurrence'] = row['occurrence']
+            fc_dic['provenance_expression'].append(term_dic)
+            if protected_greater_than:
+                row['protected_greater_than'] = 1
+                row['this_fairness_constraint'] = 1
+            else:
+                row['protected_smaller_than'] = 1
+        return row
+
+    def get_threshold(col, fc_number):
+        nonlocal contraction_threshold
+        att = col.name
+        if att in selection_numeric_attributes:
+            if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
+                sorted_list = sorted(col, reverse=True)
+                if att in contraction_threshold:
+                    contraction_threshold[att] = min(sorted_list[fc_number - 1], contraction_threshold[att])
+                else:
+                    contraction_threshold[att] = sorted_list[fc_number - 1]
+            else:
+                sorted_list = sorted(col, reverse=False)
+                if att in contraction_threshold:
+                    contraction_threshold[att] = max(sorted_list[fc_number - 1], contraction_threshold[att])
+                else:
+                    contraction_threshold[att] = sorted_list[fc_number - 1]
+        else:
+            to_remove = selection_categorical_attributes[att]
+            for value in to_remove:
+                if col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
+                    contraction_threshold[att].add(value)
+
+    for fc in fairness_constraints:
+        fc_dic = dict()
+        fc_dic['symbol'] = fc['symbol']
+        fc_dic['number'] = fc['number']
+        fc_dic['provenance_expression'] = []
+        data['this_fairness_constraint'] = 0
+        data = data[all_relevant_attributes +
+                    ['occurrence', 'this_fairness_constraint']].apply(get_provenance, args=(fc_dic, fc,
+                                                                                            (fc['symbol'] == ">"
+                                                                                             or fc['symbol'] == ">=")),
+                                                                      axis=1)
+        if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
+            fairness_constraints_provenance_smaller_than.append(fc_dic)
+        else:
+            fairness_constraints_provenance_greater_than.append(fc_dic)
+            satisfying_rows = data[data['this_fairness_constraint'] == 1][selected_attributes]
+            satisfying_rows.apply(get_threshold, args=(fc_dic['number'],), axis=0)
+    # only get rows that are envolved w.r.t. fairness constraint
+    data_rows_greater_than = data[data['protected_greater_than'] == 1]
+    data_rows_smaller_than = data[data['protected_smaller_than'] == 1]
+
+    return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+        data_rows_greater_than, data_rows_smaller_than, contraction_threshold
+
+
+def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_than,
+                                  fairness_constraints_provenance_smaller_than, selected_attributes,
+                                  sensitive_attributes, fairness_constraints,
                                   numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                   selection_categorical_attributes, time_limit=5 * 60):
     time1 = time.time()
@@ -351,17 +692,29 @@ def LatticeTraversalBidirectional(data, selected_attributes, sensitive_attribute
 
 
 # it only considers contraction
-def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
+def LatticeTraversalSmallerThan(data, fairness_constraints_provenance_greater_than,
+                                fairness_constraints_provenance_smaller_than, selected_attributes, sensitive_attributes,
+                                fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, time_limit=5 * 60):
     time1 = time.time()
     numeric_attributes_nowhere_to_contract = dict()
     categorical_attributes_nowhere_to_contract = dict()
 
-    categorical_att_domain_too_remove = []
+    categorical_att_domain_to_remove = []
     for att in categorical_attributes:
-        s = [(att, v) for v in selection_categorical_attributes[att]]
-        categorical_att_domain_too_remove += s
+        if len(selection_categorical_attributes[att]) == 1:
+            categorical_attributes_nowhere_to_contract[att] = selection_categorical_attributes[att]
+        else:
+            s = [(att, v) for v in selection_categorical_attributes[att]]
+            categorical_att_domain_to_remove += s
+
+    num_cate_variables = len(categorical_att_domain_to_remove)
+    print("categorical_att_domain_to_remove:\n", categorical_att_domain_to_remove)
+
+    # for s in categorical_attributes_nowhere_to_contract.keys():
+    #     del selection_categorical_attributes[s]
+    #     categorical_attributes.remove(s)
 
     numeric_att_domain_to_contract = dict()
     for att in numeric_attributes:
@@ -388,17 +741,9 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
     num_numeric_att = len(selection_numeric_attributes)
-    num_cate_variables = len(categorical_att_domain_too_remove)
-    print("categorical_att_domain_too_add:\n", categorical_att_domain_too_remove)
+
     # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_contract)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
-                                                      fairness_constraints,
-                                                      numeric_attributes, categorical_attributes,
-                                                      selection_numeric_attributes,
-                                                      selection_categorical_attributes):
-        return [0] * num_numeric_att + [0] * num_cate_variables, numeric_att_domain_to_contract, \
-            [], categorical_att_domain_too_remove
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
@@ -408,15 +753,19 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
     while att_idx >= 0:
         if time.time() - time1 > time_limit:
-            return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove, \
+            return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_to_remove, \
                 numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
-                                                              fairness_constraints, numeric_attributes,
-                                                              categorical_attributes,
-                                                              new_selection_numeric_attributes,
-                                                              new_selection_categorical_attributes):
-                print("{} satisfies".format(this_refinement))
+            if assign_to_provenance_contract_only(numeric_attributes, categorical_attributes,
+                                                  new_selection_numeric_attributes,
+                                                  new_selection_categorical_attributes,
+                                                  fairness_constraints_provenance_smaller_than):
+                # print("{} satisfies".format(this_refinement))
+                # if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
+                #                                                   fairness_constraints, numeric_attributes,
+                #                                                   categorical_attributes,
+                #                                                   new_selection_numeric_attributes,
+                #                                                   new_selection_categorical_attributes):
                 minimal_refinement_values = transform_refinement_format(this_refinement, numeric_att_domain_to_contract,
                                                                         num_numeric_att, selection_numeric_attributes,
                                                                         numeric_attributes)
@@ -445,23 +794,25 @@ def LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes,
                 last_time_selection[att_idx] = -1
                 this_refinement[att_idx] = -1
                 new_selection_categorical_attributes[
-                    categorical_att_domain_too_remove[att_idx - num_numeric_att][0]].append(
-                    categorical_att_domain_too_remove[att_idx - num_numeric_att][1])
+                    categorical_att_domain_to_remove[att_idx - num_numeric_att][0]].append(
+                    categorical_att_domain_to_remove[att_idx - num_numeric_att][1])
                 att_idx -= 1
                 continue
             this_refinement[att_idx] += 1
             last_time_selection[att_idx] += 1
             if this_refinement[att_idx] == 1:
                 new_selection_categorical_attributes[
-                    categorical_att_domain_too_remove[att_idx - num_numeric_att][0]].remove(
-                    categorical_att_domain_too_remove[att_idx - num_numeric_att][1])
+                    categorical_att_domain_to_remove[att_idx - num_numeric_att][0]].remove(
+                    categorical_att_domain_to_remove[att_idx - num_numeric_att][1])
             att_idx += 1
-    return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_too_remove, \
+    return minimal_refinements, numeric_att_domain_to_contract, [], categorical_att_domain_to_remove, \
         numeric_attributes_nowhere_to_contract, categorical_attributes_nowhere_to_contract
 
 
 # it only considers relaxation
-def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
+def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_than,
+                                fairness_constraints_provenance_smaller_than, selected_attributes, sensitive_attributes,
+                                fairness_constraints,
                                 numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                 selection_categorical_attributes, time_limit=5 * 60):
     time1 = time.time()
@@ -522,14 +873,6 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
     print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
     print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
-    if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
-                                                      fairness_constraints,
-                                                      numeric_attributes, categorical_attributes,
-                                                      selection_numeric_attributes,
-                                                      selection_categorical_attributes):
-        return [[0] * num_numeric_att + [0] * num_cate_variables], numeric_att_domain_to_relax, \
-            categorical_att_domain_too_add, [], numeric_attributes_nowhere_to_relax, \
-            categorical_attributes_nowhere_to_relax
 
     # I need to remember where I was last time
     att_idx = num_numeric_att + num_cate_variables
@@ -543,12 +886,10 @@ def LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes,
             return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, [], \
                 numeric_attributes_nowhere_to_relax, categorical_attributes_nowhere_to_relax
         if att_idx == num_numeric_att + num_cate_variables:
-            if whether_satisfy_fairness_constraints_with_data(data, selected_attributes, sensitive_attributes,
-                                                              fairness_constraints, numeric_attributes,
-                                                              categorical_attributes,
-                                                              new_selection_numeric_attributes,
-                                                              new_selection_categorical_attributes):
-                print("{} satisfies".format(this_refinement))
+            if assign_to_provenance_relax_only(numeric_attributes, categorical_attributes,
+                                               new_selection_numeric_attributes, new_selection_categorical_attributes,
+                                               fairness_constraints_provenance_greater_than):
+                # print("{} satisfies".format(this_refinement))
                 minimal_added_refinement_values = transform_refinement_format(this_refinement,
                                                                               numeric_attributes_nowhere_to_relax,
                                                                               num_numeric_att,
@@ -604,8 +945,11 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 
     tables = query_info['tables']
     joinkeys = []
+    comparekeys = []
     if "joinkeys" in query_info:
         joinkeys = query_info["joinkeys"]
+    if "comparekeys" in query_info:
+        comparekeys = query_info["comparekeys"]
     numeric_attributes = []
     categorical_attributes = {}
     selection_numeric_attributes = {}
@@ -628,7 +972,7 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys,
                                                                  selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
@@ -638,28 +982,89 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
         print("original query satisfies constraints already")
         return [], [], time.time() - time1
 
-    minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
-        categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
-        categorical_attributes_nowhere_to_refine \
-        = LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
-                           numeric_attributes, categorical_attributes, selection_numeric_attributes,
-                           selection_categorical_attributes, time_limit)
+        # whether it's single-direction
+    only_smaller_than = True
+    only_greater_than = True
+    for fc in fairness_constraints:
+        if fc['symbol'] == ">=" or fc['symbol'] == ">":
+            only_smaller_than = False
+        else:
+            only_greater_than = False
+        if (not only_greater_than) and (not only_smaller_than):
+            break
 
+    if only_greater_than:
+        fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+            = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
+                                                         fairness_constraints,
+                                                         numeric_attributes, categorical_attributes,
+                                                         selection_numeric_attributes,
+                                                         selection_categorical_attributes, only_greater_than,
+                                                         only_smaller_than)
+        time_provenance2 = time.time()
+        provenance_time = time_provenance2 - time1
+        print("provenance_time = {}".format(provenance_time))
+        time_search1 = time.time()
+        minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
+            categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
+            categorical_attributes_nowhere_to_refine \
+            = LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_than,
+                                          fairness_constraints_provenance_smaller_than, selected_attributes,
+                                          sensitive_attributes, fairness_constraints,
+                                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                          selection_categorical_attributes, time_limit)
+
+    elif only_smaller_than:
+        fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+            = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
+                                                         fairness_constraints,
+                                                         numeric_attributes, categorical_attributes,
+                                                         selection_numeric_attributes,
+                                                         selection_categorical_attributes, only_greater_than,
+                                                         only_smaller_than)
+        time_provenance2 = time.time()
+        provenance_time = time_provenance2 - time1
+        print("provenance_time = {}".format(provenance_time))
+        time_search1 = time.time()
+        minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
+            categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
+            categorical_attributes_nowhere_to_refine \
+            = LatticeTraversalSmallerThan(data, fairness_constraints_provenance_greater_than,
+                                          fairness_constraints_provenance_smaller_than,
+                                          selected_attributes, sensitive_attributes, fairness_constraints,
+                                          numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                          selection_categorical_attributes, time_limit)
+    else:
+        fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
+            data_rows_greater_than, data_rows_smaller_than, contraction_threshold \
+            = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
+                                                         fairness_constraints,
+                                                         numeric_attributes, categorical_attributes,
+                                                         selection_numeric_attributes,
+                                                         selection_categorical_attributes, only_greater_than,
+                                                         only_smaller_than)
+        time_provenance2 = time.time()
+        provenance_time = time_provenance2 - time1
+        print("provenance_time = {}".format(provenance_time))
+        time_search1 = time.time()
+        minimal_added_refinements, numeric_att_domain_to_relax, categorical_att_domain_to_add, \
+            categorical_att_domain_to_remove, numeric_attributes_nowhere_to_refine, \
+            categorical_attributes_nowhere_to_refine \
+            = LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_than,
+                                            fairness_constraints_provenance_smaller_than, selected_attributes,
+                                            sensitive_attributes, fairness_constraints,
+                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
+                                            selection_categorical_attributes, time_limit)
+    time2 = time.time()
     print("minimal_added_relaxations:{}".format(minimal_added_refinements))
-
-    # minimal_refinements = transform_to_refinement_format(minimal_added_refinements, numeric_attributes,
-    #                                                      selection_numeric_attributes, selection_categorical_attributes,
-    #                                                      numeric_att_domain_to_relax, categorical_att_domain_to_add,
-    #                                                      categorical_att_domain_to_remove,
-    #                                                      numeric_attributes_nowhere_to_refine,
-    #                                                      categorical_attributes_nowhere_to_refine)
 
     minimal_refinements = transform_back_to_refinement_format(minimal_added_refinements, len(numeric_attributes),
                                                               selection_numeric_attributes, numeric_attributes)
 
-    time2 = time.time()
-    return minimal_refinements, minimal_added_refinements, time2 - time1
 
+    return minimal_refinements, minimal_added_refinements, time2 - time1, provenance_time, time2 - time_search1
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
@@ -678,17 +1083,17 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 #
 
 
-data_file = r"../InputData/TPC-H/1Mdata/"
-query_file = r"../Experiment/TPCH/1M/q3/q3.json"
-constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
-time_limit = 30 * 60
-
-print("\nnaive algorithm:\n")
-
-minimal_refinements2, minimal_added_refinements2, running_time2 = FindMinimalRefinement(data_file, query_file,
-                                                                                        constraint_file, time_limit)
-
-# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-
-print(*minimal_refinements2, sep="\n")
-print("running time = {}".format(running_time2))
+# data_file = r"../InputData/TPC-H/1Mdata/"
+# query_file = r"../Experiment/TPCH/1M/q3/q3.json"
+# constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
+# time_limit = 30 * 60
+#
+# print("\nnaive algorithm:\n")
+#
+# minimal_refinements2, minimal_added_refinements2, running_time2 = FindMinimalRefinement(data_file, query_file,
+#                                                                                         constraint_file, time_limit)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
