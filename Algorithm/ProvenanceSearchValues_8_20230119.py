@@ -474,7 +474,8 @@ def assign_to_provenance_relax_only(value_assignment, numeric_attributes, catego
                     pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
                 else:
                     pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
-
+        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            return False
         not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
         included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
         not_included_dic = dict()
@@ -518,7 +519,8 @@ def assign_to_provenance_contract_only(value_assignment, numeric_attributes, cat
                     pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
                 else:
                     pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
-
+        if eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            continue
         not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
         included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
         not_included_dic = dict()
@@ -535,6 +537,10 @@ def assign_to_provenance_contract_only(value_assignment, numeric_attributes, cat
                 included_dic[at] = [va]
             else:
                 included_dic[at].append(va)
+        for at in included_dic:
+            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(included_dic[at])]
+        for at in not_included_dic:
+            pe_dataframe = pe_dataframe[~pe_dataframe[at].isin(not_included_dic[at])]
         if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
             return False
     return True
