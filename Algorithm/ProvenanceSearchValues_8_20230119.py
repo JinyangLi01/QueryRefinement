@@ -153,7 +153,9 @@ Get provenance expressions
         else:
             to_remove = selection_categorical_attributes[att]
             for value in to_remove:
-                if col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
+                if value not in col.values.tolist():
+                    contraction_threshold[att].add(value)
+                elif col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
                     contraction_threshold[att].add(value)
 
     for fc in fairness_constraints:
