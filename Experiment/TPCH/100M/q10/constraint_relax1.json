@@ -1,0 +1,24 @@
+{
+  "all_sensitive_attributes": ["c_mktsegment", "l_shipmode", "l_shipinstruct"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_mktsegment": "BUILDING",
+        "l_shipmode": "FOB"
+      },
+      "symbol": ">=",
+      "number": 4211
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "DELIVER IN PERSON"
+      },
+      "symbol": ">=",
+      "number": 28109
+    }
+  ]
+}
+

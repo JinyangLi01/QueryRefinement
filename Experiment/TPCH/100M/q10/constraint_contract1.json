@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["l_linenumber", "o_orderpriority"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "l_linenumber": 5
+      },
+      "symbol": "<=",
+      "number": 3217
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "4-NOT SPECIFIED"
+      },
+      "symbol": "<=",
+      "number": 6657
+    }
+  ]
+}
+
