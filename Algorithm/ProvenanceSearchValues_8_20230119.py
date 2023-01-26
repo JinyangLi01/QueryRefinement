@@ -915,13 +915,12 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
-        # print("find base refinement {}".format(new_value_assignment))
-        # print("position: {}".format(full_value_assignment_positions))
+        print("find base refinement {}".format(new_value_assignment))
+        print("position: {}".format(full_value_assignment_positions))
+        print("minimal_refinements: {}".format(minimal_refinements))
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
-        # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
 
-        # print("minimal_refinements: {}".format(minimal_refinements))
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
                 next_col_num_in_stack = len(PVT_head_stack[-1])
@@ -962,11 +961,13 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         original_max_index_PVT = max_index_PVT.copy()
         original_shifted_length = copy.deepcopy(shifted_length)
 
+        no_recursion_to_do = True
         def recursion(column):
             nonlocal col_idx
             nonlocal new_value_assignment
             nonlocal last_satisfying_bounding_relaxation_location
             nonlocal shifted_length
+            nonlocal no_recursion_to_do
             idx_in_this_col = last_satisfying_bounding_relaxation_location[col_idx]
             # optimization: if there are no other columns to be moved down, return
             if idx_in_this_col == 0:
@@ -1067,9 +1068,12 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             original_shifted_length[full_PVT_head.index(PVT_head[col_idx])] += \
                 last_satisfying_bounding_relaxation_location[col_idx]
             col_idx += 1
+            no_recursion_to_do = False
             return
 
         PVT.apply(recursion, axis=0)
+        if no_recursion_to_do:
+            print("no_recursion_to_do")
 
     print("num of iterations = {}, search space = {}, assign_to_provenance_num = {}".format(
         num_iterations, search_space, assign_to_provenance_num))
@@ -2049,34 +2053,30 @@ def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, com
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
     print("length of data", len(data))
-
+    pe_dataframe = copy.deepcopy(data)
     # get data selected
-    def select(row):
-        for att in selection_numeric_attributes:
-            if pd.isnull(row[att]):
-                return 0
-            if not eval(
-                    str(row[att]) + selection_numeric_attributes[att][0] + str(selection_numeric_attributes[att][1])):
-                return 0
-        for att in selection_categorical_attributes:
-            if pd.isnull(row[att]):
-                return 0
-            if row[att] not in selection_categorical_attributes[att]:
-                return 0
-        return 1
+    for att in selection_numeric_attributes:
+        if selection_numeric_attributes[att][0] == '>':
+            pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att][1]]
+        elif selection_numeric_attributes[att][0] == ">=":
+            pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att][1]]
+        elif selection_numeric_attributes[att][0] == "<":
+            pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att][1]]
+        else:
+            pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att][1]]
+    for att in selection_categorical_attributes:
+        pe_dataframe = pe_dataframe[pe_dataframe[att].isin(selection_categorical_attributes[att])]
 
-    data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
-    data_selected = data[data['satisfy_selection'] == 1]
-    # whether satisfy fairness constraint
     for fc in fairness_constraints:
+        df = copy.deepcopy(pe_dataframe)
         sensitive_attributes = fc['sensitive_attributes']
-        df1 = data_selected[list(sensitive_attributes.keys())]
-        df2 = pd.DataFrame([sensitive_attributes])
-        data_selected_satisfying_fairness_constraint = df1.merge(df2)
-        num = len(data_selected_satisfying_fairness_constraint)
+        for att in sensitive_attributes:
+            df = df[df[att] == sensitive_attributes[att]]
+        num = len(df)
         if not eval(str(num) + fc['symbol'] + str(fc['number'])):
             return False, data
     return True, data
+
 
 
 ########################################################################################################################
