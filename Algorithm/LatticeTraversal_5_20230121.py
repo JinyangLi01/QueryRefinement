@@ -49,18 +49,18 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys, selected_attributes,
-                                         sensitive_attributes,
-                                         fairness_constraints, numeric_attributes, categorical_attributes,
-                                         selection_numeric_attributes, selection_categorical_attributes):
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys, selected_attributes,
+                                         sensitive_attributes, fairness_constraints, numeric_attributes,
+                                         categorical_attributes, selection_numeric_attributes,
+                                         selection_categorical_attributes):
     if len(tables) == 1:  # no join
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
     else:
         print(data_file_prefix + tables[0] + ".tbl")
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
         print(data[:3])
         for idx in range(1, len(tables)):
-            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep='|')
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
@@ -69,32 +69,26 @@ def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, com
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
     print("length of data", len(data))
-
+    pe_dataframe = copy.deepcopy(data)
     # get data selected
-    def select(row):
-        for att in selection_numeric_attributes:
-            if pd.isnull(row[att]):
-                return 0
-            if not eval(
-                    str(row[att]) + selection_numeric_attributes[att][0] + str(selection_numeric_attributes[att][1])):
-                return 0
-        for att in selection_categorical_attributes:
-            if pd.isnull(row[att]):
-                return 0
-            if row[att] not in selection_categorical_attributes[att]:
-                return 0
-        return 1
+    for att in selection_numeric_attributes:
+        if selection_numeric_attributes[att][0] == '>':
+            pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att][1]]
+        elif selection_numeric_attributes[att][0] == ">=":
+            pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att][1]]
+        elif selection_numeric_attributes[att][0] == "<":
+            pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att][1]]
+        else:
+            pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att][1]]
+    for att in selection_categorical_attributes:
+        pe_dataframe = pe_dataframe[pe_dataframe[att].isin(selection_categorical_attributes[att])]
 
-    data['satisfy_selection'] = data[selected_attributes].apply(select, axis=1)
-    data_selected = data[data['satisfy_selection'] == 1]
-    data.drop(columns=['satisfy_selection'], inplace=True, axis=1)
-    # whether satisfy fairness constraint
     for fc in fairness_constraints:
+        df = copy.deepcopy(pe_dataframe)
         sensitive_attributes = fc['sensitive_attributes']
-        df1 = data_selected[list(sensitive_attributes.keys())]
-        df2 = pd.DataFrame([sensitive_attributes])
-        data_selected_satisfying_fairness_constraint = df1.merge(df2)
-        num = len(data_selected_satisfying_fairness_constraint)
+        for att in sensitive_attributes:
+            df = df[df[att] == sensitive_attributes[att]]
+        num = len(df)
         if not eval(str(num) + fc['symbol'] + str(fc['number'])):
             return False, data
     return True, data
@@ -813,7 +807,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit=5 * 60):
     time1 = time.time()
     with open(query_file) as f:
         query_info = json.load(f)
@@ -847,8 +841,8 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys,
-                                                                 selected_attributes,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
+                                                                 comparekeys, selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
                                                                  selection_numeric_attributes,
