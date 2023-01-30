@@ -49,18 +49,18 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys, selected_attributes,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys, selected_attributes,
                                          sensitive_attributes,
                                          fairness_constraints, numeric_attributes, categorical_attributes,
                                          selection_numeric_attributes, selection_categorical_attributes):
     if len(tables) == 1:  # no join
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
     else:
         print(data_file_prefix + tables[0] + ".tbl")
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep='|')
+        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
         print(data[:3])
         for idx in range(1, len(tables)):
-            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep='|')
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
@@ -813,7 +813,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit=5 * 60):
     time1 = time.time()
     with open(query_file) as f:
         query_info = json.load(f)
@@ -847,8 +847,8 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, tables, joinkeys, comparekeys,
-                                                                 selected_attributes,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
+                                                                 comparekeys, selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
                                                                  selection_numeric_attributes,
