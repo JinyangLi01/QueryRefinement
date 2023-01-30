@@ -134,28 +134,56 @@ Get provenance expressions
     for att in selection_categorical_attributes:
         contraction_threshold[att] = set()
 
-    def get_threshold(col, fc_number):
+    # def get_threshold(col, fc_number):
+    #     nonlocal contraction_threshold
+    #     att = col.name
+    #     if att in selection_numeric_attributes:
+    #         if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
+    #             sorted_list = sorted(col, reverse=True)
+    #             if att in contraction_threshold:
+    #                 contraction_threshold[att] = min(sorted_list[fc_number - 1], contraction_threshold[att])
+    #             else:
+    #                 contraction_threshold[att] = sorted_list[fc_number - 1]
+    #         else:
+    #             sorted_list = sorted(col, reverse=False)
+    #             if att in contraction_threshold:
+    #                 contraction_threshold[att] = max(sorted_list[fc_number - 1], contraction_threshold[att])
+    #             else:
+    #                 contraction_threshold[att] = sorted_list[fc_number - 1]
+    #     else:
+    #         to_remove = selection_categorical_attributes[att]
+    #         for value in to_remove:
+    #             if value not in col.values.tolist():
+    #                 contraction_threshold[att].add(value)
+    #             elif col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
+    #                 contraction_threshold[att].add(value)
+    def get_contraction_threshold(df, fc_number, att):
         nonlocal contraction_threshold
-        att = col.name
         if att in selection_numeric_attributes:
             if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
-                sorted_list = sorted(col, reverse=True)
+                df = df.sort_values(by=[att], ascending=False)
+                a = df['occurrence'].cumsum().searchsorted(fc_number)
+                b = df.columns.get_loc(att)
+                c = df.iloc[a, b]
                 if att in contraction_threshold:
-                    contraction_threshold[att] = min(sorted_list[fc_number - 1], contraction_threshold[att])
+                    contraction_threshold[att] = min(c, contraction_threshold[att])
                 else:
-                    contraction_threshold[att] = sorted_list[fc_number - 1]
+                    contraction_threshold[att] = c
             else:
-                sorted_list = sorted(col, reverse=False)
+                df = df.sort_values(by=[att], ascending=False)
+                a = df['occurrence'].cumsum().searchsorted(fc_number)
+                b = df.columns.get_loc(att)
+                c = df.iloc[a, b]
                 if att in contraction_threshold:
-                    contraction_threshold[att] = max(sorted_list[fc_number - 1], contraction_threshold[att])
+                    contraction_threshold[att] = max(c, contraction_threshold[att])
                 else:
-                    contraction_threshold[att] = sorted_list[fc_number - 1]
+                    contraction_threshold[att] = c
         else:
             to_remove = selection_categorical_attributes[att]
             for value in to_remove:
-                if value not in col.values.tolist():
+                if value not in df[att].values.tolist():
                     contraction_threshold[att].add(value)
-                elif col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
+                elif df[att].value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
                     contraction_threshold[att].add(value)
 
     for fc in fairness_constraints:
@@ -171,8 +199,10 @@ Get provenance expressions
             fairness_constraints_provenance_smaller_than.append(fc_dic)
         else:
             fairness_constraints_provenance_greater_than.append(fc_dic)
+            for att in selected_attributes:
+                get_contraction_threshold(fc_data[[att, 'occurrence']], fc_dic['number'], att)
             # satisfying_rows = data[data['this_fairness_constraint'] == 1][selected_attributes]
-            fc_data[selected_attributes].apply(get_threshold, args=(fc_dic['number'],), axis=0)
+            # fc_data.apply(get_threshold, args=(fc_dic['number'],), axis=0)
 
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
         contraction_threshold
@@ -559,14 +589,15 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
                                               selection_numeric, selection_categorical, columns_delta_table,
                                               fairness_constraints_provenance_greater_than)
     if not survive:
-        print("not relaxed enough")
-        return False, "relaxation"
+        # print("not relaxed enough")
+        return False, 0
     survive = assign_to_provenance_contract_only(value_assignment, numeric_attributes, categorical_attributes,
                                                  selection_numeric, selection_categorical, columns_delta_table,
                                                  fairness_constraints_provenance_smaller_than)
-    if not survive:
-        print("relaxed enough but not contracted enough")
-    return survive, "contraction"
+    # if not survive:
+    #     print("relaxed enough but not contracted enough")
+    return survive, 1
+
 
 
 def dominate(a, b):
@@ -1589,13 +1620,14 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                           fairness_constraints_provenance_smaller_than)
                     if assign:
                         checked_assignments_satisfying.append(full_value_assignment_str)
-                        print("{} satisfies constraints".format(new_value_assignment))
+                        # print("{} satisfies constraints".format(new_value_assignment))
                         last_satisfying_bounding_relaxation_location = new_value_assignment_position
                         find_base_refinement = True
                         find_value_this_col = True
                         break
                     else:
-                        print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, reason))
+                        non_satisfying_assignment = full_value_assignment
+                        # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, reason))
                         checked_assignments_not_satisfying.append(full_value_assignment_str)
                 else:
                     if assign_to_provenance_relax_only(full_value_assignment, numeric_attributes,
@@ -1608,7 +1640,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         find_value_this_col = True
                         break
                     else:
-                        # print("{} doesn't satisfy constraints".format(full_value_assignment))
+                        # print("{} doesn't satisfy relaxation partial query".format(full_value_assignment))
                         checked_assignments_not_satisfying.append(full_value_assignment_str)
                 idx_in_col += 1
             if find_value_this_col:
@@ -1623,7 +1655,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
-                # FIXME
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
