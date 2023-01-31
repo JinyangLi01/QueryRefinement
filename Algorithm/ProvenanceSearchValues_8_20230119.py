@@ -554,25 +554,31 @@ def assign_to_provenance_contract_only(value_assignment, numeric_attributes, cat
         if eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
             continue
         not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
-        included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
-        not_included_dic = dict()
+        new_select = copy.deepcopy(selection_categorical)
         for cate in not_included:
             at, va = cate.rsplit("__", 1)
-            if at not in not_included_dic:
-                not_included_dic[at] = [va]
-            else:
-                not_included_dic[at].append(va)
-        included_dic = dict()
-        for cate in included:
-            at, va = cate.rsplit("__", 1)
-            if at not in included_dic:
-                included_dic[at] = [va]
-            else:
-                included_dic[at].append(va)
-        for at in included_dic:
-            pe_dataframe = pe_dataframe[pe_dataframe[at].isin(included_dic[at])]
-        for at in not_included_dic:
-            pe_dataframe = pe_dataframe[~pe_dataframe[at].isin(not_included_dic[at])]
+            new_select[at].remove(va)
+        for att in selection_categorical:
+            pe_dataframe = pe_dataframe[pe_dataframe[att].isin(new_select[att])]
+        # included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
+        # not_included_dic = dict()
+        # for cate in not_included:
+        #     at, va = cate.rsplit("__", 1)
+        #     if at not in not_included_dic:
+        #         not_included_dic[at] = [va]
+        #     else:
+        #         not_included_dic[at].append(va)
+        # included_dic = dict()
+        # for cate in included:
+        #     at, va = cate.rsplit("__", 1)
+        #     if at not in included_dic:
+        #         included_dic[at] = [va]
+        #     else:
+        #         included_dic[at].append(va)
+        # for at in included_dic:
+        #     pe_dataframe = pe_dataframe[pe_dataframe[at].isin(included_dic[at])]
+        # for at in not_included_dic:
+        #     pe_dataframe = pe_dataframe[~pe_dataframe[at].isin(not_included_dic[at])]
         if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
             return False
     return True
@@ -1681,7 +1687,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             left = 0
             fixed_att = list(fixed_value_assignments.keys())[-1]
             right = len(values_above) - 1
-            print("tighten the last fixed column {}:\n {}".format(fixed_att, values_above))
+            # print("tighten the last fixed column {}:\n {}".format(fixed_att, values_above))
             fixed_value_assignments_for_tighten = copy.deepcopy(fixed_value_assignments)
             while left <= right:
                 cur_value_id = int((right + left) / 2)
