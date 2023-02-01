@@ -55,11 +55,9 @@ Get provenance expressions
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
-    time1 = time.time()
 
     if only_greater_than:
         data['satisfy'] = 0
-        time2 = time.time()
         all_relevant_attributes = sensitive_attributes + selected_attributes + ['protected_greater_than',
                                                                                 'protected_smaller_than', 'satisfy']
         data = data[all_relevant_attributes]
@@ -78,7 +76,6 @@ Get provenance expressions
 
     else:  # contraction
         data['satisfy'] = 0
-        time2 = time.time()
         all_relevant_attributes = sensitive_attributes + selected_attributes + ['protected_greater_than',
                                                                                 'protected_smaller_than', 'satisfy']
         data = data[all_relevant_attributes]
@@ -138,19 +135,27 @@ Get provenance expressions
                 a = df['occurrence'].cumsum().searchsorted(fc_number)
                 b = df.columns.get_loc(att)
                 c = df.iloc[a, b]
-                if att in contraction_threshold:
-                    contraction_threshold[att] = min(c, contraction_threshold[att])
+                if a < len(df):
+                    if att in contraction_threshold:
+                        contraction_threshold[att] = min(c, contraction_threshold[att])
+                    else:
+                        contraction_threshold[att] = c
                 else:
-                    contraction_threshold[att] = c
+                    if att not in contraction_threshold:
+                        contraction_threshold[att] = df[att].max()
             else:
                 df = df.sort_values(by=[att], ascending=True)
                 a = df['occurrence'].cumsum().searchsorted(fc_number)
-                b = df.columns.get_loc(att)
-                c = df.iloc[a, b]
-                if att in contraction_threshold:
-                    contraction_threshold[att] = max(c, contraction_threshold[att])
+                if a < len(df):
+                    b = df.columns.get_loc(att)
+                    c = df.iloc[a, b]
+                    if att in contraction_threshold:
+                        contraction_threshold[att] = max(c, contraction_threshold[att])
+                    else:
+                        contraction_threshold[att] = c
                 else:
-                    contraction_threshold[att] = c
+                    if att not in contraction_threshold:
+                        contraction_threshold[att] = df[att].min()
         else:
             to_remove = selection_categorical_attributes[att]
             for value in to_remove:
@@ -2188,9 +2193,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
     if len(tables) == 1:  # no join
         data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
     else:
-        print(data_file_prefix + tables[0] + ".tbl")
         data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
-        print(data[:3])
         for idx in range(1, len(tables)):
             righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
@@ -2200,7 +2203,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
         if len(comparekeys) > 0:
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
-    print("length of data", len(data))
+    # print("length of data", len(data))
     pe_dataframe = copy.deepcopy(data)
     # get data selected
     for att in selection_numeric_attributes:
