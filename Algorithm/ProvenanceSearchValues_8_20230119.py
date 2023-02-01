@@ -987,9 +987,11 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             one_more_fix = copy.deepcopy(fixed_value_assignments)
             one_more_fix[PVT_head[col_idx]] = column[idx_in_this_col]
 
-            if not assign_to_provenance_relax_only_partial_query(one_more_fix, numeric_attributes, categorical_attributes,
-                                                   selection_numeric, selection_categorical, full_PVT_head,
-                                                   fairness_constraints_provenance_greater_than):
+            if not assign_to_provenance_relax_only_partial_query(one_more_fix, numeric_attributes,
+                                                                 categorical_attributes,
+                                                                 selection_numeric, selection_categorical,
+                                                                 full_PVT_head,
+                                                                 fairness_constraints_provenance_greater_than):
                 # print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
                 col_idx += 1
                 return
@@ -1518,7 +1520,6 @@ def relax_value(non_satisfying_assignment, col, idx_in_col, value, numeric_attri
         return value == 1
 
 
-
 def contract_value(non_satisfying_assignment, col, idx_in_col, value, numeric_attributes, selection_numeric):
     if col in numeric_attributes:
         if selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>=':
@@ -1970,10 +1971,10 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             one_more_fix[PVT_head[col_idx]] = column[idx_in_this_col]
 
             if not assign_to_provenance_relax_only_partial_query(one_more_fix, numeric_attributes,
-                                                   categorical_attributes,
-                                                   selection_numeric, selection_categorical,
-                                                   full_PVT_head,
-                                                   fairness_constraints_provenance_greater_than):
+                                                                 categorical_attributes,
+                                                                 selection_numeric, selection_categorical,
+                                                                 full_PVT_head,
+                                                                 fairness_constraints_provenance_greater_than):
                 # print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
                 col_idx += 1
                 return
@@ -2116,6 +2117,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
     find_relaxation[this_num_columns] = []
     return PVT_from_to_put
 
+
 #
 # def whether_value_assignment_is_tight_minimal(must_included_term_delta_values, value_assignment, numeric_attributes,
 #                                               categorical_attributes,
@@ -2185,10 +2187,9 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys,
-                                         selected_attributes,
-                                         sensitive_attributes, fairness_constraints, numeric_attributes,
-                                         categorical_attributes, selection_numeric_attributes,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys, exists,
+                                         selected_attributes, sensitive_attributes, fairness_constraints,
+                                         numeric_attributes, categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
     if len(tables) == 1:  # no join
         data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
@@ -2203,6 +2204,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
         if len(comparekeys) > 0:
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
+
     # print("length of data", len(data))
     pe_dataframe = copy.deepcopy(data)
     # get data selected
@@ -2218,6 +2220,23 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
     for att in selection_categorical_attributes:
         pe_dataframe = pe_dataframe[pe_dataframe[att].isin(selection_categorical_attributes[att])]
 
+    #  exists clause, 1 table for now
+    exist_fairness_constraints = []
+    for exist in exists:
+        exist_data = pd.read_csv(data_file_prefix + exist["tables"][0] + ".tbl", sep=separator)
+        for col_compare in exist["col_comparison"]:
+            if col_compare[1] == ">":
+                exist_data = exist_data[exist_data[col_compare[0]] > exist_data[col_compare[2]]]
+            elif col_compare[1] == ">=":
+                exist_data = exist_data[exist_data[col_compare[0]] >= exist_data[col_compare[2]]]
+            elif col_compare[1] == "<":
+                exist_data = exist_data[exist_data[col_compare[0]] < exist_data[col_compare[2]]]
+            else:
+                exist_data = exist_data[exist_data[col_compare[0]] <= exist_data[col_compare[2]]]
+        for joinkeys in exist["joinkeys_with_query"]:
+            exist_data = pd.merge(left=data, right=exist_data, how="inner", left_on=joinkeys[0], right_on=joinkeys[1])
+        exist_fairness_constraints.append(exist_data)
+
     for fc in fairness_constraints:
         df = copy.deepcopy(pe_dataframe)
         sensitive_attributes = fc['sensitive_attributes']
@@ -2225,8 +2244,8 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
             df = df[df[att] == sensitive_attributes[att]]
         num = len(df)
         if not eval(str(num) + fc['symbol'] + str(fc['number'])):
-            return False, data
-    return True, data
+            return False, data, exist_fairness_constraints
+    return True, data, exist_fairness_constraints
 
 
 ########################################################################################################################
@@ -2243,10 +2262,13 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     tables = query_info['tables']
     joinkeys = []
     comparekeys = []
+    col_comparison = []
     if "joinkeys" in query_info:
         joinkeys = query_info["joinkeys"]
     if "comparekeys" in query_info:
         comparekeys = query_info["comparekeys"]
+    if "col_comparison" in query_info:
+        col_comparison = query_info["col_comparison"]
     numeric_attributes = []
     categorical_attributes = {}
     selection_numeric_attributes = {}
@@ -2265,16 +2287,18 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     sensitive_attributes = constraint_info['all_sensitive_attributes']
     fairness_constraints = constraint_info['fairness_constraints']
+    exists = constraint_info["exists"]
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
     # data:after join
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
-                                                                 comparekeys, selected_attributes,
-                                                                 sensitive_attributes, fairness_constraints,
-                                                                 numeric_attributes, categorical_attributes,
-                                                                 selection_numeric_attributes,
-                                                                 selection_categorical_attributes)
+    whether_satisfy, data, exist_fairness_constraints = \
+        whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
+                                             comparekeys, exists, selected_attributes,
+                                             sensitive_attributes, fairness_constraints,
+                                             numeric_attributes, categorical_attributes,
+                                             selection_numeric_attributes,
+                                             selection_categorical_attributes)
     if whether_satisfy:
         print("original query satisfies constraints already")
         return {}, time.time() - time1, assign_to_provenance_num, 0, 0
