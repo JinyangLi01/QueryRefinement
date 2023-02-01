@@ -1,23 +1,24 @@
 {
-  "all_sensitive_attributes": ["c_mktsegment", "l_shipmode", "l_shipinstruct"],
+  "all_sensitive_attributes": ["c_mktsegment", "l_shipmode", "l_shipinstruct", "l_linenumber"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
         "c_mktsegment": "BUILDING",
-        "l_shipmode": "FOB"
+        "l_shipmode": "FOB",
+        "l_shipinstruct": "DELIVER IN PERSON"
       },
       "symbol": ">=",
-      "number": 4211
+      "number": 743
     },
     {
       "sensitive_attributes":
       {
-        "l_shipinstruct": "DELIVER IN PERSON"
+        "l_linenumber": 5
       },
-      "symbol": ">=",
-      "number": 28109
+      "symbol": "<=",
+      "number": 10555
     }
   ]
 }
