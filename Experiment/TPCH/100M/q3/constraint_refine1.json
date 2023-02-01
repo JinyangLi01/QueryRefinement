@@ -1,15 +1,14 @@
 {
-  "all_sensitive_attributes": ["o_orderpriority", "l_returnflag", "l_shipmode"],
+  "all_sensitive_attributes": ["c_nationkey", "l_shipmode"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "o_orderpriority": "1-URGENT",
-        "l_returnflag": "A"
+        "c_nationkey": 12
       },
       "symbol": "<=",
-      "number": 237
+      "number": 120
     },
     {
       "sensitive_attributes":
@@ -17,7 +16,7 @@
         "l_shipmode": "TRUCK"
       },
       "symbol": ">=",
-      "number": 466
+      "number": 460
     }
   ]
 }
