@@ -1,0 +1,7 @@
+{
+  "tables": ["lineitem"],
+  "selection_numeric_attributes": {
+    "l_shipdate": ["<=", 19980809, 1]
+  }
+}
+
