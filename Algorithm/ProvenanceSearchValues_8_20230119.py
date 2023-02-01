@@ -178,6 +178,7 @@ Get provenance expressions
             fairness_constraints_provenance_greater_than.append(fc_dic)
             for att in selected_attributes:
                 get_contraction_threshold(fc_data[[att, 'occurrence']], fc_dic['number'], att)
+            
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
         contraction_threshold
 
@@ -2193,6 +2194,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
     if len(tables) == 1:  # no join
         data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
     else:
+
         data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
         for idx in range(1, len(tables)):
             righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
