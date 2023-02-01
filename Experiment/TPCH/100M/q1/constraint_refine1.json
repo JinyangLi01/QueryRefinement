@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["l_linenumber", "l_returnflag", "l_shipinstruct"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "l_linenumber": 5
+      },
+      "symbol": ">=",
+      "number": 63023
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "DELIVER IN PERSON"
+      },
+      "symbol": "<=",
+      "number": 145980
+    }
+  ]
+}
+

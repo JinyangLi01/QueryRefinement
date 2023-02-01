@@ -1,5 +1,5 @@
 {
-  "all_sensitive_attributes": ["l_linenumber", "o_orderpriority"],
+  "all_sensitive_attributes": ["l_linenumber", "o_orderpriority", "c_nationkey"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
@@ -8,15 +8,16 @@
         "l_linenumber": 5
       },
       "symbol": "<=",
-      "number": 3217
+      "number": 9734
     },
     {
       "sensitive_attributes":
       {
-        "o_orderpriority": "4-NOT SPECIFIED"
+        "o_orderpriority": "4-NOT SPECIFIED",
+        "c_nationkey": 11
       },
       "symbol": "<=",
-      "number": 6657
+      "number": 638
     }
   ]
 }

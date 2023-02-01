@@ -258,34 +258,6 @@ def assign_to_provenance(numeric_attributes, categorical_attributes,
     return survive
 
 
-#
-# def LatticeTraversal(data, selected_attributes, sensitive_attributes, fairness_constraints,
-#                      numeric_attributes, categorical_attributes, selection_numeric_attributes,
-#                      selection_categorical_attributes, time_limit=5 * 60):
-#     # whether it's single-direction
-#     only_smaller_than = True
-#     only_greater_than = True
-#     for fc in fairness_constraints:
-#         if fc['symbol'] == ">=" or fc['symbol'] == ">":
-#             only_smaller_than = False
-#         else:
-#             only_greater_than = False
-#         if (not only_greater_than) and (not only_smaller_than):
-#             break
-#
-#     if only_greater_than:
-#         return LatticeTraversalGreaterThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
-#                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-#                                            selection_categorical_attributes, time_limit)
-#     elif only_smaller_than:
-#         return LatticeTraversalSmallerThan(data, selected_attributes, sensitive_attributes, fairness_constraints,
-#                                            numeric_attributes, categorical_attributes, selection_numeric_attributes,
-#                                            selection_categorical_attributes, time_limit)
-#     else:
-#         return LatticeTraversalBidirectional(data, selected_attributes, sensitive_attributes, fairness_constraints,
-#                                              numeric_attributes, categorical_attributes, selection_numeric_attributes,
-#                                              selection_categorical_attributes, time_limit)
-#
 
 def subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes, fairness_constraints,
                                                numeric_attributes, categorical_attributes, selection_numeric_attributes,
@@ -305,13 +277,6 @@ Get provenance expressions
     data['protected_smaller_than'] = 0
     data['satisfy'] = 0
 
-    # threshold for contraction
-    contraction_threshold = {}
-    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
-                             for att in selection_numeric_attributes}
-    print("prepare time = {}".format(time.time() - time0))
-    time1 = time.time()
-
     if only_greater_than:
         data['satisfy'] = 0
         time2 = time.time()
@@ -327,12 +292,9 @@ Get provenance expressions
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
-            print("len of fc_data = {}".format(len(fc_data)))
             fairness_constraints_provenance_greater_than.append(fc_dic)
-        print("time of get_provenance_relax_only = {}".format(time.time() - time2))
-        # print("len(data) satisfying = {}".format(len(data)))
-        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold
+        # print("time of get_provenance_relax_only = {}".format(time.time() - time2))
+        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than
 
     else:  # contraction
         data['satisfy'] = 0
@@ -349,11 +311,9 @@ Get provenance expressions
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
-            print("len of fc_data = {}".format(len(fc_data)))
             fairness_constraints_provenance_smaller_than.append(fc_dic)
-        print("time of get_provenance_contract_only = {}".format(time.time() - time2))
-        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold
+        # print("time of get_provenance_contract_only = {}".format(time.time() - time2))
+        return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than
 
 
 def subtract_provenance_refinement(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -374,10 +334,6 @@ Get provenance expressions
     data['protected_smaller_than'] = 0
     data['satisfy'] = 0
 
-    # threshold for contraction
-    contraction_threshold = {}
-    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
-                             for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
     time1 = time.time()
 
@@ -385,33 +341,6 @@ Get provenance expressions
                                                                             'protected_smaller_than', 'satisfy']
     data = data[all_relevant_attributes]
     data = data.groupby(all_relevant_attributes, dropna=False, sort=False).size().reset_index(name='occurrence')
-
-    for att in selection_categorical_attributes:
-        contraction_threshold[att] = set()
-
-    def get_threshold(col, fc_number):
-        nonlocal contraction_threshold
-        att = col.name
-        if att in selection_numeric_attributes:
-            if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
-                sorted_list = sorted(col, reverse=True)
-                if att in contraction_threshold:
-                    contraction_threshold[att] = min(sorted_list[fc_number - 1], contraction_threshold[att])
-                else:
-                    contraction_threshold[att] = sorted_list[fc_number - 1]
-            else:
-                sorted_list = sorted(col, reverse=False)
-                if att in contraction_threshold:
-                    contraction_threshold[att] = max(sorted_list[fc_number - 1], contraction_threshold[att])
-                else:
-                    contraction_threshold[att] = sorted_list[fc_number - 1]
-        else:
-            to_remove = selection_categorical_attributes[att]
-            for value in to_remove:
-                if value not in col.values.tolist():
-                    contraction_threshold[att].add(value)
-                elif col.value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
-                    contraction_threshold[att].add(value)
 
     for fc in fairness_constraints:
         fc_dic = dict()
@@ -421,16 +350,11 @@ Get provenance expressions
         for k in fc["sensitive_attributes"]:
             fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
         fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
-        print("len of fc_data = {}".format(len(fc_data)))
         if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
             fairness_constraints_provenance_smaller_than.append(fc_dic)
         else:
             fairness_constraints_provenance_greater_than.append(fc_dic)
-            # satisfying_rows = data[data['this_fairness_constraint'] == 1][selected_attributes]
-            fc_data[selected_attributes].apply(get_threshold, args=(fc_dic['number'],), axis=0)
-
-    return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        contraction_threshold
+    return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than
 
 
 def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_than,
@@ -500,7 +424,7 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
                                         new_selection_categorical_attributes,
                                         fairness_constraints_provenance_greater_than,
                                         fairness_constraints_provenance_smaller_than):
-                    print("{} satisfies".format(this_refinement))
+                    # print("{} {} satisfies".format(new_selection_numeric_attributes, new_selection_categorical_attributes))
                     minimal_refinement_values = transform_refinement_format(this_refinement,
                                                                             numeric_att_domain_to_relax,
                                                                             num_numeric_att,
@@ -864,7 +788,6 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     if only_greater_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -886,7 +809,6 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     elif only_smaller_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -907,7 +829,6 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                           selection_categorical_attributes, time_limit)
     else:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold \
             = subtract_provenance_refinement(data, selected_attributes, sensitive_attributes,
                                              fairness_constraints, numeric_attributes, categorical_attributes,
                                              selection_numeric_attributes, selection_categorical_attributes,
