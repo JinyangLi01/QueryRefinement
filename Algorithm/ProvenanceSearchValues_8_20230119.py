@@ -998,7 +998,6 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             fixed_value_assignments_for_stack[PVT_head[col_idx]] = column[idx_in_this_col]
             fixed_value_assignments_positions_for_stack = copy.deepcopy(fixed_value_assignments_positions)
             fixed_value_assignments_positions_for_stack[PVT_head[col_idx]] = idx_in_this_col
-
             new_PVT_head = [PVT_head[x] for x in range(len(PVT_head)) if x != col_idx]
             new_max_index_PVT = max_index_PVT[:col_idx] + max_index_PVT[col_idx + 1:]
             # optimization: if there is only one column left to be moved down,
@@ -1611,6 +1610,9 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             new_value_assignment_position[att_idx] += 1  # 0: relax, 1: contract
             idx_in_col = new_value_assignment_position[att_idx]
             while idx_in_col < max_index_PVT[att_idx] + 1:
+                if time.time() - time1 > time_limit:
+                    print("provenance search alg time out")
+                    return minimal_refinements
                 # exclude some assignments due to reason
                 if len(non_satisfying_assignment) > 0:
                     if att_idx == num_columns - 1:  # last column
@@ -2105,7 +2107,7 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 fixed_value_assignments_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
                     = parent_PVT.iloc[to_put['idx_in_this_col_in_parent_PVT'] - 1, col_idx_in_parent_PVT]
                 to_put2['fixed_value_assignments'] = fixed_value_assignments_to_put
-                fixed_value_assignments_positions_to_put = copy.deepcopy(to_put['fixed_value_assignments_positions'])
+                fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
                 fixed_value_assignments_positions_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
                     = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 to_put2['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
@@ -2279,7 +2281,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                                  selection_categorical_attributes)
     if whether_satisfy:
         print("original query satisfies constraints already")
-        return {}, time.time() - time1, assign_to_provenance_num, 0, 0
+        return {}, time.time() - time1, assign_to_provenance_num, time.time() - time1, 0
 
     # whether it's single-direction
     only_smaller_than = True
