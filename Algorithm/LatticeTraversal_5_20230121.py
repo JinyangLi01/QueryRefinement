@@ -662,8 +662,8 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables = len(categorical_att_domain_too_add)
-    print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
-    print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
+    # print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
+    # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
 
     # I need to remember where I was last time
@@ -773,7 +773,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                                  selection_categorical_attributes)
     if whether_satisfy:
         print("original query satisfies constraints already")
-        return [], [], time.time() - time1
+        return [], [], time.time() - time1, 0, 0
 
         # whether it's single-direction
     only_smaller_than = True
