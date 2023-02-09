@@ -645,7 +645,7 @@ def update_minimal_relaxation_and_position(minimal_refinements, minimal_refineme
         p = minimal_refinements_positions[i]
         pd = position_dominate(p, full_value_assignment_positions)
         if pd == 1 or pd == 4:
-            return minimal_refinements, minimal_refinements_positions
+            return minimal_refinements, minimal_refinements_positions, False
         elif pd == 2:
             dominated.append(p)
             to_remove_refinement = minimal_refinements[i]
@@ -654,7 +654,7 @@ def update_minimal_relaxation_and_position(minimal_refinements, minimal_refineme
     minimal_refinements_positions.append(full_value_assignment_positions)
     minimal_refinements = [p for p in minimal_refinements if p not in dominated_refinements]
     minimal_refinements.append(full_value_assignment)
-    return minimal_refinements, minimal_refinements_positions
+    return minimal_refinements, minimal_refinements_positions, True
 
 
 def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attributes,
@@ -904,7 +904,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
             full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
 
-        minimal_refinements, minimal_refinements_positions = \
+        minimal_refinements, minimal_refinements_positions, _ = \
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
@@ -1328,7 +1328,7 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
             full_value_assignment_positions = {**full_value_assignment_positions, **fixed_value_assignments_positions}
 
-        minimal_refinements, minimal_refinements_positions = \
+        minimal_refinements, minimal_refinements_positions, _ = \
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
@@ -1552,10 +1552,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         print("fixed_value_assignments: {}".format(fixed_value_assignments))
         print("shifted_length: {}".format(shifted_length))
         print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-
-        if len(PVT_head) == 3:
-            print("PVT_head: {}".format(PVT_head))
-
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -1563,9 +1559,9 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         att_idx = 0
         find_base_refinement = False
         while att_idx < num_columns and att_idx >= 0:
-            if time.time() - time1 > time_limit:
-                print("provenance search alg time out")
-                return minimal_refinements
+            # if time.time() - time1 > time_limit:
+            #     print("provenance search alg time out")
+            #     return minimal_refinements
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -1708,12 +1704,17 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             search_space += x
         find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
-        minimal_refinements, minimal_refinements_positions = \
+        minimal_refinements, minimal_refinements_positions, added = \
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
         # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
         print("minimal_refinements: {}".format(minimal_refinements))
+
+        if not added:
+            print("base refinement is dominated by current result set, no need to do recursion")
+            continue
+
         # see whether I need to traverse over values between now and new tightened fixed value
         if tight_success:
             #  test refinements above new value positions
