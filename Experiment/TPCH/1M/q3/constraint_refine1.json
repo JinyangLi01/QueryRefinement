@@ -1,0 +1,24 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_returnflag", "o_orderkey"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "1-URGENT",
+        "l_returnflag": "A"
+      },
+      "symbol": ">=",
+      "number": 8
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderkey": 5444
+      },
+      "symbol": "<=",
+      "number": 5
+    }
+  ]
+}
+

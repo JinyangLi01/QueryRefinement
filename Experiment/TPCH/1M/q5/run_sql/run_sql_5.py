@@ -19,7 +19,7 @@ cursor = sql_connection.cursor()
 
 
 
-sql_filename = '../tpch1M-q3.sql'
+sql_filename = '../tpch1M-q5.sql'
 sql_file = open(sql_filename, 'r')
 sql_file_read = sql_file.read()
 sql_file.close()
@@ -30,7 +30,7 @@ fetch_result = cursor.fetchall()
 df = pd.DataFrame(fetch_result, columns=column_names)
 
 print(df.to_string())
-df.to_csv("answer_sql3.csv", sep='|', index=False)
+df.to_csv("answer_sql5.csv", sep='|', index=False)
 
 sql_connection.commit()
 

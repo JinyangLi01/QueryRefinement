@@ -1,0 +1,41 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_suppkey", "o_orderstatus", "l_linestatus", "l_returnflag"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "1-URGENT"
+      },
+      "symbol": "<=",
+      "number": 17
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_suppkey": 2
+      },
+      "symbol": "<=",
+      "number": 16
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderstatus": "F",
+        "l_linestatus": "F"
+      },
+      "symbol": "<=",
+      "number": 49
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_returnflag": "A",
+        "o_orderstatus": "F"
+      },
+      "symbol": "<=",
+      "number": 21
+    }
+  ]
+}
+

@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_shipinstruct"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "5-LOW"
+      },
+      "symbol": ">=",
+      "number": 50
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "COLLECT COD"
+      },
+      "symbol": ">=",
+      "number": 64
+    }
+  ]
+}
+

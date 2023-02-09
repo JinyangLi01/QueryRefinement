@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["l_linestatus", "o_orderpriority"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "l_linestatus": "F"
+      },
+      "symbol": "<=",
+      "number": 500
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "4-NOT SPECIFIED"
+      },
+      "symbol": "<=",
+      "number": 100
+    }
+  ]
+}
+
