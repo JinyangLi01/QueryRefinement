@@ -304,8 +304,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
             if value not in selection_categorical[att]:
                 col = att + "__" + value
                 PVT_head.append(col)
-
-    # print("PVT_head: {}".format(PVT_head))
+    print("PVT_head: {}".format(PVT_head))
 
     # build delta table
     def itercol(col):
@@ -1564,9 +1563,9 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
     num_iterations = 0
     search_space = 0
     while PVT_stack:
-        # if time.time() - time1 > time_limit:
-        #     print("provenance search alg time out")
-        #     return minimal_refinements
+        if time.time() - time1 > time_limit:
+            print("provenance search alg time out")
+            return minimal_refinements
         PVT = PVT_stack.pop()
         num_iterations += 1
         PVT_head = PVT_head_stack.pop()
@@ -2149,8 +2148,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         original_max_index_PVT = max_index_PVT.copy()
         original_shifted_length = copy.deepcopy(shifted_length)
 
-        # if len(PVT_head) == 5:
-        #     print("stop pvt head:".format(PVT_head))
         def recursion(column):
             nonlocal col_idx
             nonlocal new_value_assignment
