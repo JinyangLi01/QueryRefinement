@@ -1561,13 +1561,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         same_last_col_reason = False
         lastreason = -1
         while att_idx < num_columns and att_idx >= 0:
-            # if time.time() - time1 > time_limit:
-            #     print("provenance search alg time out")
-            #     return minimal_refinements
-            if att_idx == 4:
-                if new_value_assignment['l_returnflag__N'] == 1 and new_value_assignment['l_returnflag__A'] == 0 \
-                        and new_value_assignment['l_returnflag__R'] == 1 and new_value_assignment['l_quantity'] == 48:
-                    print("new_value_assignment = {}".format(new_value_assignment))
+            if time.time() - time1 > time_limit:
+                print("provenance search alg time out")
+                return minimal_refinements
+            # if att_idx == 4:
+            #     if new_value_assignment['l_returnflag__N'] == 1 and new_value_assignment['l_returnflag__A'] == 0 \
+            #             and new_value_assignment['l_returnflag__R'] == 1 and new_value_assignment['l_quantity'] == 48:
+            #         print("new_value_assignment = {}".format(new_value_assignment))
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -1824,7 +1824,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         find_value_this_col = True
                         break
                     else:
-                        print("{} doesn't satisfy constraints relax partial query".format(full_value_assignment))
+                        # print("{} doesn't satisfy constraints relax partial query".format(full_value_assignment))
                         checked_assignments_not_satisfying.append(full_value_assignment_str)
                 idx_in_col += 1
             if find_value_this_col:
