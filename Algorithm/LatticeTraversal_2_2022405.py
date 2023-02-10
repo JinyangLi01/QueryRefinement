@@ -680,17 +680,17 @@ def FindMinimalRefinement(data_file_prefix, query_file, constraint_file, time_li
 #
 
 
-data_file = r"../InputData/TPC-H/1Mdata/"
-query_file = r"../Experiment/TPCH/1M/q3/q3.json"
-constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
-time_limit = 30 * 60
-
-print("\nnaive algorithm:\n")
-
-minimal_refinements2, minimal_added_refinements2, running_time2 = FindMinimalRefinement(data_file, query_file,
-                                                                                        constraint_file, time_limit)
-
-# minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
-
-print(*minimal_refinements2, sep="\n")
-print("running time = {}".format(running_time2))
+# data_file = r"../InputData/TPC-H/1Mdata/"
+# query_file = r"../Experiment/TPCH/1M/q3/q3.json"
+# constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
+# time_limit = 30 * 60
+#
+# print("\nnaive algorithm:\n")
+#
+# minimal_refinements2, minimal_added_refinements2, running_time2 = FindMinimalRefinement(data_file, query_file,
+#                                                                                         constraint_file, time_limit)
+#
+# # minimal_refinements2 = [[float(y) for y in x] for x in minimal_refinements2]
+#
+# print(*minimal_refinements2, sep="\n")
+# print("running time = {}".format(running_time2))
