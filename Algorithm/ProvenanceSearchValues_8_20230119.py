@@ -1573,13 +1573,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         same_last_col_reason = False
         lastreason = -1
         while att_idx < num_columns and att_idx >= 0:
-            if time.time() - time1 > time_limit:
-                print("provenance search alg time out")
-                return minimal_refinements
-            # if att_idx == 4:
-            #     if new_value_assignment['l_returnflag__N'] == 1 and new_value_assignment['l_returnflag__A'] == 0 \
-            #             and new_value_assignment['l_returnflag__R'] == 1 and new_value_assignment['l_quantity'] == 48:
-            #         print("new_value_assignment = {}".format(new_value_assignment))
+            # if time.time() - time1 > time_limit:
+            #     print("provenance search alg time out")
+            #     return minimal_refinements
+            if fixed_value_assignments == {'l_shipdate': 19941107.0, 'c_mktsegment__FURNITURE': 0.0,
+                                           'c_mktsegment__HOUSEHOLD': 0.0}:
+                print(fixed_value_assignments)
+
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -1621,6 +1621,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 else:
                     idx_list = [x for x in idx_list if possible_values_lists[col][x]
                                 < selection_numeric[col][1]]
+                if len(idx_list) == 0:
+                    new_value_assignment_position[att_idx] = -1
+                    del new_value_assignment[col]
+                    att_idx -= 1
+                    same_last_col_reason = True
+                    lastreason = originalreason
+                    continue
                 left = 0
                 right = len(idx_list) - 1
                 # left reason
@@ -1637,7 +1644,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                            fairness_constraints_provenance_smaller_than)
                 if assign:
                     checked_assignments_satisfying.append(full_value_assignment_str)
-                    print("{} satisfies constraints".format(new_value_assignment))
+                    # print("{} satisfies constraints".format(new_value_assignment))
                     new_value_assignment_position[att_idx] = idx_list[right]
                     last_satisfying_bounding_relaxation_location = new_value_assignment_position
                     find_base_refinement = True
@@ -1667,7 +1674,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                               fairness_constraints_provenance_smaller_than)
                     if assign:
                         checked_assignments_satisfying.append(full_value_assignment_str)
-                        print("{} satisfies constraints".format(full_value_assignment))
+                        # print("{} satisfies constraints".format(full_value_assignment))
                         new_value_assignment_position[att_idx] = mid
                         last_satisfying_bounding_relaxation_location = new_value_assignment_position
                         find_base_refinement = True
@@ -1682,7 +1689,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 if find_base_refinement:
                     break
                 else:
-                    new_value_assignment_position[att_idx] = 0  # FIXME: -1 or 0
+                    new_value_assignment_position[att_idx] = -1  # FIXME: -1 or 0
                     del new_value_assignment[col]
                     att_idx -= 1
                     continue
@@ -1697,6 +1704,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         continue
                     else:
                         del new_value_assignment[col]
+                        new_value_assignment_position[att_idx] = -1
                         att_idx -= 1
                         continue
 
@@ -1728,6 +1736,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     del new_value_assignment[col]
                     att_idx -= 1
                     continue
+
             for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                 new_value_assignment[col] = possible_values_lists[col][idx_in_col]
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
@@ -2053,10 +2062,16 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             # TODO: avoid repeated checking: for columns that are done with moving up,
             #  we need to remove values above the 'stop line'
             seri = PVT[PVT_head[col_idx]]
-            PVT[PVT_head[col_idx]] = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
+            newcolumn = seri.shift(periods=-last_satisfying_bounding_relaxation_location[col_idx])
+            PVT[PVT_head[col_idx]] = newcolumn
             max_index_PVT[col_idx] -= last_satisfying_bounding_relaxation_location[col_idx]
             original_shifted_length[full_PVT_head.index(PVT_head[col_idx])] += \
                 last_satisfying_bounding_relaxation_location[col_idx]
+            # if len(newcolumn) == 1:
+            #     fixed_value_assignments[PVT_head[col_idx]] = newcolumn[0]
+            #     fixed_value_assignments_positions[PVT_head[col_idx]] = idx_in_this_col + 1
+            #     del max_index_PVT[col_idx]
+
             col_idx += 1
             return
 
