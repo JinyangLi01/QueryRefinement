@@ -59,7 +59,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [19930330, 19930430, 19930530, 19930630]
+    x_list = [19950228, 19951028, 19960628, 19970228]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
