@@ -16,7 +16,7 @@ where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey
 	and o_orderdate >= date '1993-02-01'
-	and o_orderdate < date '1993-05-01'
+	and l_quantity < 20
 	and l_returnflag = 'R'
 	and c_nationkey = n_nationkey
 ;

@@ -8,7 +8,7 @@
         "l_linenumber": 5
       },
       "symbol": "<=",
-      "number": 9734
+      "number": 79
     },
     {
       "sensitive_attributes":
@@ -17,7 +17,7 @@
         "c_nationkey": 11
       },
       "symbol": "<=",
-      "number": 638
+      "number": 1298
     }
   ]
 }
