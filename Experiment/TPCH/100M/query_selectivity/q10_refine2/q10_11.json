@@ -1,0 +1,12 @@
+{
+  "tables": ["customer", "orders", "lineitem", "nation"],
+  "joinkeys": [["c_custkey", "o_custkey"], ["o_orderkey", "l_orderkey"], ["c_nationkey", "n_nationkey"]],
+  "selection_numeric_attributes": {
+    "o_orderdate": [">=", 19930201, 1],
+    "l_quantity": ["<", 42, 1]
+  },
+  "selection_categorical_attributes": {
+    "l_returnflag": ["R"]
+  }
+}
+
