@@ -1558,12 +1558,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         shifted_length = shifted_length_stack.pop()
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("shifted_length: {}".format(shifted_length))
-        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("shifted_length: {}".format(shifted_length))
+        # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -1605,6 +1605,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     idx_in_col = original
                     break
                 # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, originalreason))
+                which_side_satisfy = -1  # left:0, right:1
                 right = max_index_PVT[att_idx]
                 left = new_value_assignment_position[att_idx]
                 idx_list = range(left, right + 1)
@@ -1644,13 +1645,14 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 if assign:
                     checked_assignments_satisfying.append(full_value_assignment_str)
                     # print("{} satisfies constraints".format(new_value_assignment))
-                    new_value_assignment_position[att_idx] = idx_list[right]
-                    last_satisfying_bounding_relaxation_location = new_value_assignment_position
-                    find_base_refinement = True
-                    find_value_this_col = True
-                    idx_in_col = right
-                    break
-                # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, rightreason))
+                    # new_value_assignment_position[att_idx] = idx_list[right]
+                    # last_satisfying_bounding_relaxation_location = new_value_assignment_position
+                    # find_base_refinement = True
+                    # find_value_this_col = True
+                    # idx_in_col = right
+                    # break
+                # else:
+                #     print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, rightreason))
                 if rightreason == leftreason:
                     new_value_assignment_position[att_idx] = -1
                     del new_value_assignment[col]
@@ -1679,12 +1681,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         find_base_refinement = True
                         find_value_this_col = True
                         idx_in_col = mid
-                        break
-                    # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, thisreason))
-                    if thisreason == leftreason:
-                        left = mid + 1
-                    else:
                         right = mid - 1
+                    else:
+                        # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, thisreason))
+                        if thisreason == leftreason:
+                            left = mid + 1
+                        else:
+                            right = mid - 1
                 if find_base_refinement:
                     break
                 else:
