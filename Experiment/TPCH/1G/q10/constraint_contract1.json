@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["c_nationkey", "l_shipinstruct", "l_returnflag"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_nationkey": 2
+      },
+      "symbol": "<=",
+      "number": 499
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "DELIVER IN PERSON"
+      },
+      "symbol": "<=",
+      "number": 3374
+    }
+  ]
+}
+

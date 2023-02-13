@@ -1,0 +1,24 @@
+{
+  "all_sensitive_attributes": ["c_mktsegment", "l_shipinstruct", "l_linenumber"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_mktsegment": "BUILDING",
+        "l_shipinstruct": "TAKE BACK RETURN"
+      },
+      "symbol": ">=",
+      "number": 1850
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_linenumber": 2
+      },
+      "symbol": ">=",
+      "number": 7370
+    }
+  ]
+}
+
