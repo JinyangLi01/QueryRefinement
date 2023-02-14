@@ -22,28 +22,28 @@ minimal_added_refinements2 = []
 running_time2 = []
 
 data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
-query_file_prefix = r"./q3_"
-constraint_file_prefix = r"./"
+query_file_prefix = r"./q"
 time_limit = 5 * 60
 
 time_output_prefix = r"./result_"
 
 
-def run_constraint(c):
-    print("running query change constraint {}".format(c))
-    constraint_file = r"./constraint_" + c + ".json"
+def run_constraint(q, c):
+    print("running query {} constraint change {}".format(q, c))
+    print("query", q)
+    query_file = query_file_prefix + str(q) + ".json"
 
-    time_output_file = r"./query_change_q3_" + c + ".csv"
+    time_output_file = r"./constraint_change_q" + str(q) + "_" + c + ".csv"
     time_output = open(time_output_file, "w")
     time_output.write("_,PS,PS_prov,PS_search,base,base_prov,base_search\n")
 
-    result_output_file = r"./result_query_change_q3" + c + ".txt"
+    result_output_file = r"./result_constraint_change_q" + str(q) + "_" + c + ".txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
     for i in range(1, 9):
-        print("query", i)
-        query_file = query_file_prefix + str(i) + ".json"
+        print("constraint {}\n".format(i))
+        constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
         minimal_refinements1, running_time1, _, \
             provenance_time1, search_time1 = \
@@ -82,4 +82,4 @@ def run_constraint(c):
 
 separator = '|'
 
-run_constraint("relax1")
+run_constraint(3, "contract")

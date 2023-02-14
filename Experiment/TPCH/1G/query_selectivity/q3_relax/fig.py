@@ -77,12 +77,12 @@ def run(query, size, constraint):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-            color=color[3], label=label[3])
+    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+    #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=20, fontsize=40)
+    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=40)
 
     plt.xlabel(r'o\underline{ }orderdate')
     plt.ylabel('Running time (s)')
