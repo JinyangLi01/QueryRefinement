@@ -18,7 +18,7 @@
         "l_returnflag": "N"
       },
       "symbol": "<=",
-      "number": 1400
+      "number": 1274
     },
     {
       "sensitive_attributes":
@@ -42,7 +42,7 @@
         "l_linenumber": 5
       },
       "symbol": "<=",
-      "number": 1467
+      "number": 2600
     }
   ]
 }

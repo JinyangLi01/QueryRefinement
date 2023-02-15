@@ -18,7 +18,7 @@
         "l_returnflag": "N"
       },
       "symbol": "<=",
-      "number": 1400
+      "number": 1274
     },
     {
       "sensitive_attributes":
@@ -34,7 +34,7 @@
         "l_shipinstruct": "COLLECT COD"
       },
       "symbol": "<=",
-      "number": 4764
+      "number": 6500
     },
     {
       "sensitive_attributes":

@@ -9,7 +9,7 @@
         "c_nationkey": 2
       },
       "symbol": "<=",
-      "number": 800
+      "number": 973
     },
     {
       "sensitive_attributes":
@@ -18,7 +18,7 @@
         "l_returnflag": "N"
       },
       "symbol": "<=",
-      "number": 1274
+      "number": 800
     },
     {
       "sensitive_attributes":
