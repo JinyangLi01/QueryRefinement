@@ -59,7 +59,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500]
+    x_list = [4300, 4400, 4500, 4600, 4700, 4800, 4900, 5500]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -84,7 +84,7 @@ def run(query, size, constraint):
 
     plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=40)
 
-    plt.xlabel(r'\{c\underline{ }nationkey = 23\} $>=$')
+    plt.xlabel(r'\{shipmode = TRUCK\} $>=$')
     plt.ylabel('Running time (s)')
     # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
     plt.legend(loc="best")
