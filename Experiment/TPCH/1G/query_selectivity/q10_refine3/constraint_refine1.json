@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["c_nationkey", "l_shipmode"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_nationkey": 12
+      },
+      "symbol": "<=",
+      "number": 1244
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipmode": "TRUCK"
+      },
+      "symbol": ">=",
+      "number": 4521
+    }
+  ]
+}
+
