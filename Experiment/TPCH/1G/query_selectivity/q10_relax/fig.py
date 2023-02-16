@@ -82,7 +82,7 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=20, fontsize=40)
+    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=40)
 
     plt.xlabel(r'o\underline{ }orderdate')
     plt.ylabel('Running time (s)')

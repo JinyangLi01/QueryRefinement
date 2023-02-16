@@ -61,7 +61,7 @@ def run_constraint(c):
         # else:
         #     print("running time = {}".format(running_time2))
         #
-        # print(*minimal_refinements1, sep="\n")
+        # print(*minimal_refinements2, sep="\n")
 
         result_output.write("\n")
         idx = i
