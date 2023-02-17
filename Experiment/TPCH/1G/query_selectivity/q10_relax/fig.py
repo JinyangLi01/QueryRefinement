@@ -7,8 +7,6 @@ import matplotlib.ticker as ticker
 import datetime
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter, date2num
 
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
 
 sns.set_palette("Paired")
 # sns.set_palette("deep")
@@ -18,6 +16,9 @@ plt.rcParams['xtick.major.size'] = 20
 plt.rcParams['xtick.major.width'] = 4
 plt.rcParams['xtick.bottom'] = True
 plt.rcParams['ytick.left'] = True
+
+plt.rc('text', usetex=True)
+plt.rc('font', size=70, weight='bold')
 
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
@@ -59,12 +60,12 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [19930330, 19930430, 19930530, 19930630]
+    x_list = [19930330, '', '', 19930630]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.35
+    bar_width = 0.4
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -82,12 +83,14 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=40)
 
-    plt.xlabel(r'o\underline{ }orderdate')
-    plt.ylabel('Running time (s)')
+    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
+    plt.yticks(fontsize=70, weight='bold')
+
+    plt.xlabel(r'o\underline{ }orderdate, 15d apart')
+    # plt.ylabel('Running time (s)')
     # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
-    plt.legend(loc='best')
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 1.03), fontsize=45)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
