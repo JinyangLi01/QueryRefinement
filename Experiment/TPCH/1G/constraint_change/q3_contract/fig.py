@@ -19,6 +19,7 @@ plt.rcParams['ytick.left'] = True
 
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
+
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
