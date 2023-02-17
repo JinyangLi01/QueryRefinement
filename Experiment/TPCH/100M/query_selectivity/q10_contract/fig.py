@@ -7,9 +7,6 @@ import matplotlib.ticker as ticker
 import datetime
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter, date2num
 
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-
 sns.set_palette("Paired")
 # sns.set_palette("deep")
 sns.set_context("poster", font_scale=2)
@@ -22,6 +19,8 @@ plt.rcParams['ytick.left'] = True
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
+plt.rc('text', usetex=True)
+plt.rc('font', size=70, weight='bold')
 f_size = (14, 10)
 
 x_list = list()
@@ -82,12 +81,13 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 1) + bar_width/2, x_list, fontsize=40)
+    plt.xticks(np.arange(0, 8, 1) + bar_width/2, x_list, fontsize=70)
+    plt.yticks(fontsize=70, weight='bold', fontname="Times New Roman")
 
     plt.ylim(3, 5)
     plt.xlabel(r'l\underline{ }quantity')
-    plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.55))
+    # plt.ylabel('Running time (s)')
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.45), fontsize=45)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
