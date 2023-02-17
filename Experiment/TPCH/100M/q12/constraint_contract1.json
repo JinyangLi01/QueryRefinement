@@ -8,15 +8,7 @@
         "o_orderpriority": "1-URGENT"
       },
       "symbol": "<=",
-      "number": 876
-    },
-    {
-      "sensitive_attributes":
-      {
-        "l_suppkey": 1
-      },
-      "symbol": "<=",
-      "number": 6
+      "number": 576
     },
     {
       "sensitive_attributes":
@@ -25,7 +17,7 @@
         "l_linestatus": "F"
       },
       "symbol": "<=",
-      "number": 1055
+      "number": 599
     },
     {
       "sensitive_attributes":
