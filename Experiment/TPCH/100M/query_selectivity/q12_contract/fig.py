@@ -84,11 +84,10 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70, weight='bold')
     plt.yticks(fontsize=70, weight='bold', fontname="Times New Roman")
 
-    plt.ylim(0, 150)
     plt.xlabel(r'l\underline{ }receiptdate, 4m apart')
     # plt.ylabel('Running time (s)')
     # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
-    plt.legend(loc='best', fontsize=45)
+    plt.legend(loc='best', fontsize=50)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 

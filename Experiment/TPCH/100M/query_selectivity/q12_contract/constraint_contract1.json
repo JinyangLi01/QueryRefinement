@@ -13,14 +13,6 @@
     {
       "sensitive_attributes":
       {
-        "l_suppkey": 1
-      },
-      "symbol": "<=",
-      "number": 6
-    },
-    {
-      "sensitive_attributes":
-      {
         "o_orderstatus": "F",
         "l_linestatus": "F"
       },
