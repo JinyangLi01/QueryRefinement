@@ -21,7 +21,7 @@ minimal_refinements2 = []
 minimal_added_refinements2 = []
 running_time2 = []
 
-data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
+data_file_prefix = r"../../../../../InputData/TPC-H/100Mdata/"
 query_file_prefix = r"./q"
 time_limit = 5 * 60
 
