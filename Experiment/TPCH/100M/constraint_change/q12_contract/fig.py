@@ -84,10 +84,10 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{shipmode = TRUCK\} $>=$')
+    plt.xlabel(r'\{o\underline{ }orderstatus = F, \\l\underline{ }linestatus = F\} $<=$', fontsize=60)
     # plt.ylabel('Running time (s)')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc="best", fontsize=45)
+    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.65), fontsize=50)
+    # plt.legend(loc="best", fontsize=45)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
