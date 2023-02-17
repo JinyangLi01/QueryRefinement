@@ -34,7 +34,7 @@
         "l_shipinstruct": "COLLECT COD"
       },
       "symbol": "<=",
-      "number": 450
+      "number": 100
     },
     {
       "sensitive_attributes":

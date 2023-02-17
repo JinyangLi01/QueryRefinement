@@ -21,7 +21,7 @@ minimal_refinements2 = []
 minimal_added_refinements2 = []
 running_time2 = []
 
-data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
+data_file_prefix = r"../../../../../InputData/TPC-H/100Mdata/"
 query_file_prefix = r"./q"
 time_limit = 5 * 60
 
@@ -41,7 +41,7 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(8, 0, -1):
+    for i in range(0, 9):
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
