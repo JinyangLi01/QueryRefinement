@@ -1,0 +1,24 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "o_orderstatus"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "3-MEDIUM",
+        "l_linenumber": 3
+      },
+      "symbol": ">=",
+      "number": 207
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderstatus": "P"
+      },
+      "symbol": "<=",
+      "number": 200
+    }
+  ]
+}
+
