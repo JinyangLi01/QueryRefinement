@@ -58,7 +58,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [800, 1000, 1200, 1400]
+    x_list = [1100, 1300, 1500, 1700]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -86,7 +86,9 @@ def run(query, size, constraint):
 
     plt.xlabel(r'\{l_shipinstruct = COLLECT COD\} $>=$', fontsize=55)
 
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=50)
+    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=50)
+    plt.legend(loc='best', fontsize=50)
+
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
