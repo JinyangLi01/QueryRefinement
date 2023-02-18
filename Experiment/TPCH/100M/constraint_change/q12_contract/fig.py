@@ -58,7 +58,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [4930, 4950, 4970, 4990]
+    x_list = [400, 500, 600, 700]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -86,8 +86,8 @@ def run(query, size, constraint):
 
     plt.xlabel(r'\{o\underline{ }orderstatus = F, \\l\underline{ }linestatus = F\} $<=$', fontsize=60)
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.65), fontsize=50)
-    # plt.legend(loc="best", fontsize=45)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 0.8), fontsize=50)
+    # plt.legend(loc="best", fontsize=50)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
