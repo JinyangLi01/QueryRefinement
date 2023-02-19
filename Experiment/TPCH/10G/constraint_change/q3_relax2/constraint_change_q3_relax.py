@@ -41,7 +41,7 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(1, 9):  # 5 time out
+    for i in range(0, 10):  # 5 time out
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
