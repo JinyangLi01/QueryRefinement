@@ -8,7 +8,7 @@
         "c_nationkey": 23
       },
       "symbol": ">=",
-      "number": 22000
+      "number": 17674
     },
     {
       "sensitive_attributes":
@@ -16,7 +16,7 @@
         "l_shipmode": "MAIL"
       },
       "symbol": ">=",
-      "number": 61767
+      "number": 50000
     }
   ]
 }
