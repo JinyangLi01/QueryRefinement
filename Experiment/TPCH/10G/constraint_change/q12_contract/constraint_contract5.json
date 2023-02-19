@@ -16,7 +16,7 @@
         "l_linenumber": 1
       },
       "symbol": "<=",
-      "number": 49321
+      "number": 69321
     },
     {
       "sensitive_attributes":
@@ -25,7 +25,7 @@
         "o_orderstatus": "F"
       },
       "symbol": "<=",
-      "number": 130000
+      "number": 120000
     }
   ]
 }
