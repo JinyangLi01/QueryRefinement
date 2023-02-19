@@ -1,0 +1,13 @@
+{
+  "tables": ["orders", "lineitem"],
+  "joinkeys": [["o_orderkey", "l_orderkey"]],
+  "comparekeys": [["l_commitdate", "l_receiptdate"], ["l_shipdate", "l_commitdate"]],
+  "selection_numeric_attributes": {
+    "l_receiptdate": [">=", 19940101, 1],
+    "l_shipdate": ["<", 19950101, 1]
+  },
+  "selection_categorical_attributes": {
+    "l_shipmode": ["FOB", "MAIL"]
+  }
+}
+
