@@ -86,7 +86,7 @@ def run(q, c):
 
 separator = '|'
 
-run(12, "relax1")
+run(3, "contract1")
 #
 # summary_file.close()
 
