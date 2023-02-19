@@ -87,7 +87,7 @@ def run(q, c):
 
 separator = '|'
 
-run(3, "contract1")
+run(3, "refine1")
 #
 # summary_file.close()
 
