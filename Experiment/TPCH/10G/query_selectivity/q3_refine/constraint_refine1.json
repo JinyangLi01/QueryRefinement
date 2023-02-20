@@ -8,7 +8,7 @@
         "c_nationkey": 12
       },
       "symbol": "<=",
-      "number": 107
+      "number": 120
     },
     {
       "sensitive_attributes":
@@ -16,7 +16,7 @@
         "l_shipmode": "TRUCK"
       },
       "symbol": ">=",
-      "number": 513
+      "number": 456
     }
   ]
 }
