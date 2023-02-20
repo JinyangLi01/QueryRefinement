@@ -84,7 +84,7 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{l_shipinstruct = \\COLLECT COD\} $>=$', fontsize=60)
+    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$', fontsize=60)
     plt.legend(loc='upper left', bbox_to_anchor=(0, 1.04), fontsize=50)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

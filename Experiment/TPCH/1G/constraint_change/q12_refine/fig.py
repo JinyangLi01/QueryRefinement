@@ -86,8 +86,8 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{l_returnflag = R, l_shipinstruct =\\ TAKE BACK RETURN\} $>=$', fontsize=55)
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.45), fontsize=45)
+    plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct =\\ TAKE BACK RETURN\} $>=$', fontsize=55)
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.56), fontsize=55)
     # plt.legend(loc="best")
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
