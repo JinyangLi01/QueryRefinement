@@ -46,6 +46,8 @@ def compare(q, c, time_output):
     print("running time = {}".format(running_time1))
     print(*minimal_refinements1, sep="\n")
 
+    minimal_refinements2 = []
+    running_time2, provenance_time2, search_time2 = 0, 0, 0
     print("========================== lattice traversal ===================================")
 
     minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
