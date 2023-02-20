@@ -87,7 +87,7 @@ def run(query, size, constraint):
 
     plt.xlabel(r'l\underline{ }receiptdate, 15d apart')
     # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 1.05), fontsize=45)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.05, 0.55), fontsize=55)
 
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"

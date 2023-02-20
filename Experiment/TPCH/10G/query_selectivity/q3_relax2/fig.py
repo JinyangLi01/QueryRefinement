@@ -87,7 +87,7 @@ def run(query, size, constraint):
 
     plt.xlabel(r'o\underline{ }orderdate, 15d apart')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.02, 1.02), fontsize=50)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.02), fontsize=53)
     # plt.legend(loc='best', fontsize=50)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
