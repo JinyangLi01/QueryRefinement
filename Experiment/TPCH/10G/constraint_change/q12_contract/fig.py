@@ -85,8 +85,8 @@ def run(query, size, constraint):
     plt.yticks(fontsize=70, weight='bold')
 
     plt.xlabel(r'\{l\underline{ }returnflag = A, \\o\underline{ }orderstatus=F\} $<=$', fontsize=65)
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc="best", fontsize=50)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.02), fontsize=55)
+    # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
