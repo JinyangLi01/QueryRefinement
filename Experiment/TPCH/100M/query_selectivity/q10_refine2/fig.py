@@ -87,7 +87,7 @@ def run(query, size, constraint):
 
     plt.xlabel(r'l\underline{ }quantity')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.65), fontsize=45)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.65), fontsize=55)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
