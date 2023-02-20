@@ -60,7 +60,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = ['24K', '28K',  '32K',  '36K']
+    x_list = ['16K', '24K',  '32K',  '40K']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -84,11 +84,13 @@ def run(query, size, constraint):
     #
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
+    plt.ylim(0, 250)
 
     plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct\\ = TAKE BACK RETURN\} $<=$', fontsize=60)
     # plt.ylabel('Running time (s)')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc="best", fontsize=55)
+    # plt.legend(loc="lower right", bbox_to_anchor=(0.6, -0.05), fontsize=50)
+    plt.legend(loc="upper right", bbox_to_anchor=(1.02, 1.08), fontsize=50)
+
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
