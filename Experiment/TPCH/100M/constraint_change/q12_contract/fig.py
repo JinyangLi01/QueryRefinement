@@ -86,7 +86,7 @@ def run(query, size, constraint):
 
     plt.xlabel(r'\{o\underline{ }orderstatus = F, \\l\underline{ }linestatus = F\} $<=$', fontsize=60)
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 0.8), fontsize=50)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 0.72), fontsize=55)
     # plt.legend(loc="best", fontsize=50)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

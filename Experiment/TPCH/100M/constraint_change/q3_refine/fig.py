@@ -86,8 +86,8 @@ def run(query, size, constraint):
 
     plt.xlabel(r'\{shipmode = TRUCK\} $>=$')
     # plt.ylabel('Running time (s)')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc="best", fontsize=45)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.0, 0.8), fontsize=55)
+    # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
