@@ -1,5 +1,5 @@
 {
-  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct", "o_orderstatus"],
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct", "l_returnflag"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
@@ -22,10 +22,10 @@
     {
       "sensitive_attributes":
       {
-        "o_orderstatus": "P"
+        "l_returnflag": "A"
       },
       "symbol": ">=",
-      "number": 639
+      "number": 1006
     }
   ]
 }
