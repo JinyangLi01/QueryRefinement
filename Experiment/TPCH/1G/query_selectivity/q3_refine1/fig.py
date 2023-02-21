@@ -85,7 +85,7 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'o\underline{ }orderdate 1m apart')
+    plt.xlabel(r'o\underline{ }orderdate 2m apart')
     # plt.ylabel('Running time (s)')
     plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.65), fontsize=55)
     plt.tight_layout()
