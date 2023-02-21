@@ -93,4 +93,4 @@ def run(query, size, constraint):
     plt.show()
 
 
-run(3, "10G", "refine")
+run(3, "10G", "contract")
