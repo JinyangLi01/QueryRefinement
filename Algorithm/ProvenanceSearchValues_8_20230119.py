@@ -720,12 +720,12 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
-        print("shifted_length: {}".format(shifted_length))
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
+        # print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
         new_value_assignment = []
@@ -922,6 +922,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         # print("find base refinement {}".format(new_value_assignment))
         # print("position: {}".format(full_value_assignment_positions))
         # print("minimal_refinements: {}".format(minimal_refinements))
+        # print("num of minimal_refinements: {}".format(len(minimal_refinements)))
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
 
@@ -1573,12 +1574,9 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         same_last_col_reason = False
         lastreason = -1
         while att_idx < num_columns and att_idx >= 0:
-            # if time.time() - time1 > time_limit:
-            #     print("provenance search alg time out")
-            #     return minimal_refinements
-            # if fixed_value_assignments == {'o_orderdate': 19941022}:
-            #     print(fixed_value_assignments)
-
+            if time.time() - time1 > time_limit:
+                print("provenance search alg time out")
+                return minimal_refinements
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -1605,7 +1603,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     idx_in_col = original
                     break
                 # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, originalreason))
-                which_side_satisfy = -1  # left:0, right:1
+
                 right = max_index_PVT[att_idx]
                 left = new_value_assignment_position[att_idx]
                 idx_list = range(left, right + 1)
@@ -1691,7 +1689,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 if find_base_refinement:
                     break
                 else:
-                    new_value_assignment_position[att_idx] = -1  # FIXME: -1 or 0
+                    new_value_assignment_position[att_idx] = -1
                     del new_value_assignment[col]
                     att_idx -= 1
                     continue
@@ -1736,6 +1734,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     continue
                 else:
                     del new_value_assignment[col]
+                    new_value_assignment_position[att_idx] = -1
                     att_idx -= 1
                     continue
 
@@ -1804,12 +1803,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                   idx_in_this_col_in_parent_PVT,
                                   PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                                   col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
-            print("no base refinement here, size of PVT: {}*{}".format(len(PVT), len(PVT_head)))
+            # print("no base refinement here, size of PVT: {}*{}".format(len(PVT), len(PVT_head)))
             search_space += len(PVT) * len(PVT_head)
             continue
 
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(new_value_assignment_position))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(new_value_assignment_position))
         tight_success = False
         tight_value_idx = -1
         fixed_att = str()
@@ -1881,10 +1880,9 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
-        # minimal_refinements.append([full_value_assignment[k] for k in full_PVT_head])
-        print("minimal_refinements: {}".format(minimal_refinements))
+        # print("minimal_refinements: {}".format(minimal_refinements))
         if not added:
-            print("base refinement is dominated by current result set, no need to do recursion")
+            # print("base refinement is dominated by current result set, no need to do recursion")
             continue
 
         # see whether I need to traverse over values between now and new tightened fixed value
@@ -2465,8 +2463,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 # time_limit = 5 * 60
 
 # data_file = r"../InputData/Healthcare/incomeK/before_selection_incomeK.csv"
-# query_file = r"../Experiment/Healthcare/query_change/query9.json"
-# constraint_file = r"../Experiment/Healthcare/query_change/constraint1.json"
+# query_file = r"../Experiment/Healthcare/constraint_change/query9.json"
+# constraint_file = r"../Experiment/Healthcare/constraint_change/constraint1.json"
 #
 #
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
@@ -2486,8 +2484,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
 #
 # data_file_prefix = r"../InputData/TPC-H/1Mdata/"
-# query_file = r"../Experiment/TPCH/1M/q3/q3.json"
-# constraint_file = r"../Experiment/TPCH/1M/q3/constraint1.json"
+# query_file = r"../Experiment/TPCH/1M/q3_contract3/q3_contract3.json"
+# constraint_file = r"../Experiment/TPCH/1M/q3_contract3/constraint1.json"
 # time_limit = 5 * 60
 #
 # print("\nour algorithm:\n")
