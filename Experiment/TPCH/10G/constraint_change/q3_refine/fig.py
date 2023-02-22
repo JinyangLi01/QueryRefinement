@@ -84,8 +84,8 @@ def run(query, size, constraint):
     plt.yticks(fontsize=70, weight='bold')
 
     plt.xlabel(r'\{l\underline{ }shipmode = TRUCK\} $>=$')
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55), fontsize=55)
-    # plt.legend(loc="best", fontsize=60)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 1.04), fontsize=55)
+    # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
