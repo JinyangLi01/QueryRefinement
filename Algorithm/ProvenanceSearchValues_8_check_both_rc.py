@@ -1,6 +1,8 @@
 """
 For refinement:
-categorical before numerical attributes
+when assign the values to refinements, check both relaxation and contraction constraints
+but it performs worse
+
 """
 
 import copy
