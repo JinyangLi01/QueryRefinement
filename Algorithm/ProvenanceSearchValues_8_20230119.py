@@ -1674,7 +1674,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     if assign:
                         checked_assignments_satisfying.append(full_value_assignment_str)
                         # print("{} satisfies constraints".format(full_value_assignment))
-                        new_value_assignment_position[att_idx] = mid
+                        new_value_assignment_position[att_idx] = idx_list[mid]
                         last_satisfying_bounding_relaxation_location = new_value_assignment_position
                         find_base_refinement = True
                         find_value_this_col = True
@@ -1687,6 +1687,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         else:
                             right = mid - 1
                 if find_base_refinement:
+                    new_value_assignment[col] = possible_values_lists[col][new_value_assignment_position[att_idx]]
+                    full_value_assignment[col] = possible_values_lists[col][new_value_assignment_position[att_idx]]
                     break
                 else:
                     new_value_assignment_position[att_idx] = -1
