@@ -78,16 +78,16 @@ def run(query, size, constraint):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-    #         color=color[3], label=label[3])
+    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+            color=color[3], label=label[3])
 
     plt.xticks(np.arange(0, 8, 2) + bar_width / 2, x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
     plt.xlabel(r'l\underline{ }shipdate, 8m apart')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.5), fontsize=53)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 0.5), fontsize=50, ncol=2, columnspacing=0.7)
     # plt.legend(loc='best', fontsize=50)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
