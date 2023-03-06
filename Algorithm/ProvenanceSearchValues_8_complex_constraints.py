@@ -1,6 +1,7 @@
 """
 For refinement:
-categorical before numerical attributes
+add support for complex constraints like women >= 50% men
+
 """
 
 import copy
