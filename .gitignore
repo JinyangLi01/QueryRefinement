@@ -7,6 +7,8 @@ InputData/TPC-H/1Gdata
 InputData/TPC-H/1Gquery
 InputData/TPC-H/10Gdata
 InputData/TPC-H/10Gquery
+Experiment/TPCH/10G/q12/run_sql/answer_sql12.csv
+Experiment/TPCH/10G/q3/run_sql/answer_sql3.csv
 # Experiment/TPCH/
 *__pycache__/
 InputData/compas-analysis-master/
