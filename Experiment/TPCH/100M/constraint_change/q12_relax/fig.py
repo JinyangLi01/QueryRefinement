@@ -84,7 +84,7 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'relax group \{l\underline{ }shipinstruct = \\COLLECT COD\} to \%', fontsize=60)
+    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$ (\%)', fontsize=60)
 
     # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=50)
     plt.legend(loc='best', fontsize=55)
