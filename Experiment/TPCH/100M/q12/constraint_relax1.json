@@ -9,7 +9,7 @@
         "l_linenumber": 3
       },
       "symbol": ">=",
-      "number": 219
+      "number": 140
     },
     {
       "sensitive_attributes":
@@ -17,7 +17,7 @@
         "l_shipinstruct": "COLLECT COD"
       },
       "symbol": ">=",
-      "number": 1174
+      "number": 1096
     },
     {
       "sensitive_attributes":
@@ -25,7 +25,7 @@
         "l_returnflag": "A"
       },
       "symbol": ">=",
-      "number": 1006
+      "number": 921
     }
   ]
 }
