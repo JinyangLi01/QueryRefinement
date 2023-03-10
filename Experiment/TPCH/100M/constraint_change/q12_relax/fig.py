@@ -58,7 +58,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [1100, 1300, 1500, 1700]
+    x_list = [110, 120, 130, 140, 150, 160]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -81,10 +81,10 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
+    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$', fontsize=60)
+    plt.xlabel(r'relax group \{l\underline{ }shipinstruct = \\COLLECT COD\} to \%', fontsize=60)
 
     # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=50)
     plt.legend(loc='best', fontsize=55)

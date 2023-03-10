@@ -1,5 +1,5 @@
 {
-  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct", "o_orderstatus"],
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct", "l_returnflag"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
@@ -9,7 +9,7 @@
         "l_linenumber": 3
       },
       "symbol": ">=",
-      "number": 145
+      "number": 140
     },
     {
       "sensitive_attributes":
@@ -17,15 +17,15 @@
         "l_shipinstruct": "COLLECT COD"
       },
       "symbol": ">=",
-      "number": 1100
+      "number": 928
     },
     {
       "sensitive_attributes":
       {
-        "o_orderstatus": "P"
+        "l_returnflag": "A"
       },
       "symbol": ">=",
-      "number": 639
+      "number": 921
     }
   ]
 }
