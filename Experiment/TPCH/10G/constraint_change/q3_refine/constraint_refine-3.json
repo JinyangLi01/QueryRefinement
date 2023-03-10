@@ -5,18 +5,18 @@
     {
       "sensitive_attributes":
       {
-        "c_nationkey": 23
+        "c_nationkey": 12
       },
-      "symbol": ">=",
-      "number": 18288
+      "symbol": "<=",
+      "number": 120
     },
     {
       "sensitive_attributes":
       {
-        "l_shipmode": "MAIL"
+        "l_shipmode": "TRUCK"
       },
       "symbol": ">=",
-      "number": 64251
+      "number": 430
     }
   ]
 }
