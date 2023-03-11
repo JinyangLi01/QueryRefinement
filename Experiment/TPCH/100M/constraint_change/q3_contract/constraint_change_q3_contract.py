@@ -41,7 +41,7 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(0, 9):
+    for i in range(1, 7):
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
@@ -60,8 +60,8 @@ def run_constraint(q, c):
         #     print("naive alg out of time with {} time limit".format(time_limit))
         # else:
         #     print("running time = {}".format(running_time2))
-
-        print(*minimal_refinements1, sep="\n")
+        #
+        # print(*minimal_refinements2, sep="\n")
         result_output.write("\n")
         idx = i
         if running_time2 < time_limit:
