@@ -41,7 +41,7 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(-2, 14, 1):
+    for i in range(5, -1, -1):
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
@@ -50,6 +50,7 @@ def run_constraint(q, c):
             ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
 
         print("running time = {}".format(running_time1))
+        print("num of refinements = {}".format(len(minimal_refinements1)))
         print(*minimal_refinements1, sep="\n")
 
         running_time2, provenance_time2, search_time2 = 0, 0, 0
@@ -60,8 +61,8 @@ def run_constraint(q, c):
         #     print("naive alg out of time with {} time limit".format(time_limit))
         # else:
         #     print("running time = {}".format(running_time2))
-
-        print(*minimal_refinements1, sep="\n")
+        #
+        # print(*minimal_refinements2, sep="\n")
         result_output.write("\n")
         idx = i
         if running_time2 < time_limit:

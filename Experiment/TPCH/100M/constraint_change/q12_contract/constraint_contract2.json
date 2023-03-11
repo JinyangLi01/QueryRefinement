@@ -1,5 +1,5 @@
 {
-  "all_sensitive_attributes": ["o_orderpriority", "o_orderstatus", "l_linestatus", "l_returnflag"],
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "o_orderstatus", "l_returnflag"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
@@ -8,16 +8,15 @@
         "o_orderpriority": "1-URGENT"
       },
       "symbol": "<=",
-      "number": 576
+      "number": 517
     },
     {
       "sensitive_attributes":
       {
-        "o_orderstatus": "F",
-        "l_linestatus": "F"
+        "l_linenumber": 1
       },
       "symbol": "<=",
-      "number": 600
+      "number": 3
     },
     {
       "sensitive_attributes":
@@ -26,7 +25,7 @@
         "o_orderstatus": "F"
       },
       "symbol": "<=",
-      "number": 347
+      "number": 366
     }
   ]
 }
