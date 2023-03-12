@@ -9,7 +9,7 @@
         "c_nationkey": 2
       },
       "symbol": "<=",
-      "number": 867
+      "number": 997
     },
     {
       "sensitive_attributes":
@@ -18,7 +18,7 @@
         "l_returnflag": "N"
       },
       "symbol": "<=",
-      "number": 1274
+      "number": 1573
     },
     {
       "sensitive_attributes":
@@ -26,7 +26,7 @@
         "l_shipmode": "SHIP"
       },
       "symbol": "<=",
-      "number": 3123
+      "number": 3537
     },
     {
       "sensitive_attributes":
@@ -34,7 +34,7 @@
         "l_shipinstruct": "COLLECT COD"
       },
       "symbol": "<=",
-      "number": 5674
+      "number": 5276
     },
     {
       "sensitive_attributes":
@@ -42,7 +42,7 @@
         "l_linenumber": 5
       },
       "symbol": "<=",
-      "number": 2700
+      "number": 2588
     }
   ]
 }
