@@ -84,7 +84,7 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{c\underline{ }nationkey = 12\} $>=$ (\%)')
+    plt.xlabel(r'\{c\underline{ }nationkey = 12\} $>=$ (\%)', fontsize=65, weight='bold')
     # plt.ylabel('Running time (s)')
     plt.legend(loc='upper left', bbox_to_anchor=(0.3, 0.63), fontsize=55)
     # plt.legend(loc="best", fontsize=55)
