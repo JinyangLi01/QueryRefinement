@@ -83,7 +83,7 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{c\underline{ }nationkey = 23\} $>=$ (\%)')
+    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=65, weight='bold')
 
     plt.legend(loc='upper left', bbox_to_anchor=(0, 0.55), fontsize=55)
     # plt.legend(loc="best", fontsize=55)
