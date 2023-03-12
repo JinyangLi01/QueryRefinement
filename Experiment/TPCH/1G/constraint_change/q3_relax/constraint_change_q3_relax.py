@@ -23,7 +23,7 @@ running_time2 = []
 
 data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
 query_file_prefix = r"./q"
-time_limit = 5 * 60
+time_limit = 10 * 60
 
 time_output_prefix = r"./result_"
 
@@ -41,7 +41,7 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(2, 10):
+    for i in range(2, 8):
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
@@ -53,15 +53,15 @@ def run_constraint(q, c):
         print(*minimal_refinements1, sep="\n")
 
         running_time2, provenance_time2, search_time2 = 0, 0, 0
-        print("========================== lattice traversal ===================================")
-        minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
-            lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
-        if running_time2 > time_limit:
-            print("naive alg out of time with {} time limit".format(time_limit))
-        else:
-            print("running time = {}".format(running_time2))
-
-        print(*minimal_refinements1, sep="\n")
+        # print("========================== lattice traversal ===================================")
+        # minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
+        #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+        # if running_time2 > time_limit:
+        #     print("naive alg out of time with {} time limit".format(time_limit))
+        # else:
+        #     print("running time = {}".format(running_time2))
+        #
+        # print(*minimal_refinements1, sep="\n")
         result_output.write("\n")
         idx = i
         if running_time2 < time_limit:
