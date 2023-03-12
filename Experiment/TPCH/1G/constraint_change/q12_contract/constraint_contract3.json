@@ -8,7 +8,7 @@
         "o_orderpriority": "1-URGENT"
       },
       "symbol": "<=",
-      "number": 3876
+      "number": 5317
     },
     {
       "sensitive_attributes":
@@ -16,7 +16,7 @@
         "l_linenumber": 1
       },
       "symbol": "<=",
-      "number": 6317
+      "number": 6611
     },
     {
       "sensitive_attributes":
@@ -25,7 +25,7 @@
         "o_orderstatus": "F"
       },
       "symbol": "<=",
-      "number": 6000
+      "number": 9837
     }
   ]
 }
