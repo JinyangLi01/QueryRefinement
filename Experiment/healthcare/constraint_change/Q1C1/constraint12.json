@@ -13,7 +13,7 @@
     {
       "sensitive_attributes":
       {
-        "race": "race3",
+        "race": "race1",
         "age-group": "group1"
       },
       "symbol": ">=",
