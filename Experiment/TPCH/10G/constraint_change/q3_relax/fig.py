@@ -57,8 +57,7 @@ def run(query, size, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = ['45K', '55K', '65K', '75K']
+    x_list = [110, 120, 130, 140, 150, 160]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -79,11 +78,11 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
-    #
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70)
+
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$')
+    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=60, weight='bold')
     # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
     plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
