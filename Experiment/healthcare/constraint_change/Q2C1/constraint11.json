@@ -8,16 +8,16 @@
         "race": "race2"
       },
       "symbol": ">=",
-      "number": 35
+      "number": 37
     },
     {
       "sensitive_attributes":
       {
-        "race": "race3",
+        "race": "race1",
         "age-group": "group1"
       },
       "symbol": ">=",
-      "number": 10
+      "number": 17
     }
   ]
 }
