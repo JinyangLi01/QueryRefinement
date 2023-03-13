@@ -18,7 +18,7 @@ from Algorithm import LatticeTraversal_5_20230121 as lt
 data_file_prefix = r"../../../../InputData/TPC-H/100Mdata/"
 query_file_prefix = r"../"
 constraint_file_prefix = r"../"
-time_limit = 10 * 60
+time_limit = 60 * 60 * 10
 
 time_output_prefix = r"./result_"
 
@@ -88,7 +88,7 @@ def run(q, c):
 
 separator = '|'
 
-run(3, "contract1")
+run(3, "relax1")
 #
 # summary_file.close()
 

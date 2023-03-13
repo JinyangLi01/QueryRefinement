@@ -38,9 +38,9 @@ def run(queries, size):
     baseline_fig = False
     x_list = []
     for query in queries:
-        x_list.append("$Q_{" + str(query) + "}C_1$")
-        x_list.append("$Q_{" + str(query) + "}C_2$")
-        x_list.append("$Q_{" + str(query) + "}C_3$")
+        x_list.append("Q_{" + str(query) + "}C_1")
+        x_list.append("Q_{" + str(query) + "}C_2")
+        x_list.append("Q_{" + str(query) + "}C_3")
         for constraint in constraints:
             input_path = input_path_prefix + "q" + str(query) + constraint + ".csv"
             input_file = open(input_path, "r")
@@ -81,13 +81,14 @@ def run(queries, size):
                 color=color[3], label=label[3])
     #
     # plt.xticks(np.arange(0, 8, 2) + bar_width / 2, x_list, rotation=0, fontsize=70)
-    plt.xticks(np.arange(0, len(queries) * 3) + bar_width / 2, x_list, fontsize=46, weight='bold')
+    x_list = ['Q1C1', "Q1C3", "Q2C2"]
+    plt.xticks(np.arange(0, len(queries) * 3, 2) + bar_width / 2, x_list, fontsize=70, weight='bold')
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'query and constraint')
+    plt.xlabel(r'Query and Constraint')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.0), fontsize=55)
-    # plt.legend(loc='best')
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.80), fontsize=45, ncol=2)
+    plt.yscale("log")
     plt.tight_layout()
     fig_path = "running_time_" + size + ".png"
 
