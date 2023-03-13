@@ -1,6 +1,5 @@
 {
   "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_returnflag", "l_shipinstruct"],
-  "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
@@ -9,7 +8,7 @@
         "l_linenumber": 3
       },
       "symbol": ">=",
-      "number": 13856
+      "number": 12277
     },
     {
       "sensitive_attributes":
@@ -18,8 +17,7 @@
         "l_shipinstruct": "TAKE BACK RETURN"
       },
       "symbol": "<=",
-      "number": 28000
+      "number": 38371
     }
   ]
 }
-
