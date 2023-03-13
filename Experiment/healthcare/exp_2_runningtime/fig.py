@@ -3,25 +3,31 @@ import seaborn as sns
 from matplotlib.ticker import FuncFormatter
 import numpy as np
 
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-
 
 sns.set_palette("Paired")
 # sns.set_palette("deep")
 sns.set_context("poster", font_scale=2)
 sns.set_style("whitegrid")
-# sns.palplot(sns.color_palette("deep", 10))
-# sns.palplot(sns.color_palette("Paired", 9))
+plt.rcParams['xtick.major.size'] = 20
+plt.rcParams['xtick.major.width'] = 4
+plt.rcParams['xtick.bottom'] = True
+plt.rcParams['ytick.left'] = True
 
-color = ['C1', 'C0', 'C3']
-label = ["PS-provenance", "PS-searching", "Naive"]
+plt.rc('text', usetex=True)
+plt.rc('font', size=70, weight='bold')
+
+color = ['C1', 'C0', 'C3', 'C2']
+label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
+
 f_size = (14, 10)
+
 x_list = list()
 x_naive = list()
 execution_timeps1 = list()
 execution_timeps2 = list()
-execution_timelt = list()
+execution_timebl1 = list()
+execution_timebl2 = list()
+
 
 input_path = r'time.csv'
 input_file = open(input_path, "r")
@@ -40,32 +46,39 @@ for line in Lines:
         break
     items = line.strip().split(',')
     x_list.append(items[0])
-    execution_timeps1.append(float(items[1]))
-    execution_timeps2.append(float(items[2]))
-    if len(items) == 4:
-        execution_timelt.append(float(items[3]))
+    execution_timeps1.append(float(items[2]))
+    execution_timeps2.append(float(items[3]))
+    if items[4] != '':
+        execution_timebl1.append(float(items[5]))
+        execution_timebl2.append(float(items[6]))
     else:
-        execution_timelt.append(0)
+        execution_timebl1.append(0)
+        execution_timebl2.append(0)
 
-print(x_list, execution_timeps1, execution_timeps2, execution_timelt)
+
 
 index = np.arange(len(x_list))
-bar_width = 0.35
+bar_width = 0.45
 
 fig, ax = plt.subplots(1, 1, figsize=f_size)
 
-
 plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
 plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
-       color=color[1], label=label[1])
+        color=color[1], label=label[1])
+plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+        color=color[3], label=label[3])
 
-plt.bar(index + bar_width, execution_timelt, bar_width,  color=color[2], label=label[2])
-plt.xticks(index + bar_width, x_list)
+x_list = ['Q1C1', 'Q1C3', 'Q2C2']
+plt.ylim(0.001, 10000)
+
+plt.xticks(np.arange(0, 6, 2), x_list, rotation=0, fontsize=70)
+plt.yticks(fontsize=70, weight='bold')
 
 plt.xlabel('Query and Constraint')
-plt.ylabel('Running time (s)')
+# plt.ylabel('Running time (s)')
 plt.yscale('log')
-plt.legend(loc='upper right', bbox_to_anchor=(1, 0.9))
+plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
 
 plt.tight_layout()
 plt.savefig("healthcare_time.png", bbox_inches='tight')
