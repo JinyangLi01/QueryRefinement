@@ -5,7 +5,7 @@
   },
   "selection_numeric_attributes": {
     "income": [">=", 100, 1],
-    "num-children": [">=", 5, 1]
+    "num-children": [">=", 0, 1]
   },
   "selection_categorical_attributes": {
     "county": ["county2", "county3"]
