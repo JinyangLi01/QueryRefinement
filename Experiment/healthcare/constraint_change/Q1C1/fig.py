@@ -86,7 +86,7 @@ def run(query, constraint):
     plt.legend(loc='upper right', bbox_to_anchor=(1, 0.60), fontsize=60)
     # plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
-    fig_path = "constraint_change_q" + str(query) + "_" + constraint + ".png"
+    fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
     plt.show()
