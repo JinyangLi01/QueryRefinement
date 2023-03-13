@@ -8,12 +8,12 @@
         "race": "race2"
       },
       "symbol": ">=",
-      "number": 50
+      "number": 43
     },
     {
       "sensitive_attributes":
       {
-        "race": "race3",
+        "race": "race1",
         "age-group": "group1"
       },
       "symbol": ">=",
