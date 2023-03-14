@@ -19,7 +19,7 @@ plt.rcParams['ytick.left'] = True
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
-plt.rc('font', size=70, weight='bold')
+plt.rc('font', size=80, weight='bold')
 
 f_size = (14, 10)
 
@@ -79,12 +79,12 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
+    plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=60, weight='bold')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc="best", fontsize=60)
+    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=68,
+               weight='bold').set_position((0.43, -0.1))
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.7), fontsize=60, ncol=1)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
