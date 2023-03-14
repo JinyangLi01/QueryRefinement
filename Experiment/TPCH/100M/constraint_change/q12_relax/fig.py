@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10)
+f_size = (14, 10.6)
 
 x_list = list()
 x_naive = list()
@@ -58,7 +58,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [110, 120, 130, 140, 150, 160]
+    x_list = [40, 50, 60, 70, 80, 90]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -81,14 +81,13 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
+    plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$ (\%)', fontsize=60)
-
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=50)
-    plt.legend(loc='best', fontsize=55)
-
+    plt.xlabel(r'\{l\underline{ }returnflag = A, \\o\underline{ }orderstatus=F\} $<=$ (\%)',
+               fontsize=75, weight='bold').set_position((0.45, -0.05))
+    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 1.05), fontsize=60)
+    # plt.legend(loc="best", fontsize=50)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 

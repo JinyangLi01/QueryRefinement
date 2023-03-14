@@ -81,10 +81,11 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
+    plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=65, weight='bold')
+    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)',
+               fontsize=70, weight='bold').set_position((0.47, -0.1))
 
     plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55), fontsize=60)
     plt.tight_layout()
