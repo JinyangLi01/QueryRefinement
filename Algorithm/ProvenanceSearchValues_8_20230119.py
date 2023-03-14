@@ -45,7 +45,6 @@ Get provenance expressions
     data['satisfy'] = 0
 
     # threshold for contraction
-    contraction_threshold = {}
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
@@ -217,13 +216,13 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
     """
     PVT_head = []
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in contraction_threshold[att]:
                 col = att + "__" + value
                 PVT_head.append(col)
     PVT_head = PVT_head + numeric_attributes
-    print("PVT_head: {}".format(PVT_head))
+    # print("PVT_head: {}".format(PVT_head))
 
     def itercol(col):
         nonlocal possible_values_sets
@@ -290,6 +289,14 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
     max_index_PVT = [len(value) - 1 for value in possible_values_lists.values()]
     return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT, possible_values_lists
 
+# define a function to check if a value is an integer
+def is_int(val):
+    if isinstance(val, int):
+        return True
+    elif isinstance(val, float):
+        return val.is_integer()
+    else:
+        return False
 
 def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                          categorical_attributes, selection_numeric, selection_categorical,
@@ -312,12 +319,14 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     """
     PVT_head = numeric_attributes.copy()
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        if data[att].apply(is_int).all():
+            data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
+        domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in selection_categorical[att]:
                 col = att + "__" + value
                 PVT_head.append(col)
-    print("PVT_head: {}".format(PVT_head))
+    # print("PVT_head: {}".format(PVT_head))
 
     # build delta table
     def itercol(col):
@@ -770,12 +779,12 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        # print("==========================  searchPVT  ========================== ")
-        # print("PVT_head: {}".format(PVT_head))
-        # print("PVT:\n{}".format(PVT))
-        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        # print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
-        # print("shifted_length: {}".format(shifted_length))
+        print("==========================  searchPVT  ========================== ")
+        print("PVT_head: {}".format(PVT_head))
+        print("PVT:\n{}".format(PVT))
+        print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
+        print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
         new_value_assignment = []
@@ -973,6 +982,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         # print("position: {}".format(full_value_assignment_positions))
         # print("minimal_refinements: {}".format(minimal_refinements))
         # print("num of minimal_refinements: {}".format(len(minimal_refinements)))
+
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
 
@@ -1609,12 +1619,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         shifted_length = shifted_length_stack.pop()
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("shifted_length: {}".format(shifted_length))
-        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("shifted_length: {}".format(shifted_length))
+        # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -1884,8 +1894,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             search_space += len(PVT) * len(PVT_head)
             continue
 
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(new_value_assignment_position))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(new_value_assignment_position))
         tight_success = False
         tight_value_idx = -1
         fixed_att = str()
@@ -2326,18 +2336,18 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables, joinkeys, comparekeys,
                                          selected_attributes,
                                          sensitive_attributes, fairness_constraints, numeric_attributes,
                                          categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
     global df1, df2
     if len(tables) == 1:  # no join
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
     else:
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
         for idx in range(1, len(tables)):
-            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + data_file_format, sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
@@ -2391,7 +2401,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit=5 * 60):
     time1 = time.time()
     global assign_to_provenance_num
     assign_to_provenance_num = 0
@@ -2428,8 +2438,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     pd.set_option('display.float_format', '{:.2f}'.format)
 
     # data:after join
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
-                                                                 comparekeys, selected_attributes,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables,
+                                                                 joinkeys, comparekeys, selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
                                                                  selection_numeric_attributes,
