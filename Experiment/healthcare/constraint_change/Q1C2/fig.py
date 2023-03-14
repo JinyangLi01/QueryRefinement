@@ -19,7 +19,7 @@ plt.rcParams['ytick.left'] = True
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
-plt.rc('font', size=70, weight='bold')
+plt.rc('font', size=80, weight='bold')
 
 f_size = (14, 10)
 
@@ -79,10 +79,10 @@ def run(query, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{race = race2\} $<=$ (\%)', fontsize=70, weight='bold')
+    plt.xlabel(r'\{race = race2\} $<=$ (\%)', fontsize=80, weight='bold').set_position((0.45, -0.1))
     plt.legend(loc='upper right', bbox_to_anchor=(1.02, 1.05), fontsize=55)
     # plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
