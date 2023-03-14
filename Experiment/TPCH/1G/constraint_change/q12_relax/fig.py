@@ -80,13 +80,12 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
     #
-    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
+    plt.yticks(fontsize=80, weight='bold')
+    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$ (\%)',
+               fontsize=70).set_position((0.45, -0.1))
 
-
-    plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $>=$ (\%)', fontsize=60)
-
-    plt.legend(loc='upper left', bbox_to_anchor=(0, 1.04), fontsize=50)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.08), fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 

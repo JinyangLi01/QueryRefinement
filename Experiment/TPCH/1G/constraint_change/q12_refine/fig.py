@@ -83,11 +83,12 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
+    plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct =\\ TAKE BACK RETURN\} $<=$ (\%)', fontsize=55)
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.56), fontsize=55)
+    plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct =\\ TAKE BACK RETURN\} $<=$ (\%)',
+               fontsize=63).set_position((0.45, -0.1))
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.59), fontsize=60)
     # plt.legend(loc="best")
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
