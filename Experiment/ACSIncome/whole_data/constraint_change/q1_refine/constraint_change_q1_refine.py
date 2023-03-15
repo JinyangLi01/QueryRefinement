@@ -10,7 +10,7 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_8_predicate_on_same_attribute as ps
+from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
 minimal_refinements1 = []
