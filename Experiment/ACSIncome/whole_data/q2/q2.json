@@ -5,7 +5,7 @@
     "SCHL": [">=", 21, 1]
   },
   "selection_categorical_attributes": {
-    "COW": ["3", "4", "5"]
+    "OCCP_bucket": ["CSSO", "HPTO", "PSO", "PCSO", "CEO"]
   }
 }
 
