@@ -69,13 +69,13 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=l
 plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
         color=color[3], label=label[3])
 
-x_list = ['Q1C1', 'Q1C3', 'Q2C2']
+# x_list = ['Q1C1', 'Q1C3', 'Q2C2']
 plt.ylim(0.001, 10000)
 
-plt.xticks(np.arange(0, 6, 2), x_list, rotation=0, fontsize=70)
-plt.yticks(fontsize=70, weight='bold')
+plt.xticks(np.arange(0, 6) + bar_width / 2, x_list, rotation=0, fontsize=48)
+plt.yticks(fontsize=80, weight='bold')
 
-plt.xlabel('Query and Constraint')
+plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
 plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
