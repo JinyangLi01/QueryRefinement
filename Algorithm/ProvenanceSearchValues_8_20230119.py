@@ -222,7 +222,7 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                 col = att + "__" + value
                 PVT_head.append(col)
     PVT_head = PVT_head + numeric_attributes
-    # print("PVT_head: {}".format(PVT_head))
+    print("PVT_head: {}".format(PVT_head))
 
     def itercol(col):
         nonlocal possible_values_sets
@@ -319,14 +319,12 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     """
     PVT_head = numeric_attributes.copy()
     for att in categorical_attributes:
-        # if data[att].apply(is_int).all():
-        #     data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
         domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in selection_categorical[att]:
                 col = att + "__" + value
                 PVT_head.append(col)
-    # print("PVT_head: {}".format(PVT_head))
+    print("PVT_head: {}".format(PVT_head))
 
     # build delta table
     def itercol(col):
@@ -982,7 +980,6 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         # print("position: {}".format(full_value_assignment_positions))
         # print("minimal_refinements: {}".format(minimal_refinements))
         # print("num of minimal_refinements: {}".format(len(minimal_refinements)))
-
         for x in full_PVT_head:
             search_space += full_value_assignment_positions[x]
 
@@ -1729,7 +1726,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     assign, rightreason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                                categorical_attributes, selection_numeric,
                                                                selection_categorical,
-                                                               full_PVT_head, fairness_constraints_provenance_greater_than,
+                                                               full_PVT_head,
+                                                               fairness_constraints_provenance_greater_than,
                                                                fairness_constraints_provenance_smaller_than,
                                                                fairness_constraints_provenance_complex)
                     if assign:
