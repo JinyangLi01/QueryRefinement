@@ -319,8 +319,8 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     """
     PVT_head = numeric_attributes.copy()
     for att in categorical_attributes:
-        if data[att].apply(is_int).all():
-            data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
+        # if data[att].apply(is_int).all():
+        #     data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
         domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in selection_categorical[att]:
@@ -779,12 +779,12 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         shifted_length = shifted_length_stack.pop()
         find_bounding_relaxation = False
         num_columns = len(PVT_head)
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
-        print("shifted_length: {}".format(shifted_length))
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
+        # print("shifted_length: {}".format(shifted_length))
 
         satisfying_row_id = 0
         new_value_assignment = []
@@ -2355,7 +2355,10 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_
         if len(comparekeys) > 0:
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
-    # print("length of data", len(data))
+    # if all values of a categorical attribute are integer, change that column type to string
+    for att in categorical_attributes:
+        if data[att].apply(is_int).all():
+            data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
     pe_dataframe = copy.deepcopy(data)
     # get data selected
     for att in selection_numeric_attributes:
