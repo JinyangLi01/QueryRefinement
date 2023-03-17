@@ -1,7 +1,7 @@
 """
 For refinement:
 add support for complex constraints like women >= 50% men
-
+support predicates on same attributes: x >= 5, x <= 20
 """
 
 import copy
@@ -45,7 +45,6 @@ Get provenance expressions
     data['satisfy'] = 0
 
     # threshold for contraction
-    contraction_threshold = {}
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
@@ -233,57 +232,50 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
         nonlocal PVT_head
         att = col.name
         unique_values = col.unique()
-        numeric_info = selection_numeric[att]
         if att in selection_numeric:
             if len(selection_numeric[att]) == 2:
-                case = 3
-                numeric_info = selection_numeric[att]['greater']
-            elif selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
-                case = 1
+                def add_to_PVT(strr):
+                    col_in_pvl = att + strr
+                    PVT_head.append(col_in_pvl)
+                    possible_values_sets[col_in_pvl] = set(unique_values.tolist())
+                    possible_values_sets[col_in_pvl].add(selection_numeric[att]['greater'][1])
+
+                add_to_PVT("__greater")
+                add_to_PVT("__smaller")
             else:
-                case = 2
-            if case == 1 or case == 3:
-                if len(selection_numeric[att]) == 2:
-                    col_in_pvl = att + "__greater"
+                if selection_numeric[att][0] == '>' or selection_numeric[att][0] == '>=':
+                    unique_values.sort()
+                    try:
+                        idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                    except StopIteration:
+                        idx = len(unique_values) - 1
+                    # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                    possible_values_sets[att].update(unique_values[:idx + 1])
+                    others = unique_values[idx:]
+                    try:
+                        idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
+                    except StopIteration:
+                        idx = len(others) - 1
+                    # idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
+                    possible_values_sets[att].update(others[:idx + 1])
+                    # possible_values_sets[att].update([s + selection_numeric[att][2] for s in others[:idx + 1]])
                 else:
-                    col_in_pvl = att
-                PVT_head.append(col_in_pvl)
-                unique_values.sort()
-                try:
-                    idx = next(i for i, v in enumerate(unique_values) if v >= numeric_info[1])
-                except StopIteration:
-                    idx = len(unique_values) - 1
-                possible_values_sets[col_in_pvl] = set(unique_values[:idx + 1])
-                others = unique_values[idx:]
-                try:
-                    idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
-                except StopIteration:
-                    idx = len(others) - 1
-                possible_values_sets[col_in_pvl].update(set(others[:idx + 1]))
-                if numeric_info[1] not in possible_values_sets[col_in_pvl]:
-                    possible_values_sets[col_in_pvl].add(numeric_info[1])
-            if case == 2 or case == 3:
-                if len(selection_numeric[att]) == 2:
-                    col_in_pvl = att + "__smaller"
-                else:
-                    col_in_pvl = att
-                PVT_head.append(col_in_pvl)
-                unique_values.sort()
-                unique_values = unique_values
-                try:
-                    idx = next(i for i, v in enumerate(unique_values) if v >= numeric_info[1])
-                except StopIteration:
-                    idx = len(unique_values) - 1
-                # idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
-                possible_values_sets[col_in_pvl] = set(unique_values[idx:])
-                others = unique_values[1:idx]
-                try:
-                    idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
-                except StopIteration:
-                    idx = len(others) - 1
-                possible_values_sets[col_in_pvl].update(set(others[idx:]))
-                if numeric_info[1] not in possible_values_sets[col_in_pvl]:
-                    possible_values_sets[col_in_pvl].add(numeric_info[1])
+                    unique_values.sort()
+                    unique_values = unique_values
+                    try:
+                        idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
+                    except StopIteration:
+                        idx = len(unique_values) - 1
+                    # idx = next(i for i, v in enumerate(unique_values) if v <= selection_numeric[att][1])
+                    possible_values_sets[att].update(unique_values[idx:])
+                    others = unique_values[1:idx]
+                    try:
+                        idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
+                    except StopIteration:
+                        idx = len(others) - 1
+                    # idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
+                    possible_values_sets[att].update(others[idx:])
+                    # possible_values_sets[att].update([s - selection_numeric[att][2] for s in others[:idx + 1]])
 
     data = data.drop_duplicates(subset=selected_attributes, keep='first').reset_index(drop=True)
     possible_values_sets = dict()
@@ -639,16 +631,14 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
     # check fairness_constraints_provenance_complex
     for fc in fairness_constraints_provenance_complex:
         pe_dataframe1 = filter(fc["first_provenance_expression"])
-        print(len(pe_dataframe1))
         pe_dataframe2 = filter(fc["second_provenance_expression"])
-        print(len(pe_dataframe2))
         if "plus" in fc:
-            print(pe_dataframe1["occurrence"].sum(), pe_dataframe2["occurrence"].sum())
+            # print(pe_dataframe1["occurrence"].sum(), pe_dataframe2["occurrence"].sum())
             if not eval(str(pe_dataframe1["occurrence"].sum()) + fc['symbol'] +
                         str(pe_dataframe2["occurrence"].sum() + fc['plus'])):
                 return False, 3
         elif "times" in fc:
-            print(pe_dataframe1["occurrence"].sum(), pe_dataframe2["occurrence"].sum())
+            # print(pe_dataframe1["occurrence"].sum(), pe_dataframe2["occurrence"].sum())
             if not eval(str(pe_dataframe1["occurrence"].sum()) + fc['symbol'] +
                         str(pe_dataframe2["occurrence"].sum() * fc['times'])):
                 return False, 3
@@ -1675,9 +1665,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             if time.time() - time1 > time_limit:
                 print("provenance search alg time out")
                 return minimal_refinements
-            # if len(new_value_assignment) == 1:
-            #     if new_value_assignment['x__greater'] == 4200:
-            #         print(new_value_assignment, "stop")
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -1710,7 +1697,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                               fairness_constraints_provenance_complex)
                 if assign:
                     checked_assignments_satisfying.append(full_value_assignment_str)
-                    # print("{} satisfies constraints".format(full_value_assignment))
+                    print("{} satisfies constraints".format(full_value_assignment))
                     last_satisfying_bounding_relaxation_location = new_value_assignment_position
                     find_base_refinement = True
                     find_value_this_col = True
@@ -1718,20 +1705,18 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     break
                 # print("{} doesn't satisfy constraints due to {}".format(full_value_assignment, originalreason))
 
-                # right = max_index_PVT[att_idx]
                 right = len(values_to_consider) - 1
                 left = original + 1
                 idx_list = range(left, right + 1)
                 if originalreason == 3:  # traversal, can't do binary search
                     while left <= right:
+                        # print("left = {}, right = {}".format(left, right))
                         new_value_assignment[col] = values_to_consider[left]
-                        if values_to_consider[left] == 20980.8:
-                            print(new_value_assignment, "stop")
-                        elif int(values_to_consider[left]/100) == 20:
-                            print(new_value_assignment, "stop")
                         full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
                         full_value_assignment_str = num2string(
                             [full_value_assignment[k] for k in full_PVT_head if k in full_att])
+                        if full_value_assignment == {'x__greater': 26000.04, 'x__smaller': 27052.44}:
+                            print("debug full_value_assignment = {}".format(full_value_assignment))
                         assign, thisreason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                                   categorical_attributes, selection_numeric,
                                                                   selection_categorical,
@@ -1742,7 +1727,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         if assign:
                             checked_assignments_satisfying.append(full_value_assignment_str)
                             idx_in_PVT = possible_values_lists[col].index(new_value_assignment[col])
-                            # print("{} satisfies constraints, id = {}".format(full_value_assignment, idx_in_PVT))
+                            print("{} satisfies constraints, id = {}".format(full_value_assignment, idx_in_PVT))
                             new_value_assignment_position[att_idx] = idx_in_PVT
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_base_refinement = True
@@ -1816,7 +1801,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                                   fairness_constraints_provenance_complex)
                         if assign:
                             checked_assignments_satisfying.append(full_value_assignment_str)
-                            # print("{} satisfies constraints".format(full_value_assignment))
+                            print("{} satisfies constraints".format(full_value_assignment))
                             new_value_assignment_position[att_idx] = idx_list[mid]
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_base_refinement = True
@@ -1897,10 +1882,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 if col.split('__')[0] in numeric_attributes:
                     if col.split('__')[0] +'__greater' in new_value_assignment:
                         idx_to_consider = [k for k in idx_to_consider if
-                                           possible_values_lists[col][k] <= new_value_assignment[col]]
+                                           possible_values_lists[col][k] <= new_value_assignment[col.split('__')[0]
+                                                                                                 + '__greater']]
                     elif col.split('__')[0] + '__smaller' in new_value_assignment:
                         idx_to_consider = [k for k in idx_to_consider if
-                                           possible_values_lists[col][k] >= new_value_assignment[col]]
+                                           possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
+                                                                                                 + '__smaller']]
 
             for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                 if idx_in_col not in idx_to_consider:
@@ -1986,7 +1973,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             fixed_att = list(fixed_value_assignments.keys())[-1]
             right = len(values_above) - 1
             fixed_value_assignments_for_tighten = copy.deepcopy(fixed_value_assignments)
-            if len(fairness_constraints_provenance_complex) > 0:  #  can't use binary
+            if len(fairness_constraints_provenance_complex) > 0:  # can't use binary
                 while left <= right:
                     cur_value_id = left
                     cur_fixed_value = values_above[cur_value_id]
@@ -2082,47 +2069,60 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                    fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                    shifted_length)
-        # print("minimal_refinements: {}".format(minimal_refinements))
+        print("minimal_refinements: {}".format(minimal_refinements))
         if not added:
             # print("base refinement is dominated by current result set, no need to do recursion")
             continue
 
         # see whether I need to traverse over values between now and new tightened fixed value
         if tight_success:
-            #  test refinements above new value positions
-            need_to_traverse = False
-            new_col_idx = 0
-            fixed_value_assignments_with_zero_idx = copy.deepcopy(fixed_value_assignments)
-            for k in new_value_assignment:
-                if new_value_assignment_position[new_col_idx] == 0:
-                    fixed_value_assignments_with_zero_idx[k] = new_value_assignment[k]
-                new_col_idx += 1
-            value_assignment_to_test = {}
-            new_col_idx = 0
-            for k in new_value_assignment:
-                for pos in range(new_value_assignment_position[new_col_idx] - 1, -1, -1):
-                    fixed_value_assignments_with_zero_idx[k] = possible_values_lists[k][pos]
-                    # fixed_value_assignments_with_zero_idx_str = num2string([fixed_value_assignments_with_zero_idx[k] for k in full_PVT_head if k in full_att])
-                    if assign_to_provenance_relax_only_partial_query(fixed_value_assignments_with_zero_idx,
-                                                                     numeric_attributes, categorical_attributes,
-                                                                     selection_numeric, selection_categorical,
-                                                                     full_PVT_head,
-                                                                     fairness_constraints_provenance_greater_than):
-                        need_to_traverse = True
-                        break
-                fixed_value_assignments_with_zero_idx.pop(k)
-                if need_to_traverse:
-                    break
-                new_col_idx += 1
+            #################################################################################################
+            #  I'm not sure whether i never need to traverse or sometimes I need to traverse
+            # ############################### code for testing whether i need to traverse #####################
+            # #  test refinements above new value positions
+            # need_to_traverse = False
+            # new_col_idx = 0
+            # fixed_value_assignments_with_zero_idx = copy.deepcopy(fixed_value_assignments)
+            # for k in new_value_assignment:
+            #     if new_value_assignment_position[new_col_idx] == 0:
+            #         fixed_value_assignments_with_zero_idx[k] = new_value_assignment[k]
+            #     new_col_idx += 1
+            # value_assignment_to_test = {}
+            # new_col_idx = 0
+            # for k in new_value_assignment:
+            #     for pos in range(new_value_assignment_position[new_col_idx] - 1, -1, -1):
+            #         fixed_value_assignments_with_zero_idx[k] = possible_values_lists[k][pos]
+            #         if assign_to_provenance_relax_only_partial_query(fixed_value_assignments_with_zero_idx,
+            #                                                          numeric_attributes, categorical_attributes,
+            #                                                          selection_numeric, selection_categorical,
+            #                                                          full_PVT_head,
+            #                                                          fairness_constraints_provenance_greater_than):
+            #             need_to_traverse = True
+            #             break
+            #     fixed_value_assignments_with_zero_idx.pop(k)
+            #     if need_to_traverse:
+            #         break
+            #     new_col_idx += 1
+            #
+            # if not need_to_traverse:
+            #     if tight_value_idx == 0:
+            #         to_put_to_stack.pop()
+            #     else:
+            #         #  no need to test values between now and last fixed value
+            #         to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+            #         to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+            #         to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
+            # ############################### code for testing whether i need to traverse #####################
 
-            if not need_to_traverse:
-                if tight_value_idx == 0:
-                    to_put_to_stack.pop()
-                else:
-                    #  no need to test values between now and last fixed value
-                    to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
-                    to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-                    to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
+            ############################### code for not traversing ############################################
+            # no need to test values between now and last fixed value
+            if tight_value_idx == 0:
+                to_put_to_stack.pop()
+            else:
+                to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
+                to_put_to_stack[-1]['fixed_value_assignments_positions'][fixed_att] = tight_value_idx - 1
 
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
@@ -2169,8 +2169,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         col_name_to_drop = []
         col_idx_to_drop = []
 
-        if PVT_head == ['COW__1', 'COW__2', 'COW__8', 'WKHP', 'SCHL']:
-            print("stop")
         def recursion(column):
             nonlocal col_idx
             nonlocal new_value_assignment
