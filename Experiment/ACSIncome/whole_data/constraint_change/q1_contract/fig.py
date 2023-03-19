@@ -57,12 +57,12 @@ def run(query, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    x_list = [110, 120, 130, 140, 150, 160]
+    x_list = [40, 50, 60, 70, 80, 90]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -83,8 +83,8 @@ def run(query, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{sex=male, relationship \\= husband/wife\} $>=$ (\%)',
-               fontsize=70, weight='bold').set_position((0.45, -0.1))
+    plt.xlabel(r'\{sex=male, relationship \\= husband/wife\} $<=$ (\%)',
+               fontsize=75, weight='bold').set_position((0.45, -0.1))
 
     plt.legend(loc='upper left', bbox_to_anchor=(0.3, 0.8), fontsize=65)
     # plt.legend(loc="best", fontsize=55)
