@@ -65,7 +65,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -78,16 +78,16 @@ def run(query, size, constraint):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-            color=color[3], label=label[3])
+    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+    #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width / 2, x_list, rotation=0, fontsize=70)
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
+    plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'o\underline{ }orderdate, 6m apart')
+    plt.xlabel(r'o\underline{ }orderdate, 6m apart', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.80), fontsize=50)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.0, 0.60), fontsize=65)
     # plt.legend(loc='best')
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"

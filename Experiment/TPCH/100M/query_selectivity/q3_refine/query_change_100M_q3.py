@@ -57,14 +57,14 @@ def run_constraint(c):
         print(*minimal_refinements1, sep="\n")
 
         running_time2, provenance_time2, search_time2 = 0, 0, 0
-        # print("========================== lattice traversal ===================================")
-        # minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
-        #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
-        # if running_time2 > time_limit:
-        #     print("naive alg out of time with {} time limit".format(time_limit))
-        # else:
-        #     print("running time = {}".format(running_time2))
-        # print(*minimal_refinements1, sep="\n")
+        print("========================== lattice traversal ===================================")
+        minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
+            lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+        if running_time2 > time_limit:
+            print("naive alg out of time with {} time limit".format(time_limit))
+        else:
+            print("running time = {}".format(running_time2))
+        print(*minimal_refinements2, sep="\n")
 
         result_output.write("\n")
         idx = i

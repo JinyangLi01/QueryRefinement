@@ -66,7 +66,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.40
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -85,13 +85,13 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2) + bar_width/2, x_list, rotation=0, fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'l\underline{ }receiptdate, 4m apart', fontsize=70, weight='bold')
+    plt.xlabel(r'l\underline{ }receiptdate, 4m apart', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)', fontsize=70)
     # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.05), fontsize=55)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.06), fontsize=65)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
