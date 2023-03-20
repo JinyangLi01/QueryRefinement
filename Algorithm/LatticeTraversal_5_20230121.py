@@ -13,6 +13,16 @@ import pandas as pd
 assign_to_provenance_num = 0
 
 
+
+# define a function to check if a value is an integer
+def is_int(val):
+    if isinstance(val, int):
+        return True
+    elif isinstance(val, float):
+        return val.is_integer()
+    else:
+        return False
+
 def num2string(pattern):
     st = ''
     for i in pattern:
@@ -49,18 +59,18 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys, selected_attributes,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables, joinkeys, comparekeys, selected_attributes,
                                          sensitive_attributes, fairness_constraints, numeric_attributes,
                                          categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
     if len(tables) == 1:  # no join
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
     else:
-        print(data_file_prefix + tables[0] + ".tbl")
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        print(data_file_prefix + tables[0] + data_file_format)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
         print(data[:3])
         for idx in range(1, len(tables)):
-            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + data_file_format, sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
@@ -69,6 +79,10 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
     print("length of data", len(data))
+    # if all values of a categorical attribute are integer, change that column type to string
+    for att in categorical_attributes:
+        if data[att].apply(is_int).all():
+            data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
     pe_dataframe = copy.deepcopy(data)
     # get data selected
     for att in selection_numeric_attributes:
@@ -370,13 +384,13 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
 
     categorical_att_domain_too_add = []
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        domain = data[att].dropna().unique().tolist()
         s = [(att, v) for v in domain if v not in selection_categorical_attributes[att]]
         categorical_att_domain_too_add += s
 
     numeric_att_domain_to_relax = dict()
     for att in numeric_attributes:
-        unique_values = data[att].unique().tolist() + [selection_numeric_attributes[att][1]]
+        unique_values = data[att].dropna().unique().tolist() + [selection_numeric_attributes[att][1]]
         unique_values.sort()  # ascending
         if selection_numeric_attributes[att][0] == ">=":
             unique_values = [x + selection_numeric_attributes[att][2] if x >= selection_numeric_attributes[att][1]
@@ -511,7 +525,7 @@ def LatticeTraversalSmallerThan(data, fairness_constraints_provenance_greater_th
     numeric_att_domain_to_contract = dict()
     for att in numeric_attributes:
         if selection_numeric_attributes[att][0] == "<" or selection_numeric_attributes[att][0] == "<=":
-            unique_values = data[att].unique().tolist()
+            unique_values = data[att].dropna().unique().tolist()
             unique_values.sort(reverse=True)  # descending
             if selection_numeric_attributes[att][0] == "<=":
                 domain = [x + selection_numeric_attributes[att][2] for x in unique_values]
@@ -522,7 +536,7 @@ def LatticeTraversalSmallerThan(data, fairness_constraints_provenance_greater_th
                     numeric_att_domain_to_contract[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                     break
         else:
-            unique_values = data[att].unique().tolist()
+            unique_values = data[att].dropna().unique().tolist()
             unique_values.sort()  # ascending
             if selection_numeric_attributes[att][0] == ">=":
                 domain = [x + selection_numeric_attributes[att][2] for x in unique_values]
@@ -616,7 +630,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
     numeric_att_domain_to_relax = dict()
     for att in numeric_attributes:
         if selection_numeric_attributes[att][0] == ">" or selection_numeric_attributes[att][0] == ">=":
-            unique_values = data[att].unique().tolist()
+            unique_values = data[att].dropna().unique().tolist()
             unique_values.sort(reverse=True)  # descending
             domain = unique_values
             if unique_values[-1] >= selection_numeric_attributes[att][1]:
@@ -628,7 +642,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
                         numeric_att_domain_to_relax[att] = [selection_numeric_attributes[att][1]] + domain[idx_domain:]
                         break
         else:
-            unique_values = data[att].unique().tolist()
+            unique_values = data[att].dropna().unique().tolist()
             unique_values.sort()  # ascending
             domain = unique_values
             if unique_values[-1] <= selection_numeric_attributes[att][1]:
@@ -647,7 +661,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 
     categorical_att_domain_too_add = []
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        domain = data[att].dropna().unique().tolist()
         s = [(att, v) for v in domain if v not in selection_categorical_attributes[att]]
         if len(s) == 0:
             categorical_attributes_nowhere_to_relax[att] = selection_categorical_attributes[att]
@@ -731,7 +745,7 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit=5 * 60):
     time1 = time.time()
     with open(query_file) as f:
         query_info = json.load(f)
@@ -765,8 +779,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     pd.set_option('display.float_format', '{:.2f}'.format)
 
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
-                                                                 comparekeys, selected_attributes,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables,
+                                                                 joinkeys, comparekeys, selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
                                                                  selection_numeric_attributes,
