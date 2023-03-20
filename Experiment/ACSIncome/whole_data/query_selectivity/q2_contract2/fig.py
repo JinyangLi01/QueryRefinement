@@ -85,7 +85,7 @@ def run(query, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'Hours worked per week', fontsize=80, weight='bold')
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.04, 1.05), fontsize=58)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 1.05), fontsize=65)
 
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + constraint + ".png"
