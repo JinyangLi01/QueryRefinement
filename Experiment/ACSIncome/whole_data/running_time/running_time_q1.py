@@ -10,6 +10,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
+sys.path.append('../../../../')
 
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
@@ -18,7 +20,7 @@ from Algorithm import LatticeTraversal_5_20230121 as lt
 data_file_prefix = r"../../data/"
 query_file_prefix = r"../"
 constraint_file_prefix = r"../"
-time_limit = 60 * 60
+time_limit = 60 * 60 * 5
 
 time_output_prefix = r"./result_"
 
