@@ -86,4 +86,4 @@ def run_constraint(c):
 
 separator = '|'
 data_format = ".tbl"
-run_constraint("relax1")
+run_constraint("refine1")
