@@ -14,10 +14,11 @@
     {
       "sensitive_attributes":
       {
-        "RAC1P": 2
+        "SEX": "M",
+        "RAC1P": 6
       },
-      "symbol": ">=",
-      "number": 15719
+      "symbol": "<=",
+      "number": 3488
     }
   ]
 }
