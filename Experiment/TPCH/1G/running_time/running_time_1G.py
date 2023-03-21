@@ -10,6 +10,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
+sys.path.append('../../../../')
 
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
@@ -18,7 +20,7 @@ from Algorithm import LatticeTraversal_5_20230121 as lt
 data_file_prefix = r"../../../../InputData/TPC-H/1Gdata/"
 query_file_prefix = r"../"
 constraint_file_prefix = r"../"
-time_limit = 60 * 60
+time_limit = 60 * 60 * 10
 
 time_output_prefix = r"./result_"
 
@@ -41,22 +43,23 @@ def compare(q, c, time_output):
     print("========================== provenance search ===================================")
     minimal_refinements1, running_time1, _, \
         provenance_time1, search_time1 = \
-        ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+        ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
     print("running time = {}".format(running_time1))
     print(*minimal_refinements1, sep="\n")
 
-    print("========================== lattice traversal ===================================")
-    running_time2, provenance_time2, search_time2 = 0, 0, 0
     minimal_refinements2 = []
+    running_time2, provenance_time2, search_time2 = 0, 0, 0
+    # print("========================== lattice traversal ===================================")
+    #
     # minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
-    #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+    #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
     # if running_time2 > time_limit:
     #     print("naive alg out of time")
     # else:
     #     print("running time = {}".format(running_time2))
     #     print(*minimal_refinements2, sep="\n")
-    #
+
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + c
@@ -86,7 +89,7 @@ def run(q, c):
     time_output.close()
 
 separator = '|'
-
+data_format = ".tbl"
 run(3, "contract1")
 #
 # summary_file.close()
