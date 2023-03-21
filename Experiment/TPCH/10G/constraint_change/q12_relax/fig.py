@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10)
+f_size = (14, 11)
 
 x_list = list()
 x_naive = list()
@@ -84,7 +84,7 @@ def run(query, size, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'\{l_shipinstruct = \\COLLECT COD\} $>=$ (\%)', fontsize=75).set_position((0.43, -0.1))
-    plt.legend(loc="upper left", bbox_to_anchor=(-0.01, 1.0), fontsize=50)
+    plt.legend(loc="upper left", bbox_to_anchor=(-0.01, 1.04), fontsize=62)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
