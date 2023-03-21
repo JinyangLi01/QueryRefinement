@@ -17,7 +17,7 @@ running_time2 = []
 data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
 query_file_prefix = r"./q12_"
 constraint_file_prefix = r"./"
-time_limit = 5 * 60
+time_limit = 10 * 60
 
 time_output_prefix = r"./result_"
 
@@ -40,7 +40,7 @@ def run_constraint(c):
         print("========================== provenance search ===================================")
         minimal_refinements1, running_time1, _, \
             provenance_time1, search_time1 = \
-            ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+            ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, dataformat, time_limit)
 
         print("running time = {}".format(running_time1))
         print(*minimal_refinements1, sep="\n")
@@ -75,5 +75,5 @@ def run_constraint(c):
 
 
 separator = '|'
-
+dataformat = ".tbl"
 run_constraint("contract1")
