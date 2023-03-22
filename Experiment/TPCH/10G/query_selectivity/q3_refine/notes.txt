@@ -1,1 +1,0 @@
-"o_orderdate": ["<", 19950215, 1] to 19950330: over time than 10min
