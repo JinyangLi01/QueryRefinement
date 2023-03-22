@@ -45,7 +45,6 @@ Get provenance expressions
     data['satisfy'] = 0
 
     # threshold for contraction
-    contraction_threshold = {}
     contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
                              for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
@@ -109,8 +108,11 @@ Get provenance expressions
 
     # threshold for contraction
     contraction_threshold = {}
-    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
-                             for att in selection_numeric_attributes}
+    contraction_threshold = {
+        att: data[att].max() if selection_numeric_attributes[att][0] == '>=' \
+            else data[att].min() for att in selection_numeric_attributes if len(selection_numeric_attributes[att]) > 2}
+    contraction_threshold.update({att: data[att].max() for att in selection_numeric_attributes if
+                                  len(selection_numeric_attributes[att]) == 2})
     print("prepare time = {}".format(time.time() - time0))
     time1 = time.time()
 
@@ -125,32 +127,33 @@ Get provenance expressions
     def get_contraction_threshold(df, fc_number, att):
         nonlocal contraction_threshold
         if att in selection_numeric_attributes:
-            if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
-                df = df.sort_values(by=[att], ascending=False)
-                a = df['occurrence'].cumsum().searchsorted(fc_number)
-                b = df.columns.get_loc(att)
-                c = df.iloc[a, b]
-                if a < len(df):
-                    if att in contraction_threshold:
-                        contraction_threshold[att] = min(c, contraction_threshold[att])
-                    else:
-                        contraction_threshold[att] = c
-                else:
-                    if att not in contraction_threshold:
-                        contraction_threshold[att] = df[att].max()
-            else:
-                df = df.sort_values(by=[att], ascending=True)
-                a = df['occurrence'].cumsum().searchsorted(fc_number)
-                if a < len(df):
+            if len(selection_numeric_attributes[att]) > 2:
+                if selection_numeric_attributes[att][0] == '>' or selection_numeric_attributes[att][0] == '>=':
+                    df = df.sort_values(by=[att], ascending=False)
+                    a = df['occurrence'].cumsum().searchsorted(fc_number)
                     b = df.columns.get_loc(att)
                     c = df.iloc[a, b]
-                    if att in contraction_threshold:
-                        contraction_threshold[att] = max(c, contraction_threshold[att])
+                    if a < len(df):
+                        if att in contraction_threshold:
+                            contraction_threshold[att] = min(c, contraction_threshold[att])
+                        else:
+                            contraction_threshold[att] = c
                     else:
-                        contraction_threshold[att] = c
+                        if att not in contraction_threshold:
+                            contraction_threshold[att] = df[att].max()
                 else:
-                    if att not in contraction_threshold:
-                        contraction_threshold[att] = df[att].min()
+                    df = df.sort_values(by=[att], ascending=True)
+                    a = df['occurrence'].cumsum().searchsorted(fc_number)
+                    if a < len(df):
+                        b = df.columns.get_loc(att)
+                        c = df.iloc[a, b]
+                        if att in contraction_threshold:
+                            contraction_threshold[att] = max(c, contraction_threshold[att])
+                        else:
+                            contraction_threshold[att] = c
+                    else:
+                        if att not in contraction_threshold:
+                            contraction_threshold[att] = df[att].min()
         else:
             to_remove = selection_categorical_attributes[att]
             for value in to_remove:
@@ -217,7 +220,7 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
     """
     PVT_head = []
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in contraction_threshold[att]:
                 col = att + "__" + value
@@ -290,6 +293,14 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
     max_index_PVT = [len(value) - 1 for value in possible_values_lists.values()]
     return possible_value_table, PVT_head, categorical_att_columns, max_index_PVT, possible_values_lists
 
+# define a function to check if a value is an integer
+def is_int(val):
+    if isinstance(val, int):
+        return True
+    elif isinstance(val, float):
+        return val.is_integer()
+    else:
+        return False
 
 def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                          categorical_attributes, selection_numeric, selection_categorical,
@@ -312,7 +323,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
     """
     PVT_head = numeric_attributes.copy()
     for att in categorical_attributes:
-        domain = data[att].unique().tolist()
+        domain = data[att].dropna().unique().tolist()
         for value in domain:
             if value not in selection_categorical[att]:
                 col = att + "__" + value
@@ -1689,12 +1700,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                         break
                 elif originalreason == 0 or originalreason == 1:
                     if originalreason == 0 and (selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
-                        idx_list = [x for x in idx_list if possible_values_lists[col][x]
-                                    < selection_numeric[col][1]]
-                    elif originalreason == 0 and (selection_numeric[col][0] == '<' or selection_numeric[col][0] == '<='):
+                        idx_list = [x for x in idx_list if possible_values_lists[col][x] < selection_numeric[col][1]]
+                    elif originalreason == 0 and (
+                            selection_numeric[col][0] == '<' or selection_numeric[col][0] == '<='):
                         idx_list = [x for x in idx_list if possible_values_lists[col][x]
                                     > selection_numeric[col][1]]
-                    elif originalreason == 1 and (selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
+                    elif originalreason == 1 and (
+                            selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
                         idx_list = [x for x in idx_list if possible_values_lists[col][x]
                                     > selection_numeric[col][1]]
                     else:
@@ -1719,7 +1731,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     assign, rightreason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                                categorical_attributes, selection_numeric,
                                                                selection_categorical,
-                                                               full_PVT_head, fairness_constraints_provenance_greater_than,
+                                                               full_PVT_head,
+                                                               fairness_constraints_provenance_greater_than,
                                                                fairness_constraints_provenance_smaller_than,
                                                                fairness_constraints_provenance_complex)
                     if assign:
@@ -2326,18 +2339,18 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys, comparekeys,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables, joinkeys, comparekeys,
                                          selected_attributes,
                                          sensitive_attributes, fairness_constraints, numeric_attributes,
                                          categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
     global df1, df2
     if len(tables) == 1:  # no join
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
     else:
-        data = pd.read_csv(data_file_prefix + tables[0] + ".tbl", sep=separator)
+        data = pd.read_csv(data_file_prefix + tables[0] + data_file_format, sep=separator)
         for idx in range(1, len(tables)):
-            righttable = pd.read_csv(data_file_prefix + tables[idx] + ".tbl", sep=separator)
+            righttable = pd.read_csv(data_file_prefix + tables[idx] + data_file_format, sep=separator)
             print(joinkeys[idx - 1][0], joinkeys[idx - 1][1], righttable.columns.tolist(), )
             data = pd.merge(left=data, right=righttable, how="inner", left_on=joinkeys[idx - 1][0],
                             right_on=joinkeys[idx - 1][1])
@@ -2345,18 +2358,31 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
         if len(comparekeys) > 0:
             for ck in comparekeys:
                 data = data[data[ck[0]] < data[ck[1]]]
-    # print("length of data", len(data))
+    # if all values of a categorical attribute are integer, change that column type to string
+    for att in categorical_attributes:
+        if data[att].apply(is_int).all():
+            data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
     pe_dataframe = copy.deepcopy(data)
     # get data selected
     for att in selection_numeric_attributes:
-        if selection_numeric_attributes[att][0] == '>':
-            pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att][1]]
-        elif selection_numeric_attributes[att][0] == ">=":
-            pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att][1]]
-        elif selection_numeric_attributes[att][0] == "<":
-            pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att][1]]
+        if len(selection_numeric_attributes[att]) == 2:
+            if selection_numeric_attributes[att]['greater'][0] == '>':
+                pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att]['greater'][1]]
+            elif selection_numeric_attributes[att]['greater'][0] == ">=":
+                pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att]['greater'][1]]
+            elif selection_numeric_attributes[att]['smaller'][0] == "<":
+                pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att]['smaller'][1]]
+            elif selection_numeric_attributes[att]['smaller'][0] == "<=":
+                pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att]['smaller'][1]]
         else:
-            pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att][1]]
+            if selection_numeric_attributes[att][0] == '>':
+                pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att][1]]
+            elif selection_numeric_attributes[att][0] == ">=":
+                pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att][1]]
+            elif selection_numeric_attributes[att][0] == "<":
+                pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att][1]]
+            else:
+                pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att][1]]
     for att in selection_categorical_attributes:
         pe_dataframe = pe_dataframe[pe_dataframe[att].isin(selection_categorical_attributes[att])]
 
@@ -2391,7 +2417,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, jo
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit=5 * 60):
     time1 = time.time()
     global assign_to_provenance_num
     assign_to_provenance_num = 0
@@ -2428,8 +2454,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     pd.set_option('display.float_format', '{:.2f}'.format)
 
     # data:after join
-    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, tables, joinkeys,
-                                                                 comparekeys, selected_attributes,
+    whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables,
+                                                                 joinkeys, comparekeys, selected_attributes,
                                                                  sensitive_attributes, fairness_constraints,
                                                                  numeric_attributes, categorical_attributes,
                                                                  selection_numeric_attributes,
