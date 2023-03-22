@@ -65,9 +65,9 @@ def run(q):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-    #         color=color[3], label=label[3])
+    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+            color=color[3], label=label[3])
 
     # x_list = [r"\boldmath$C^T_1$\n\textbf{100M}",
     #           '$C^T_1$\n1G', '$C^T_1$\n10G', '$C^T_2$\n100M', '$C^T_2$\n1G', '$C^T_2$\n10G',
@@ -80,12 +80,10 @@ def run(q):
     plt.yticks(fontsize=80, weight='bold')
     plt.yscale('log')
     plt.xlabel(r'Constraint and Dataset Size', fontsize=80, weight='bold')
-    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.4), fontsize=50, ncol=2, labelspacing=0.25,
-    #            handletextpad=0.1, markerscale=0.5, columnspacing=0.3, frameon=False)
-
-    lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.25,
-                      handletextpad=0.1, markerscale=0.5, columnspacing=0.3, frameon=False)
-
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.3,
+    #                   handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.3,
+               handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
     plt.tight_layout()
     fig_path = "running_time_" + str(q) + ".png"
 
@@ -93,4 +91,4 @@ def run(q):
     plt.show()
 
 
-run(12)
+run(3)
