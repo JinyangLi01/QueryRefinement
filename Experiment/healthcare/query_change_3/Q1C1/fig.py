@@ -60,7 +60,7 @@ def run(query, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [50,  150,  250,  350]
+    x_list = [50, '', 150, '', 250, '', 350, '']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -78,18 +78,16 @@ def run(query, constraint):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-    #         color=color[3], label=label[3])
-    #
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=70)
+
+    # plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
+    plt.xticks(np.arange(0, 8), range(50, 450, 50), rotation=0, fontsize=58, weight='bold')
     plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'income, 50 apart (K)', fontsize=70, weight='bold')
+    plt.xlabel(r'income, 50 apart (K)', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.70), fontsize=60)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.6), fontsize=60)
     plt.tight_layout()
-    fig_path = "query_selectivity_q" + str(query) + "_" + constraint + ".png"
+    fig_path = "healthcare_query_selectivity_q" + str(query) + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
     plt.show()
