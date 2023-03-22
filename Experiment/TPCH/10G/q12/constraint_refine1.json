@@ -8,7 +8,7 @@
         "l_linenumber": 3
       },
       "symbol": ">=",
-      "number": 12862
+      "number": 12277
     },
     {
       "sensitive_attributes":
@@ -17,7 +17,7 @@
         "l_shipinstruct": "TAKE BACK RETURN"
       },
       "symbol": "<=",
-      "number": 36738
+      "number": 38779
     }
   ]
 }
