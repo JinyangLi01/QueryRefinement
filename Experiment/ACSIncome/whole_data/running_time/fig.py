@@ -86,5 +86,5 @@ lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.25), fontsize=44, 
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
-plt.savefig("healthcare_time.png", bbox_inches='tight')
+plt.savefig("ACSIncome_time.png", bbox_inches='tight')
 plt.show()
