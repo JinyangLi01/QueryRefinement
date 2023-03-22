@@ -13,7 +13,7 @@ import json
 import sys
 sys.path.append('../../../../')
 
-from Algorithm import ProvenanceSearchValues_8_20230119 as ps
+from Algorithm import ProvenanceSearchValues_8_optimized as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
 
@@ -90,6 +90,6 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-run("2", "contract1")
+run("2", "refine1")
 
 

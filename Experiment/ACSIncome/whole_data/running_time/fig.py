@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
-f_size = (14, 10)
+f_size = (14, 12)
 
 x_list = list()
 x_naive = list()
@@ -69,16 +69,21 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=l
 plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
         color=color[3], label=label[3])
 
-# x_list = ['Q1C1', 'Q1C3', 'Q2C2']
+x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath$C^A_2$',
+          '\\boldmath$Q^A_1$\n\\boldmath$C^A_3$',
+          '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$',
+          '\\boldmath$Q^A_2$\n\\boldmath$C^A_3$']
+
 plt.ylim(0.001, 10000)
 
-plt.xticks(np.arange(0, 6) + bar_width / 2, x_list, rotation=0, fontsize=48)
+plt.xticks(np.arange(0, 6) + bar_width/2, x_list, rotation=0, fontsize=48)
 plt.yticks(fontsize=80, weight='bold')
 
 plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
-plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
+lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.25), fontsize=44, ncol=2, labelspacing=0.4,
+                  handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
 plt.savefig("healthcare_time.png", bbox_inches='tight')
