@@ -237,7 +237,7 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                     col_in_pvl = att + strr
                     PVT_head.append(col_in_pvl)
                     possible_values_sets[col_in_pvl] = set(unique_values.tolist())
-                    possible_values_sets[col_in_pvl].add(selection_numeric[att]['greater'][1])
+                    possible_values_sets[col_in_pvl].add(selection_numeric[att][strr[2:]][1])
 
                 add_to_PVT("__greater")
                 add_to_PVT("__smaller")
@@ -1673,14 +1673,21 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 # values_to_consider = possible_values_lists[col]
                 values_to_consider = list(PVT[col])
                 # assume greater is always before smaller in PVL_head
+                def get_values_to_consider(values_to_consider, col, compared_to):
+                    if col.split('__')[0] + '__greater' in compared_to:
+                        values_to_consider = [k for k in values_to_consider
+                                              if k >= compared_to[col.split('__')[0] + '__greater']]
+                    elif col.split('__')[0] + '__smaller' in compared_to:
+                        values_to_consider = [k for k in values_to_consider
+                                              if k <= compared_to[col.split('__')[0] + '__smaller']]
+                    return values_to_consider
+
+
                 if '__' in col:
                     if col.split('__')[0] in numeric_attributes:
-                        if col.split('__')[0] + '__greater' in new_value_assignment:
-                            values_to_consider = [k for k in values_to_consider
-                                                  if k >= new_value_assignment[col.split('__')[0] + '__greater']]
-                        elif col.split('__')[0] + '__smaller' in new_value_assignment:
-                            values_to_consider = [k for k in values_to_consider
-                                                  if k <= new_value_assignment[col.split('__')[0] + '__smaller']]
+                        values_to_consider = get_values_to_consider(values_to_consider, col, fixed_value_assignments)
+                        values_to_consider = get_values_to_consider(values_to_consider, col, new_value_assignment)
+
                 new_value_assignment[col] = values_to_consider[original]
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
                 full_value_assignment_str = num2string(
@@ -1834,10 +1841,14 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 # assume greater is always before smaller in PVL_head
                 if '__' in col:
                     if col.split('__')[0] in numeric_attributes:
-                        if col.split('__')[0] in new_value_assignment:
+                        if col.split('__')[0] + '__greater' in new_value_assignment:
                             small_col_name = col.split('__')[0] + '__greater'
                             idx_to_consider = [k for k in idx_to_consider if
                                                possible_values_lists[col][k] >= new_value_assignment[small_col_name]]
+                        if col.split('__')[0] + '__greater' in fixed_value_assignments:
+                            big_col_name = col.split('__')[0] + '__greater'
+                            idx_to_consider = [k for k in idx_to_consider if
+                                               possible_values_lists[col][k] <= fixed_value_assignments[big_col_name]]
                 for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                     if idx_in_col not in idx_to_consider:
                         continue
@@ -1872,16 +1883,29 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             else:
                 idx_to_consider = range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1)
                 # assume greater is always before smaller in PVL_head
+                def get_idx_to_consider(idx_to_consider, col, compared_to):
+                    if col.split('__')[0] + '__greater' in compared_to:
+                        idx_to_consider = [k for k in idx_to_consider if
+                                               possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
+                                                                                                     + '__greater']]
+                    elif col.split('__')[0] + '__smaller' in compared_to:
+                        idx_to_consider = [k for k in idx_to_consider if
+                                           possible_values_lists[col][k] <= new_value_assignment[col.split('__')[0]
+                                                                                                 + '__smaller']]
+                    return idx_to_consider
+
                 if '__' in col:
                     if col.split('__')[0] in numeric_attributes:
                         if col.split('__')[0] +'__greater' in new_value_assignment:
-                            idx_to_consider = [k for k in idx_to_consider if
-                                               possible_values_lists[col][k] <= new_value_assignment[col.split('__')[0]
-                                                                                                     + '__greater']]
-                        elif col.split('__')[0] + '__smaller' in new_value_assignment:
-                            idx_to_consider = [k for k in idx_to_consider if
-                                               possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
-                                                                                                     + '__smaller']]
+                            idx_to_consider = get_idx_to_consider(idx_to_consider, col, new_value_assignment)
+                            idx_to_consider = get_idx_to_consider(idx_to_consider, col, fixed_value_assignments)
+                        #     idx_to_consider = [k for k in idx_to_consider if
+                        #                        possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
+                        #                                                                              + '__greater']]
+                        # elif col.split('__')[0] + '__smaller' in new_value_assignment:
+                        #     idx_to_consider = [k for k in idx_to_consider if
+                        #                        possible_values_lists[col][k] <= new_value_assignment[col.split('__')[0]
+                        #                                                                              + '__smaller']]
 
                 for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                     if idx_in_col not in idx_to_consider:
@@ -1906,13 +1930,13 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                               fairness_constraints_provenance_complex)
                         if assign:
                             checked_assignments_satisfying.append(full_value_assignment_str)
-                            # print("{} satisfies constraints".format(new_value_assignment))
+                            print("{} satisfies constraints".format(new_value_assignment))
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_base_refinement = True
                             find_value_this_col = True
                             break
                         else:
-                            # print("{} doesn't satisfy constraints".format(full_value_assignment))
+                            print("{} doesn't satisfy constraints".format(full_value_assignment))
                             checked_assignments_not_satisfying.append(full_value_assignment_str)
                     else:
                         if assign_to_provenance_relax_only_partial_query(full_value_assignment, numeric_attributes,
@@ -1921,12 +1945,12 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                                          full_PVT_head,
                                                                          fairness_constraints_provenance_greater_than):
                             checked_assignments_satisfying.append(full_value_assignment_str)
-                            # print("{} satisfies constraints".format(new_value_assignment))
+                            print("{} satisfies constraints".format(new_value_assignment))
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_value_this_col = True
                             break
                         else:
-                            # print("{} doesn't satisfy relaxation partial query".format(full_value_assignment))
+                            print("{} doesn't satisfy relaxation partial query".format(full_value_assignment))
                             checked_assignments_not_satisfying.append(full_value_assignment_str)
                     idx_in_col += 1
             if find_value_this_col:
@@ -1975,8 +1999,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     full_value_assignment = {**new_value_assignment, **fixed_value_assignments_for_tighten}
                     # print("value_assignment: ", full_value_assignment)
                     full_value_assignment_str = num2string(
-                        [full_value_assignment[k] for k in full_PVT_head if
-                         k in fixed_value_assignments_for_tighten.keys()])
+                        [full_value_assignment[k] for k in full_PVT_head])
                     if full_value_assignment_str in checked_assignments_satisfying:
                         # print("{} satisfies constraints".format(full_value_assignment))
                         tight_value_idx = cur_value_id
@@ -2055,8 +2078,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
             full_value_assignment_positions = {**full_value_assignment_positions,
                                                **fixed_value_assignments_positions}
-        for x in new_value_assignment_position:
-            search_space += x
+        # for x in new_value_assignment_position:
+        #     search_space += x
         find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
         minimal_refinements, minimal_refinements_positions, added = \
