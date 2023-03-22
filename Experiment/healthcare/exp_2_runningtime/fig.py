@@ -71,6 +71,10 @@ plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl
 
 # x_list = ['Q1C1', 'Q1C3', 'Q2C2']
 plt.ylim(0.001, 10000)
+x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath$C^H_2$',
+          '\\boldmath$Q^H_1$\n\\boldmath$C^H_3$',
+          '\\boldmath$Q^H_2$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\n\\boldmath$C^H_2$',
+          '\\boldmath$Q^H_2$\n\\boldmath$C^H_3$']
 
 plt.xticks(np.arange(0, 6) + bar_width / 2, x_list, rotation=0, fontsize=48)
 plt.yticks(fontsize=80, weight='bold')
@@ -78,7 +82,9 @@ plt.yticks(fontsize=80, weight='bold')
 plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
-plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
+# plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
+lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.08), fontsize=44, ncol=2, labelspacing=0.25,
+                  handletextpad=0.1, markerscale=0.5, columnspacing=0.3)
 
 plt.tight_layout()
 plt.savefig("healthcare_time.png", bbox_inches='tight')

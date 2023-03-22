@@ -14,24 +14,24 @@ import json
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
-data_file_prefix = r"../../../InputData/Healthcare/incomeK/"
+data_file_prefix = r"../../../../InputData/Healthcare/incomeK/"
 query_file_prefix = r"query"
 constraint_file_prefix = r"constraint"
 time_output_prefix = r"./result_"
 
 
-# def file(q, c):
-#     time_output_file = time_output_prefix + str(q) + str(c) + "1.csv"
-#     time_output = open(time_output_file, "w")
-#     time_output.write("selection file, running time ps, running time lt\n")
-#     return time_output
+def file(q, c):
+    time_output_file = time_output_prefix + str(q) + str(c) + "1.csv"
+    time_output = open(time_output_file, "w")
+    time_output.write("selection file, running time ps, running time lt\n")
+    return time_output
 
 result_output_file = r"./running_time_result.txt"
 result_output = open(result_output_file, "w")
 result_output.write("selection file, result\n")
 
 
-time_limit = 10 * 60
+time_limit = 10*60
 separator = ','
 
 def compare(q, c, time_output):
@@ -52,7 +52,6 @@ def compare(q, c, time_output):
 
     minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
         lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit)
-
     if running_time2 > time_limit:
         print("naive alg out of time")
     else:
@@ -61,8 +60,8 @@ def compare(q, c, time_output):
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
-    # time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1,
-    #                                                         search_time1))
+    time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1,
+                                                            search_time1))
     if running_time2 < time_limit:
         time_output.write("{},{:0.2f},{:0.2f},{:0.2f},"
                           "{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1, search_time1,
@@ -81,19 +80,16 @@ summary_file = open(r"time1.csv", "w")
 summary_file.write("file,PS,LT\n")
 
 data_file_format = '.csv'
-time_output = open("running_time.csv", "w")
-time_output.write("selection file, running time ps, running time lt\n")
 
 def run(q, c):
+    time_output = file(q, c)
     compare(q, c, time_output)
+    time_output.close()
 
 
-
-# run(1, 1)
-# run(1, 2)
-# run(1, 3)
-run(2, 1)
-run(2, 2)
-run(2, 3)
-
-time_output.close()
+run(1, 1)
+run(1, 2)
+run(1, 3)
+# run(2, 1)
+# run(2, 2)
+# run(2, 3)
