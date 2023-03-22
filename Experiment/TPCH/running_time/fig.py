@@ -65,9 +65,9 @@ def run(q):
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
-            color=color[3], label=label[3])
+    # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
+    # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+    #         color=color[3], label=label[3])
 
     # x_list = [r"\boldmath$C^T_1$\n\textbf{100M}",
     #           '$C^T_1$\n1G', '$C^T_1$\n10G', '$C^T_2$\n100M', '$C^T_2$\n1G', '$C^T_2$\n10G',
@@ -76,7 +76,7 @@ def run(q):
               '\\boldmath$C^T_2$\n\\textbf{100M}', '\\boldmath$C^T_2$\n\\textbf{1G}', '\\boldmath$C^T_2$\n\\textbf{10G}',
                 '\\boldmath$C^T_3$\n\\textbf{100M}', '\\boldmath$C^T_3$\n\\textbf{1G}', '\\boldmath$C^T_3$\n\\textbf{10G}']
 
-    plt.xticks([0, 1, 2, 3.2, 4.1, 5, 6.1, 7, 8], x_list, fontsize=55, weight='bold')
+    plt.xticks([0, 1, 2, 3, 4, 5, 6, 7, 8], x_list, fontsize=55, weight='bold')
     plt.yticks(fontsize=80, weight='bold')
     plt.yscale('log')
     plt.xlabel(r'Constraint and Dataset Size', fontsize=80, weight='bold')
@@ -93,4 +93,4 @@ def run(q):
     plt.show()
 
 
-run(3)
+run(12)
