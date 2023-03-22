@@ -1,0 +1,12 @@
+{
+  "tables": ["customer", "orders", "lineitem"],
+  "joinkeys": [["c_custkey", "o_custkey"], ["o_orderkey", "l_orderkey"]],
+  "selection_numeric_attributes": {
+    "o_orderdate": ["<", 19941215, 1],
+    "l_shipdate": [">", 19950317, 1]
+  },
+  "selection_categorical_attributes": {
+    "c_mktsegment": ["AUTOMOBILE"]
+  }
+}
+
