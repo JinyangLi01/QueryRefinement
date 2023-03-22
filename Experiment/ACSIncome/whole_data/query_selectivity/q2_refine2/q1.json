@@ -5,6 +5,7 @@
     "SCHL": ["<=", 19, 1]
   },
   "selection_categorical_attributes": {
-    "OCCP_bucket": ["CSSO", "HPTO", "PSO", "PCSO", "CEO", "MBSA", "FS", "FPASO", "EM"]
+    "OCCP_bucket": ["SRO","HSO","IMRW","ASESMO","PSO","TMMO","OASO","BGCMO","PCSO","FPASO","ETLO","BOS"]
   }
 }
+

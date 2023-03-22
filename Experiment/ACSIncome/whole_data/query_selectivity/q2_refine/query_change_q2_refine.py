@@ -9,6 +9,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
+sys.path.append('../../../../../')
 
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
