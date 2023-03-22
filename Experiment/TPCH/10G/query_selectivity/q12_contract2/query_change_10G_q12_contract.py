@@ -34,7 +34,7 @@ def run_constraint(c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(0, 12):
+    for i in range(-1, 0):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
