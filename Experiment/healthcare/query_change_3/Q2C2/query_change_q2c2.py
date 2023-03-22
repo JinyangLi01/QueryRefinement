@@ -31,11 +31,11 @@ def run_constraint(c):
     print("running query change constraint {}".format(c))
     constraint_file = r"./constraint" + str(c) + ".json"
 
-    time_output_file = r"./query_change_q1c" + str(c) + ".csv"
+    time_output_file = r"./query_change_q2c2.csv"
     time_output = open(time_output_file, "w")
     time_output.write("income,PS,LT\n")
 
-    result_output_file = r"./result_q1c3.txt"
+    result_output_file = r"./result_q2c2.txt"
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
@@ -83,4 +83,4 @@ def run_constraint(c):
 separator = ','
 data_file_format = ".csv"
 
-run_constraint(3)
+run_constraint(2)

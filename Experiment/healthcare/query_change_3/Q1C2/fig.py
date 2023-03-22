@@ -79,8 +79,7 @@ def run(query, constraint):
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
 
-    # plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
-    plt.xticks(np.arange(0, 8), range(50, 450, 50), rotation=0, fontsize=58, weight='bold')
+    plt.xticks(np.arange(0, 8), range(100, 500, 50), rotation=0, fontsize=58, weight='bold')
     plt.yticks(fontsize=70, weight='bold')
 
     plt.xlabel(r'income, 50 apart (K)', fontsize=80, weight='bold')

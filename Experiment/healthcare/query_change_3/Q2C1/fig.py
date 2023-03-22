@@ -85,7 +85,7 @@ def run(query, constraint):
 
     plt.xlabel(r'income, 50 apart (K)', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.6), fontsize=60)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.6), fontsize=65)
     plt.tight_layout()
     fig_path = "healthcare_query_selectivity_q" + str(query) + "_" + constraint + ".png"
 
@@ -93,4 +93,4 @@ def run(query, constraint):
     plt.show()
 
 
-run(1, "1")
+run(2, "1")
