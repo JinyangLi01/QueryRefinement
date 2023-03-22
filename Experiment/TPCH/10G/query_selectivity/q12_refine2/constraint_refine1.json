@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_returnflag", "l_shipinstruct"],
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "3-MEDIUM",
+        "l_linenumber": 3
+      },
+      "symbol": ">=",
+      "number": 12277
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_returnflag": "R",
+        "l_shipinstruct": "TAKE BACK RETURN"
+      },
+      "symbol": "<=",
+      "number": 38779
+    }
+  ]
+}

@@ -7,7 +7,6 @@ import matplotlib.ticker as ticker
 import datetime
 from matplotlib.dates import AutoDateLocator, AutoDateFormatter, date2num
 
-
 sns.set_palette("Paired")
 # sns.set_palette("deep")
 sns.set_context("poster", font_scale=2)
@@ -22,6 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
+
 f_size = (14, 10)
 
 x_list = list()
@@ -32,6 +32,7 @@ execution_timebl1 = list()
 execution_timebl2 = list()
 
 input_path_prefix = r'query_change_'
+
 
 def run(query, size, constraint):
     input_path = input_path_prefix + "q" + str(query) + "_" + constraint + ".csv"
@@ -79,16 +80,13 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
-    #
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'l\underline{ }receiptdate, 1m apart', fontsize=80, weight='bold')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.06), fontsize=58, labelspacing=0.25,
-               columnspacing=0.3, handletextpad=0.15)
-
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 0.55), fontsize=65)
+    # plt.legend(loc='best', fontsize=50)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
@@ -96,4 +94,4 @@ def run(query, size, constraint):
     plt.show()
 
 
-run(12, "10G", "contract1")
+run(12, "10G", "refine1")
