@@ -62,7 +62,7 @@ def run(query, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -83,7 +83,8 @@ def run(query, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'\{race = race2\} $>=$ (\%)', fontsize=80, weight='bold').set_position((0.45, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.7), fontsize=65)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.06), fontsize=57, ncol=1, columnspacing=0.48,
+               handletextpad=0.3, handlelength=2.0)
     # plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
     fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"

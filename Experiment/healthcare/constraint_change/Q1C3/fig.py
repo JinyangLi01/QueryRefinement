@@ -19,7 +19,7 @@ plt.rcParams['ytick.left'] = True
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
-plt.rc('font', size=70, weight='bold')
+plt.rc('font', size=80, weight='bold')
 
 f_size = (14, 10)
 
@@ -57,12 +57,12 @@ def run(query, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    x_list = [102, 104, 106, 108, 110, 112]
+    x_list = [40, 50, 60, 70, 80, 90]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -80,10 +80,10 @@ def run(query, constraint):
     #         color=color[3], label=label[3])
 
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
-    plt.yticks(fontsize=80, weight='bold')
+    plt.yticks(fontsize=70, weight='bold')
 
-    plt.xlabel(r'\{race = race3\} $>=$ (\%)', fontsize=80, weight='bold').set_position((0.45, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(1.0, 0.65), fontsize=65)
+    plt.xlabel(r'\{race = race2\} $<=$ (\%)', fontsize=80, weight='bold').set_position((0.45, -0.1))
+    plt.legend(loc='upper right', bbox_to_anchor=(1.02, 0.8), fontsize=65)
     # plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
     fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"

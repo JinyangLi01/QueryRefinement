@@ -5,19 +5,18 @@
     {
       "sensitive_attributes":
       {
-        "race": "race3"
+        "race": "race2"
       },
       "symbol": ">=",
-      "number": 15
+      "number": 37
     },
     {
       "sensitive_attributes":
       {
-        "race": "race2",
         "age-group": "group2"
       },
       "symbol": "<=",
-      "number": 10
+      "number": 30
     }
   ]
 }
