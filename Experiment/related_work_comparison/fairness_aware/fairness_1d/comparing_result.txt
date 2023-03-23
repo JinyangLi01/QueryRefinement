@@ -1,0 +1,22 @@
+original query: [5000, 25000]
+disparity:342
+epsilon: 200
+refinement by our algorithm:
+[5000, 22942.8], disparity: 200
+[5082.6, 22978.56], disparity: 200
+
+refinement by Shetya:
+[5760 , 22983.7], disparity: 199, Similarity : 0.6113
+
+
+
+
+
+
+original query: [40000, 50000]
+refinement by our algorithm:
+[40000, 41754.84]
+[39999.96, 50000.04]
+
+refinement by Shetya:
+[43190.9 , 45342.8]

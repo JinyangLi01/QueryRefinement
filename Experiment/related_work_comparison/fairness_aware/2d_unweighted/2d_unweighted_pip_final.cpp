@@ -1235,7 +1235,7 @@ void runSearch(vector<Point> *points, double *minimumPointStartingRange, double 
     }
 
     bool needsBlues = bluesInRange < redsInRange;
-    int epsilon = ceil(0.025*(redsInRange+bluesInRange));
+    int epsilon = ceil(0.02*(redsInRange+bluesInRange));
     int improvementNeeded = abs(redsInRange-bluesInRange) - epsilon;
     cout << "Epsilon: " << epsilon << endl;
     cout << "Initial disparity " << abs(redsInRange - bluesInRange) << endl;
@@ -1303,16 +1303,16 @@ vector<Point> *readPoints(string filename, double *minimum, double *maximum) {
 }
 
 int main() {
-    string filename = "./data/uniform.csv";
+    string filename = "./data/uniform.tbl";
     double *minimum = new double[2];
     double *maximum = new double[2];
 
     cout << setprecision(std::numeric_limits<double>::digits10 + 2);
 
-    minimum[0] = 427.328;
-    minimum[1] = 265.461;
-    maximum[0] = 934.495;
-    maximum[1] = 583.57;
+    minimum[0] = 200;
+    minimum[1] = 300;
+    maximum[0] = 500;
+    maximum[1] = 600;
 
     vector<Point> *points = readPoints(filename, minimum, maximum);
 

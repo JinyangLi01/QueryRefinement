@@ -4,13 +4,13 @@
   "fairness_constraints": [
     {
       "first_sensitive_attributes": {
-        "blue": 0
+        "blue": 1
       },
       "symbol": "<=",
       "second_sensitive_attributes": {
-        "blue": 1
+        "blue": 0
       },
-      "plus": 200
+      "plus": 65
     }
   ]
 }
