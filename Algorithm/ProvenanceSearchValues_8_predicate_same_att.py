@@ -945,6 +945,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
         # optimization: tighten the last fixed column
         tight_value_idx = -1
         fixed_att = str()
+        tight_success = False
         if idx_in_this_col_in_parent_PVT > 0:
             # binary search to tighten this column
             left = 0
@@ -984,6 +985,7 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                     # last_satisfying_bounding_relaxation_location[PVT_head.index(fixed_att)] = tight_value_idx
                     fixed_value_assignments_for_tighten[fixed_att] = values_above[tight_value_idx]
                     full_value_assignment[fixed_att] = values_above[tight_value_idx]
+                    tight_success = True
                 fva = [full_value_assignment[k] for k in full_PVT_head]
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
@@ -995,6 +997,10 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
                                                    **fixed_value_assignments_positions}
+            # if tight success, when doing recursion, fixed attribute should use the tightened value
+            if tight_success:
+                fixed_value_assignments = fixed_value_assignments_for_tighten
+                fixed_value_assignments_positions[fixed_att] = tight_value_idx
         else:
             fva = [full_value_assignment[k] for k in full_PVT_head]
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
