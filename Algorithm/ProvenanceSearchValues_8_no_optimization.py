@@ -906,9 +906,17 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 full_value_assignment_positions = {**full_value_assignment_positions,
                                                    **fixed_value_assignments_positions}
             # if tight success, when doing recursion, fixed attribute should use the tightened value
+            # and if tight success, there is no need to traverse between original position fixed and the tightened one
             if tight_success:
-                    fixed_value_assignments = fixed_value_assignments_for_tighten
-                    fixed_value_assignments_positions[fixed_att] = tight_value_idx
+                fixed_value_assignments = fixed_value_assignments_for_tighten
+                fixed_value_assignments_positions[fixed_att] = tight_value_idx
+                if tight_value_idx == 0:
+                    to_put_to_stack.pop()
+                else:
+                    #  no need to test values between now and last fixed value
+                    to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                    to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                    to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
         else:
             fva = [full_value_assignment[k] for k in full_PVT_head]
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
@@ -928,43 +936,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             continue
 
 
-
-        # # see whether I need to traverse over values between now and new tightened fixed value
-        # if tight_success:
-        #     #  test refinements above new value positions
-        #     need_to_traverse = False
-        #     new_col_idx = 0
-        #     fixed_value_assignments_with_zero_idx = copy.deepcopy(fixed_value_assignments)
-        #     for k in new_value_assignment:
-        #         if new_value_assignment_position[new_col_idx] == 0:
-        #             fixed_value_assignments_with_zero_idx[k] = new_value_assignment[k]
-        #         new_col_idx += 1
-        #     value_assignment_to_test = {}
-        #     new_col_idx = 0
-        #     for k in new_value_assignment:
-        #         for pos in range(new_value_assignment_position[new_col_idx] - 1, -1, -1):
-        #             fixed_value_assignments_with_zero_idx[k] = possible_values_lists[k][pos]
-        #             # fixed_value_assignments_with_zero_idx_str = num2string([fixed_value_assignments_with_zero_idx[k] for k in full_PVT_head if k in full_att])
-        #             if assign_to_provenance_relax_only_partial_query(fixed_value_assignments_with_zero_idx,
-        #                                                              numeric_attributes, categorical_attributes,
-        #                                                              selection_numeric, selection_categorical,
-        #                                                              full_PVT_head,
-        #                                                              fairness_constraints_provenance_greater_than):
-        #                 need_to_traverse = True
-        #                 break
-        #         fixed_value_assignments_with_zero_idx.pop(k)
-        #         if need_to_traverse:
-        #             break
-        #         new_col_idx += 1
-        #
-        #     if not need_to_traverse:
-        #         if tight_value_idx == 0:
-        #             to_put_to_stack.pop()
-        #         else:
-        #             #  no need to test values between now and last fixed value
-        #             to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
-        #             to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-        #             to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
         if num_columns == 1:
             if len(PVT_head_stack) > 0:
                 next_col_num_in_stack = len(PVT_head_stack[-1])

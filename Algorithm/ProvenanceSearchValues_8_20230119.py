@@ -969,10 +969,18 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
                                                    **fixed_value_assignments_positions}
-            # if tight success, when doing recursion, fixed attribute should use the tightened value
-            if tight_success:
-                fixed_value_assignments = fixed_value_assignments_for_tighten
-                fixed_value_assignments_positions[fixed_att] = tight_value_idx
+                # if tight success, when doing recursion, fixed attribute should use the tightened value
+                # and if tight success, there is no need to traverse between original position fixed and the tightened one
+                if tight_success:
+                    fixed_value_assignments = fixed_value_assignments_for_tighten
+                    fixed_value_assignments_positions[fixed_att] = tight_value_idx
+                    if tight_value_idx == 0:
+                        to_put_to_stack.pop()
+                    else:
+                        #  no need to test values between now and last fixed value
+                        to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                        to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                        to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
         else:
             fva = [full_value_assignment[k] for k in full_PVT_head]
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
@@ -1401,10 +1409,18 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
                                                    **fixed_value_assignments_positions}
-            # if tight success, when doing recursion, fixed attribute should use the tightened value
+                # if tight success, when doing recursion, fixed attribute should use the tightened value
+                # and if tight success, there is no need to traverse between original position fixed and the tightened one
             if tight_success:
                 fixed_value_assignments = fixed_value_assignments_for_tighten
                 fixed_value_assignments_positions[fixed_att] = tight_value_idx
+                if tight_value_idx == 0:
+                    to_put_to_stack.pop()
+                else:
+                    #  no need to test values between now and last fixed value
+                    to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
+                    to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
+                    to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
         else:
             fva = [full_value_assignment[k] for k in full_PVT_head]
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
