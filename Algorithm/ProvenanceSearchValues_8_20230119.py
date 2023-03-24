@@ -2272,20 +2272,24 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
             if to_put['idx_in_this_col_in_parent_PVT'] > 0:
                 fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
                 to_put2 = dict()
-                to_put2['PVT'] = PVT.copy()
-                to_put2['PVT_head'] = PVT_head.copy()
-                to_put2['max_index_PVT'] = max_index_PVT.copy()
-                to_put2['parent_PVT'] = parent_PVT.copy()
-                to_put2['parent_PVT_head'] = parent_PVT_head.copy()
-                to_put2['parent_max_index_PVT'] = parent_max_index_PVT.copy()
-                to_put2['col_idx_in_parent_PVT'] = col_idx_in_parent_PVT
+                to_put2['PVT'] = to_put['PVT'].copy()
+                to_put2['PVT_head'] = to_put['PVT_head'].copy()
+                to_put2['max_index_PVT'] = to_put['max_index_PVT'].copy()
+                to_put2['parent_PVT'] = to_put['parent_PVT'].copy()
+                to_put2['parent_PVT_head'] = to_put['parent_PVT_head'].copy()
+                to_put2['parent_max_index_PVT'] = to_put['parent_max_index_PVT'].copy()
+                to_put2['col_idx_in_parent_PVT'] = to_put['col_idx_in_parent_PVT']
                 to_put2['idx_in_this_col_in_parent_PVT'] = to_put['idx_in_this_col_in_parent_PVT'] - 1
-                fixed_value_assignments_to_put = copy.deepcopy(fixed_value_assignments)
-                fixed_value_assignments_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
-                    = parent_PVT.iloc[to_put['idx_in_this_col_in_parent_PVT'] - 1, col_idx_in_parent_PVT]
+                fixed_value_assignments_to_put = copy.deepcopy(to_put['fixed_value_assignments'])
+                a = to_put['parent_PVT_head']
+                b = to_put['col_idx_in_parent_PVT']
+                c = a[b]
+                fixed_value_assignments_to_put[c] \
+                    = to_put['parent_PVT'].iloc[
+                    to_put['idx_in_this_col_in_parent_PVT'] - 1, to_put['col_idx_in_parent_PVT']]
                 to_put2['fixed_value_assignments'] = fixed_value_assignments_to_put
-                fixed_value_assignments_positions_to_put = copy.deepcopy(fixed_value_assignments_positions)
-                fixed_value_assignments_positions_to_put[parent_PVT_head[col_idx_in_parent_PVT]] \
+                fixed_value_assignments_positions_to_put = copy.deepcopy(to_put['fixed_value_assignments_positions'])
+                fixed_value_assignments_positions_to_put[to_put['parent_PVT_head'][to_put['col_idx_in_parent_PVT']]] \
                     = to_put['idx_in_this_col_in_parent_PVT'] - 1
                 to_put2['fixed_value_assignments_positions'] = fixed_value_assignments_positions_to_put
                 to_put2['for_left_binary'] = to_put['for_left_binary']
