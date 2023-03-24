@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["sex", "address"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "sex": "F"
+      },
+      "symbol": ">=",
+      "number": 20
+    },
+    {
+      "sensitive_attributes":
+      {
+        "address": "R"
+      },
+      "symbol": ">=",
+      "number": 50
+    }
+  ]
+}
+
