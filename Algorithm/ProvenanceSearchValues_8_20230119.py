@@ -193,6 +193,7 @@ Get provenance expressions
         fairness_constraints_provenance_complex, contraction_threshold
 
 
+
 # put categorical columns before numerical ones
 def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                          categorical_attributes, selection_numeric, selection_categorical,
@@ -242,10 +243,10 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                     idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
                 except StopIteration:
                     idx = len(others) - 1
-                # idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
-                possible_values_sets[att].update(others[:idx + 1])
+                s = [x + 1 for x in others[:idx + 1]]
+                possible_values_sets[att].update(s)
                 # possible_values_sets[att].update([s + selection_numeric[att][2] for s in others[:idx + 1]])
-            else:
+            else:  # selection_numeric[att][0] == '<' or selection_numeric[att][0] == '<=':
                 unique_values.sort()
                 unique_values = unique_values
                 try:
@@ -259,8 +260,8 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                     idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
                 except StopIteration:
                     idx = len(others) - 1
-                # idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
-                possible_values_sets[att].update(others[idx:])
+                s = [x - 1 for x in others[idx : ]]
+                possible_values_sets[att].update(s)
                 # possible_values_sets[att].update([s - selection_numeric[att][2] for s in others[:idx + 1]])
 
     data = data.drop_duplicates(
@@ -338,7 +339,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                 try:
                     idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 except StopIteration:
-                    idx = len(unique_values)
+                    idx = len(unique_values) - 1
                 # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[:idx]
                 possible_values_sets[att].update(others)
