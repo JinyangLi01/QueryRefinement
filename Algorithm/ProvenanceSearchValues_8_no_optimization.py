@@ -183,10 +183,10 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                     idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
                 except StopIteration:
                     idx = len(others) - 1
-                # idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
-                possible_values_sets[att].update(others[:idx + 1])
+                s = [x + selection_numeric[att][2] for x in others[:idx + 1]]
+                possible_values_sets[att].update(s)
                 # possible_values_sets[att].update([s + selection_numeric[att][2] for s in others[:idx + 1]])
-            else:
+            else:  # selection_numeric[att][0] == '<' or selection_numeric[att][0] == '<=':
                 unique_values.sort()
                 unique_values = unique_values
                 try:
@@ -200,8 +200,8 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                     idx = next(i for i, v in enumerate(others) if v >= contraction_threshold[att])
                 except StopIteration:
                     idx = len(others) - 1
-                # idx = next(i for i, v in enumerate(others) if v <= contraction_threshold[att])
-                possible_values_sets[att].update(others[idx:])
+                s = [x - selection_numeric[att][2] for x in others[idx : ]]
+                possible_values_sets[att].update(s)
                 # possible_values_sets[att].update([s - selection_numeric[att][2] for s in others[:idx + 1]])
 
     data = data.drop_duplicates(
