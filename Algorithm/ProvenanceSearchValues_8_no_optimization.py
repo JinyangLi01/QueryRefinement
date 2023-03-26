@@ -937,9 +937,11 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                        fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                        shifted_length, initial_PVT, selection_numeric, full_PVT_head)
         print("minimal_refinements: {}".format(minimal_refinements))
-        if not added and not tight_success:
-            print("base refinement is dominated by current result set, no need to do recursion")
-            continue
+        # even if this is dominated by current result set, we still need to do recursion because recursion may
+        # give us a result that is not dominated by current result set
+        # if not added and not tight_success:
+        #     print("base refinement is dominated by current result set, no need to do recursion")
+        #     continue
 
 
         if num_columns == 1:
