@@ -13,7 +13,6 @@ import pandas as pd
 assign_to_provenance_num = 0
 
 
-
 # define a function to check if a value is an integer
 def is_int(val):
     if isinstance(val, int):
@@ -22,6 +21,7 @@ def is_int(val):
         return val.is_integer()
     else:
         return False
+
 
 def num2string(pattern):
     st = ''
@@ -59,7 +59,8 @@ def transform_to_refinement_format(minimal_added_refinements, numeric_attributes
     return minimal_refinements
 
 
-def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables, joinkeys, comparekeys, selected_attributes,
+def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables, joinkeys, comparekeys,
+                                         selected_attributes,
                                          sensitive_attributes, fairness_constraints, numeric_attributes,
                                          categorical_attributes, selection_numeric_attributes,
                                          selection_categorical_attributes):
@@ -256,9 +257,9 @@ def assign_to_provenance(numeric_attributes, categorical_attributes,
                          new_selection_numeric_attributes,
                          new_selection_categorical_attributes, fairness_constraints_provenance_greater_than,
                          fairness_constraints_provenance_smaller_than):
+    # we can't have all zeros for numeric attributes
     global assign_to_provenance_num
     assign_to_provenance_num += 1
-
     survive = assign_to_provenance_relax_only(numeric_attributes, categorical_attributes,
                                               new_selection_numeric_attributes,
                                               new_selection_categorical_attributes,
@@ -270,7 +271,6 @@ def assign_to_provenance(numeric_attributes, categorical_attributes,
                                                  new_selection_categorical_attributes,
                                                  fairness_constraints_provenance_smaller_than)
     return survive
-
 
 
 def subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -411,9 +411,9 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
     num_numeric_att = len(selection_numeric_attributes)
     num_cate_variables_to_add = len(categorical_att_domain_too_add)
     num_cate_variables_to_remove = len(categorical_att_domain_too_remove)
-    # print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
-    # print("categorical_att_domain_too_remove:\n", categorical_att_domain_too_remove)
-    # print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
+    print("categorical_att_domain_too_add:\n", categorical_att_domain_too_add)
+    print("categorical_att_domain_too_remove:\n", categorical_att_domain_too_remove)
+    print("numeric_att_domain_to_relax:\n", numeric_att_domain_to_relax)
     minimal_refinements = []
 
     # I need to remember where I was last time
@@ -425,28 +425,30 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
     for k in numeric_attributes:
         new_selection_numeric_attributes[k][1] = numeric_att_domain_to_relax[k][0]
     new_selection_categorical_attributes = copy.deepcopy(selection_categorical_attributes)
-    legal = True
+    # legal = True
     while att_idx >= 0:
         if time.time() - time1 > time_limit:
             return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
                 categorical_att_domain_too_remove, dict(), dict()
         if att_idx == num_numeric_att + num_cate_variables_to_add + num_cate_variables_to_remove:
-            if legal:
-                # print(new_selection_numeric_attributes, new_selection_categorical_attributes)
-                if assign_to_provenance(numeric_attributes, categorical_attributes,
-                                        new_selection_numeric_attributes,
-                                        new_selection_categorical_attributes,
-                                        fairness_constraints_provenance_greater_than,
-                                        fairness_constraints_provenance_smaller_than):
-                    # print("{} {} satisfies".format(new_selection_numeric_attributes, new_selection_categorical_attributes))
-                    minimal_refinement_values = transform_refinement_format(this_refinement,
-                                                                            numeric_att_domain_to_relax,
-                                                                            num_numeric_att,
-                                                                            selection_numeric_attributes,
-                                                                            numeric_attributes)
-                    minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
-            else:
-                legal = True
+            # if new_selection_numeric_attributes == {'grade1': ['>=', 10, 1], 'grade2': ['>=', 10, 1]} \
+            #         and '19-20' in new_selection_categorical_attributes['age']:
+            #     print(new_selection_categorical_attributes)
+            # if new_selection_categorical_attributes == {'age': ['15-16', '19-20'], 'extraActivities': ['yes', 'no']} \
+            #         and new_selection_numeric_attributes == {'grade1': ['>=', 10, 1], 'grade2': ['>=', 10, 1]}:
+            #     print("here")
+            if assign_to_provenance(numeric_attributes, categorical_attributes,
+                                    new_selection_numeric_attributes,
+                                    new_selection_categorical_attributes,
+                                    fairness_constraints_provenance_greater_than,
+                                    fairness_constraints_provenance_smaller_than):
+                # print("{} {} satisfies".format(new_selection_numeric_attributes, new_selection_categorical_attributes))
+                minimal_refinement_values = transform_refinement_format(this_refinement,
+                                                                        numeric_att_domain_to_relax,
+                                                                        num_numeric_att,
+                                                                        selection_numeric_attributes,
+                                                                        numeric_attributes)
+                minimal_refinements = update_minimal_refinement(minimal_refinements, minimal_refinement_values)
             att_idx -= 1
         if att_idx < num_numeric_att:  # numeric
             if last_time_selection[att_idx] + 1 == len(numeric_att_domain_to_relax[numeric_attributes[att_idx]]):
@@ -492,10 +494,6 @@ def LatticeTraversalBidirectional(data, fairness_constraints_provenance_greater_
                 new_selection_categorical_attributes[
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][0]].remove(
                     categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][1])
-                if len(new_selection_categorical_attributes[
-                           categorical_att_domain_too_remove[att_idx - num_numeric_att - num_cate_variables_to_add][
-                               0]]) == 0:
-                    legal = False
             att_idx += 1
     return minimal_refinements, numeric_att_domain_to_relax, categorical_att_domain_too_add, \
         categorical_att_domain_too_remove, dict(), dict()
@@ -745,7 +743,8 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 ########################################################################################################################
 
 
-def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit=5 * 60):
+def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format,
+                          time_limit=5 * 60):
     time1 = time.time()
     with open(query_file) as f:
         query_info = json.load(f)
