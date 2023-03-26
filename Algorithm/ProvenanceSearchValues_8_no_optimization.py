@@ -546,12 +546,21 @@ def position_dominate(p1, p2):
 
 
 def update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
-                                           full_value_assignment, full_value_assignment_positions, shifted_length):
+                                           full_value_assignment, full_value_assignment_positions, shifted_length,
+                                           initial_PVT, selection_numeric, full_PVT_head):
     num = len(minimal_refinements_positions)
     dominated = []
     dominated_refinements = []
     full_value_assignment_positions = [full_value_assignment_positions[i] + shifted_length[i] for i in
                                        range(len(shifted_length))]
+    # deal with the situation that absolute difference are the same, for numeric attributes
+    for i in range(len(full_value_assignment_positions)):
+        pos = full_value_assignment_positions[i]
+        att = full_PVT_head[i]
+        if att in selection_numeric and pos >= 2:
+            if abs(initial_PVT.loc[pos, att] - initial_PVT.loc[0, att]) == \
+                    abs(initial_PVT.loc[pos - 1, att] - initial_PVT.loc[0, att]):
+                full_value_assignment_positions[i] = pos - 1
     for i in range(num):
         p = minimal_refinements_positions[i]
         pd = position_dominate(p, full_value_assignment_positions)
@@ -597,7 +606,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
     fixed_value_assignments = {}
     fixed_value_assignments_positions = {}
     num_iterations = 0
-    search_space = 0
+    initial_PVT = PVT.copy()
     while PVT_stack:
         if time.time() - time1 > time_limit:
             print("provenance search alg time out")
@@ -879,7 +888,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             minimal_refinements, minimal_refinements_positions, added = \
                 update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                        fva, [full_value_assignment_positions[x] for x in full_PVT_head],
-                                                       shifted_length)
+                                                       shifted_length, initial_PVT, selection_numeric, full_PVT_head)
             # if tight success, when doing recursion, fixed attribute should use the tightened value
             if tight_success and added:
                 # in the following situation, we need to traverse the values between tightened and original value
@@ -926,7 +935,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             minimal_refinements, minimal_refinements_positions, added = \
                 update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
                                                        fva, [full_value_assignment_positions[x] for x in full_PVT_head],
-                                                       shifted_length)
+                                                       shifted_length, initial_PVT, selection_numeric, full_PVT_head)
         print("minimal_refinements: {}".format(minimal_refinements))
         if not added and not tight_success:
             print("base refinement is dominated by current result set, no need to do recursion")
