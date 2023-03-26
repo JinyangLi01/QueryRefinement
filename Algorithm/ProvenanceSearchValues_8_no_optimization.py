@@ -308,6 +308,87 @@ def assign_to_provenance_relax_only(value_assignment, numeric_attributes, catego
     return True
 
 
+
+
+def assign_to_provenance_relax_in_refinement(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
+                                    selection_categorical, columns_delta_table,
+                                    fairness_constraints_provenance_greater_than):
+    global assign_to_provenance_num
+    assign_to_provenance_num += 1
+    # greater than
+    for fc in fairness_constraints_provenance_greater_than:
+        pe_dataframe = fc["provenance_expression"]
+        for va in numeric_attributes:
+            if va in value_assignment:
+                if selection_numeric[va][0] == '>':
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
+                elif selection_numeric[va][0] == ">=":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
+                elif selection_numeric[va][0] == "<":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
+                else:
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
+        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            return False
+        not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
+        included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
+        new_select = copy.deepcopy(selection_categorical)
+        for cate in included:
+            at, va = cate.rsplit("__", 1)
+            if va not in new_select[at]:
+                new_select[at].append(va)
+        for cate in not_included:
+            at, va = cate.rsplit("__", 1)
+            if va in new_select[at]:
+                new_select[at].remove(va)
+        for att in new_select:
+            pe_dataframe = pe_dataframe[pe_dataframe[att].isin(new_select[att])]
+        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            return False
+    return True
+
+
+def assign_to_provenance_contract_only_in_refinement(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
+                                       selection_categorical, columns_delta_table,
+                                       fairness_constraints_provenance_smaller_than):
+    global assign_to_provenance_num
+    assign_to_provenance_num += 1
+    # smaller than
+    for fc in fairness_constraints_provenance_smaller_than:
+        pe_dataframe = fc["provenance_expression"]
+        for va in numeric_attributes:
+            if va in value_assignment:
+                if selection_numeric[va][0] == '>':
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
+                elif selection_numeric[va][0] == ">=":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
+                elif selection_numeric[va][0] == "<":
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
+                else:
+                    pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
+        if eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            continue
+        not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
+        included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
+        new_select = copy.deepcopy(selection_categorical)
+        for cate in not_included:
+            at, va = cate.rsplit("__", 1)
+            if va in new_select[at]:
+                new_select[at].remove(va)
+        for cate in included:
+            at, va = cate.rsplit("__", 1)
+            if va not in new_select[at]:
+                new_select[at].append(va)
+        for att in new_select:
+            pe_dataframe = pe_dataframe[pe_dataframe[att].isin(new_select[att])]
+        if len(pe_dataframe) == 0:
+            return False
+        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
+            return False
+    return True
+
+
+
 def assign_to_provenance_contract_only(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
                                        selection_categorical, columns_delta_table,
                                        fairness_constraints_provenance_smaller_than):
@@ -383,14 +464,14 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
                 return False, 3
 
     if len(fairness_constraints_provenance_greater_than) > 0:
-        survive = assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes,
+        survive = assign_to_provenance_relax_in_refinement(value_assignment, numeric_attributes, categorical_attributes,
                                                   selection_numeric, selection_categorical, columns_delta_table,
                                                   fairness_constraints_provenance_greater_than)
         if not survive:
             # print("not relaxed enough")
             return False, 0
     if len(fairness_constraints_provenance_smaller_than) > 0:
-        survive = assign_to_provenance_contract_only(value_assignment, numeric_attributes, categorical_attributes,
+        survive = assign_to_provenance_contract_only_in_refinement(value_assignment, numeric_attributes, categorical_attributes,
                                                      selection_numeric, selection_categorical, columns_delta_table,
                                                      fairness_constraints_provenance_smaller_than)
         # if not survive:
@@ -544,16 +625,14 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
         print("shifted_length: {}".format(shifted_length))
         print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-        if fixed_value_assignments == {'num-children': 4.0}:
-            print("debug")
+        # if fixed_value_assignments == {'grade2': 10.0, 'grade1': 10.0, 'age__15-16': 1.0}:
+        #     print("debug")
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
         new_value_assignment_position = [-1] * num_columns
         att_idx = 0
         find_base_refinement = False
-        same_last_col_reason = False
-        lastreason = -1
         while att_idx < num_columns and att_idx >= 0:
             if time.time() - time1 > time_limit:
                 print("provenance search alg time out")
@@ -566,8 +645,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
                 new_value_assignment[col] = possible_values_lists[col][idx_in_col]
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
-                if 'income' in full_value_assignment and full_value_assignment['income'] == 165:
-                    print("debug")
                 if att_idx + 1 == num_columns:
                     assign, reason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                           categorical_attributes, selection_numeric,
@@ -616,7 +693,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                   PVT, PVT_head, max_index_PVT, parent_PVT, parent_PVT_head, parent_max_index_PVT,
                                   col_idx_in_parent_PVT, fixed_value_assignments, fixed_value_assignments_positions)
             # print("no base refinement here, size of PVT: {}*{}".format(len(PVT), len(PVT_head)))
-            search_space += len(PVT) * len(PVT_head)
             continue
 
         print("find base refinement {}".format(new_value_assignment))
@@ -765,11 +841,11 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                       fairness_constraints_provenance_smaller_than,
                                                       fairness_constraints_provenance_complex)
                 if assign:
-                    print("{} satisfies constraints".format(full_value_assignment))
+                    # print("{} satisfies constraints".format(full_value_assignment))
                     tight_value_idx = cur_value_id
                     break
                 else:
-                    print("{} doesn't satisfy constraints".format(full_value_assignment))
+                    # print("{} doesn't satisfy constraints".format(full_value_assignment))
                     left += 1
             if tight_value_idx >= 0:  # can be tightened
                 if tight_value_idx < idx_in_this_col_in_parent_PVT:
