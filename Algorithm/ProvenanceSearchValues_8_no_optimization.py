@@ -96,8 +96,10 @@ Get provenance expressions
             for value in to_remove:
                 if value not in df[att].values.tolist():
                     contraction_threshold[att].add(value)
-                elif df[att].value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
-                    contraction_threshold[att].add(value)
+                else:
+                    satisfying = df[df[att] == value]
+                    if df['occurrence'].sum() - satisfying['occurrence'].sum() < fc_number:  # assume fairness constraints has >= but no >
+                        contraction_threshold[att].add(value)
 
     for fc in fairness_constraints:
         fc_dic = dict()
@@ -348,7 +350,7 @@ def assign_to_provenance_relax_in_refinement(value_assignment, numeric_attribute
     return True
 
 
-def assign_to_provenance_contract_only_in_refinement(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
+def assign_to_provenance_contract_in_refinement(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
                                        selection_categorical, columns_delta_table,
                                        fairness_constraints_provenance_smaller_than):
     global assign_to_provenance_num
@@ -471,7 +473,7 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
             # print("not relaxed enough")
             return False, 0
     if len(fairness_constraints_provenance_smaller_than) > 0:
-        survive = assign_to_provenance_contract_only_in_refinement(value_assignment, numeric_attributes, categorical_attributes,
+        survive = assign_to_provenance_contract_in_refinement(value_assignment, numeric_attributes, categorical_attributes,
                                                      selection_numeric, selection_categorical, columns_delta_table,
                                                      fairness_constraints_provenance_smaller_than)
         # if not survive:
@@ -625,8 +627,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
         print("shifted_length: {}".format(shifted_length))
         print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-        # if fixed_value_assignments == {'grade2': 10.0, 'grade1': 10.0, 'age__15-16': 1.0}:
-        #     print("debug")
+        if fixed_value_assignments == {'age__15-16': 0.0, 'grade2': 6.0}:
+            print("debug")
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -643,9 +645,11 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             full_att = fixed_attributes + PVT_head[:att_idx + 1]
             new_value_assignment_position[att_idx] += 1
             for idx_in_col in range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1):
-                new_value_assignment[col] = possible_values_lists[col][idx_in_col]
+                new_value_assignment[col] = PVT.loc[idx_in_col, col]
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
                 if att_idx + 1 == num_columns:
+                    # if full_value_assignment['grade1'] == 5 and full_value_assignment['grade2'] == 6:
+                    #     print("debug")
                     assign, reason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                           categorical_attributes, selection_numeric,
                                                           selection_categorical,
@@ -719,17 +723,24 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 col_idx += 1
                 return
             idx_in_this_col -= 1
+            found = False
             col_name = original_PVT_head[col_idx]
-            # optimization: fixing this value doesn't dissatisfy inequalities
             one_more_fix = copy.deepcopy(fixed_value_assignments)
-            one_more_fix[col_name] = column[idx_in_this_col]
+            while idx_in_this_col >= 0:
+                # optimization: fixing this value doesn't dissatisfy inequalities
+                one_more_fix[col_name] = column[idx_in_this_col]
 
-            if not assign_to_provenance_relax_only_partial_query(one_more_fix, numeric_attributes,
-                                                                 categorical_attributes,
-                                                                 selection_numeric, selection_categorical,
-                                                                 full_PVT_head,
-                                                                 fairness_constraints_provenance_greater_than):
-                # print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
+                if not assign_to_provenance_relax_only_partial_query(one_more_fix, numeric_attributes,
+                                                                     categorical_attributes,
+                                                                     selection_numeric, selection_categorical,
+                                                                     full_PVT_head,
+                                                                     fairness_constraints_provenance_greater_than):
+                    # print("fixing {} = {} dissatisfies constraints".format(PVT_head[col_idx], column[idx_in_this_col]))
+                    idx_in_this_col -= 1
+                else:
+                    found = True
+                    break
+            if not found:
                 col_idx += 1
                 return
             fixed_value_assignments_for_stack = copy.deepcopy(fixed_value_assignments)
