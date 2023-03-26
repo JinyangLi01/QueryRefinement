@@ -277,40 +277,6 @@ def assign_to_provenance_relax_only_partial_query(value_assignment, numeric_attr
     return True
 
 
-def assign_to_provenance_relax_only(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
-                                    selection_categorical, columns_delta_table,
-                                    fairness_constraints_provenance_greater_than):
-    global assign_to_provenance_num
-    assign_to_provenance_num += 1
-    # greater than
-    for fc in fairness_constraints_provenance_greater_than:
-        pe_dataframe = fc["provenance_expression"]
-        for va in numeric_attributes:
-            if va in value_assignment:
-                if selection_numeric[va][0] == '>':
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
-                elif selection_numeric[va][0] == ">=":
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
-                elif selection_numeric[va][0] == "<":
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
-                else:
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
-        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
-            return False
-        # not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
-        included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 1)]
-        new_select = copy.deepcopy(selection_categorical)
-        for cate in included:
-            at, va = cate.rsplit("__", 1)
-            new_select[at].append(va)
-        for att in new_select:
-            pe_dataframe = pe_dataframe[pe_dataframe[att].isin(new_select[att])]
-        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
-            return False
-    return True
-
-
-
 
 def assign_to_provenance_relax_in_refinement(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
                                     selection_categorical, columns_delta_table,
@@ -389,41 +355,6 @@ def assign_to_provenance_contract_in_refinement(value_assignment, numeric_attrib
             return False
     return True
 
-
-
-def assign_to_provenance_contract_only(value_assignment, numeric_attributes, categorical_attributes, selection_numeric,
-                                       selection_categorical, columns_delta_table,
-                                       fairness_constraints_provenance_smaller_than):
-    global assign_to_provenance_num
-    assign_to_provenance_num += 1
-    # smaller than
-    for fc in fairness_constraints_provenance_smaller_than:
-        pe_dataframe = fc["provenance_expression"]
-        for va in numeric_attributes:
-            if va in value_assignment:
-                if selection_numeric[va][0] == '>':
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] > value_assignment[va]]
-                elif selection_numeric[va][0] == ">=":
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] >= value_assignment[va]]
-                elif selection_numeric[va][0] == "<":
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] < value_assignment[va]]
-                else:
-                    pe_dataframe = pe_dataframe[pe_dataframe[va] <= value_assignment[va]]
-        if eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
-            continue
-        not_included = [x for x in value_assignment if (x not in numeric_attributes and value_assignment[x] == 0)]
-        new_select = copy.deepcopy(selection_categorical)
-        for cate in not_included:
-            at, va = cate.rsplit("__", 1)
-            if va in new_select[at]:
-                new_select[at].remove(va)
-        for att in new_select:
-            pe_dataframe = pe_dataframe[pe_dataframe[att].isin(new_select[att])]
-        if len(pe_dataframe) == 0:
-            return False
-        if not eval(str(pe_dataframe["occurrence"].sum()) + fc['symbol'] + str(fc['number'])):
-            return False
-    return True
 
 
 # reason: 0: not relaxed enough, 1: not contracted enough, 3: complex
@@ -545,7 +476,7 @@ def position_dominate(p1, p2):
         return 4
 
 
-def update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
+def update_minimal_relaxation_and_position_refinement(minimal_refinements, minimal_refinements_positions,
                                            full_value_assignment, full_value_assignment_positions, shifted_length,
                                            initial_PVT, selection_numeric, full_PVT_head):
     num = len(minimal_refinements_positions)
@@ -694,7 +625,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
-            check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
+            check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
                                   parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack,
@@ -886,7 +817,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
             minimal_refinements, minimal_refinements_positions, added = \
-                update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
+                update_minimal_relaxation_and_position_refinement(minimal_refinements, minimal_refinements_positions,
                                                        fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                        shifted_length, initial_PVT, selection_numeric, full_PVT_head)
             # if tight success, when doing recursion, fixed attribute should use the tightened value
@@ -933,7 +864,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
             minimal_refinements, minimal_refinements_positions, added = \
-                update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
+                update_minimal_relaxation_and_position_refinement(minimal_refinements, minimal_refinements_positions,
                                                        fva, [full_value_assignment_positions[x] for x in full_PVT_head],
                                                        shifted_length, initial_PVT, selection_numeric, full_PVT_head)
         print("minimal_refinements: {}".format(minimal_refinements))
@@ -950,7 +881,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             else:
                 next_col_num_in_stack = len(full_PVT_head)
             # FIXME
-            check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
+            check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
                                   parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack,
@@ -984,7 +915,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
-            check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
+            check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
                                   parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack,
@@ -1000,7 +931,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
 
 
 # this procedure is called only when the current recursion ends here
-def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_columns, find_relaxation,
+def check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, this_num_columns, find_relaxation,
                           PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack, parent_PVT_head_stack,
                           parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack, idx_in_this_col_in_parent_PVT_stack,
                           fixed_value_assignments_stack, fixed_value_assignments_positions_stack,
@@ -1059,53 +990,6 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
         # find_relaxation[this_num_columns].pop()
     return PVT_from_to_put
 
-
-#
-# def whether_value_assignment_is_tight_minimal(must_included_term_delta_values, value_assignment, numeric_attributes,
-#                                               categorical_attributes,
-#                                               selection_numeric, selection_categorical,
-#                                               columns_delta_table, num_columns,
-#                                               fairness_constraints_provenance_greater_than,
-#                                               fairness_constraints_provenance_smaller_than,
-#                                               minimal_added_relaxations):
-#     value_idx = 0
-#     for v in value_assignment:
-#         if v == 0:
-#             value_idx += 1
-#             continue
-#         if v == must_included_term_delta_values[value_idx]:
-#             value_idx += 1
-#             continue
-#         smaller_value_assignment = value_assignment.copy()
-#         att = columns_delta_table[value_idx]
-#         if value_idx < len(numeric_attributes):  # numeric
-#             while True:
-#                 if smaller_value_assignment[value_idx] == 0:
-#                     break
-#                 if smaller_value_assignment[value_idx] < 0:
-#                     smaller_value_assignment[value_idx] += selection_numeric[att][2]
-#                     if smaller_value_assignment[value_idx] > 0:
-#                         break
-#                 elif smaller_value_assignment[value_idx] > 0:
-#                     smaller_value_assignment[value_idx] -= selection_numeric[att][2]
-#                     if smaller_value_assignment[value_idx] < 0:
-#                         break
-#                 if assign_to_provenance_relax_only(smaller_value_assignment, numeric_attributes, categorical_attributes,
-#                                                    selection_numeric, selection_categorical, columns_delta_table,
-#                                                    fairness_constraints_provenance_greater_than):
-#                     if not dominated_by_minimal_set(minimal_added_relaxations, smaller_value_assignment):
-#                         return False
-#                 else:
-#                     break
-#         else:  # categorical
-#             smaller_value_assignment[value_idx] = 0
-#             if assign_to_provenance_relax_only(smaller_value_assignment, numeric_attributes, categorical_attributes,
-#                                                selection_numeric, selection_categorical, columns_delta_table,
-#                                                fairness_constraints_provenance_greater_than):
-#                 if not dominated_by_minimal_set(minimal_added_relaxations, smaller_value_assignment):
-#                     return False
-#         value_idx += 1
-#     return True
 
 
 def transform_to_refinement_format(minimal_added_refinements, numeric_attributes, selection_numeric_attributes,
