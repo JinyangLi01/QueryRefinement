@@ -2528,7 +2528,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         print("searching time = {}".format(time2 - time_search1))
         order_in_results = original_PVT_head
         print("order_in_results = {}".format(order_in_results))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+        return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     elif only_smaller_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
@@ -2575,7 +2575,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         print("searching time = {}".format(time2 - time_search1))
         order_in_results = original_PVT_head
         print("order_in_results = {}".format(order_in_results))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+        return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
         fairness_constraints_provenance_complex, contraction_threshold \
@@ -2646,7 +2646,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                             mr.insert(i, 1)
                         break
     print("order in results: {}".format(order_in_results))
-    return reordered_minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+    return reordered_minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
 # data_file = r"../InputData/Adult/adult.data"
 # query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
