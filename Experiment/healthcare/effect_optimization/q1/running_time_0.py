@@ -23,17 +23,17 @@ time_output_prefix = r"./result_"
 
 
 def file(q, c):
-    time_output_file = time_output_prefix + str(q) + str(c) + "1.csv"
+    time_output_file = time_output_prefix + str(q) + str(c) + ".csv"
     time_output = open(time_output_file, "w")
-    time_output.write("selection file, running time ps, running time lt\n")
+    time_output.write("QC,ps,ps_prov,ps_search,ps_noopt,ps_noopt_prov,ps_noopt_search\n")
     return time_output
 
 result_output_file = r"./running_time_result.txt"
 result_output = open(result_output_file, "w")
-result_output.write("selection file, result\n")
+result_output.write("QC,ps,ps_prov,ps_search,ps_noopt,ps_noopt_prov,ps_noopt_search\n")
 
 
-time_limit = 10*60
+time_limit = 60 * 60
 separator = ','
 
 def compare(q, c, time_output):
@@ -43,38 +43,45 @@ def compare(q, c, time_output):
     constraint_file = constraint_file_prefix + str(c) + ".json"
 
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
+    minimal_refinements1, _, running_time1, _, \
     provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit)
 
     print("running time = {}".format(running_time1))
     print(*minimal_refinements1, sep="\n")
 
-    print("========================== lattice traversal ===================================")
+    print("========================== provenance search without optimization  ===================================")
 
     minimal_refinements2, running_time2, _, \
         provenance_time2, search_time2 = \
         ps_no_optimization.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format, time_limit)
 
-    print("running time = {}".format(running_time1))
+    print("running time = {}".format(running_time2))
     print(*minimal_refinements2, sep="\n")
+
+    # print("========================== baseline  ===================================")
+    #
+    # minimal_refinements3, running_time3, _, \
+    #     provenance_time3, search_time3 = \
+    #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file,
+    #                                              data_file_format, time_limit)
+    #
+    # print("running time = {}".format(running_time3))
+    # print(*minimal_refinements3, sep="\n")
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
-    time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1,
-                                                            search_time1))
-    if running_time2 < time_limit:
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},"
-                          "{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1, search_time1,
-                                                             running_time2, provenance_time2, search_time2))
-    else:
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},,,\n".format(idx, running_time1, provenance_time1,
-                                                                   search_time1))
-    result_output.write("{}\n".format(idx))
-    result_output.write(",".join(str(item) for item in minimal_refinements1))
-    result_output.write("\n")
-    result_output.write("\n".join(str(item) for item in minimal_refinements1))
-    result_output.write("\n")
+
+    time_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
+                      "{:0.4f},{:0.4f},{:0.4f}\n\n".format(idx, running_time1, provenance_time1, search_time1,
+                                                         running_time2, provenance_time2, search_time2))
+    time_output.write("{}\n\n".format(minimal_refinements1))
+    time_output.write("{}\n\n".format(minimal_refinements2))
+    # time_output.write("{}\n\n".format(minimal_refinements3))
+
+    result_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
+                      "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
+                                                         running_time2, provenance_time2, search_time2))
 
 
 summary_file = open(r"time1.csv", "w")
@@ -88,8 +95,8 @@ def run(q, c):
     time_output.close()
 
 
-run(1, 1)
-# run(1, 2)
+# run(1, 1)
+run(1, 2)
 # run(1, 3)
 # run(2, 1)
 # run(2, 2)
