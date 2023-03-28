@@ -17,7 +17,7 @@ from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
 
-data_file_prefix = r"../data/"
+data_file_prefix = r"../../data/"
 query_file_prefix = r"./"
 constraint_file_prefix = r"./"
 time_limit = 60 * 60 * 5
@@ -35,13 +35,13 @@ def file(q, c):
 
 def compare(q, c, time_output):
     print("run with query {} constraint {} ".format(q, c))
-    query_file = query_file_prefix + "q" + str(q) + "/q" + str(q) + ".json"
-    constraint_file = constraint_file_prefix + "q" + str(q) + "/constraint_" + c + ".json"
+    query_file = query_file_prefix + "/q" + str(q) + ".json"
+    constraint_file = constraint_file_prefix + "/constraint_" + c + ".json"
 
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
+    minimal_refinements1, order_results, running_time1, _, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
@@ -90,7 +90,7 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-run("1", "relax1")
+run("2", "1")
 #
 # summary_file.close()
 

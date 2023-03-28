@@ -8,16 +8,24 @@
       {
         "address": "Rural"
       },
-      "symbol": "<=",
-      "number": 10
+      "symbol": ">=",
+      "number": 15
     },
     {
       "sensitive_attributes":
       {
         "sex": "F"
       },
+      "symbol": ">=",
+      "number": 30
+    },
+    {
+      "sensitive_attributes":
+      {
+        "all": "yes"
+      },
       "symbol": "<=",
-      "number": 20
+      "number": 100
     }
   ]
 }
