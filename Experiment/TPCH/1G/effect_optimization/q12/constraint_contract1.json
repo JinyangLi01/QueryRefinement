@@ -1,0 +1,32 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "o_orderstatus", "l_returnflag"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "1-URGENT"
+      },
+      "symbol": "<=",
+      "number": 5317
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_linenumber": 1
+      },
+      "symbol": "<=",
+      "number": 6611
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_returnflag": "A",
+        "o_orderstatus": "F"
+      },
+      "symbol": "<=",
+      "number": 13116
+    }
+  ]
+}
+

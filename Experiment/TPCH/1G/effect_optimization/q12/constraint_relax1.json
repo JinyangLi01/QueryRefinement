@@ -1,0 +1,32 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct", "l_returnflag"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "5-LOW",
+        "l_linenumber": 3
+      },
+      "symbol": ">=",
+      "number": 1557
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "COLLECT COD"
+      },
+      "symbol": ">=",
+      "number": 10566
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_returnflag": "A"
+      },
+      "symbol": ">=",
+      "number": 21315
+    }
+  ]
+}
+
