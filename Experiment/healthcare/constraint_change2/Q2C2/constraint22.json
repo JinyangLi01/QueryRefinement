@@ -1,0 +1,22 @@
+{
+  "all_sensitive_attributes": ["race", "age-group"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "race": "race2"
+      },
+      "symbol": "<=",
+      "number": 16
+    },
+    {
+      "sensitive_attributes": {
+        "age-group": "group2"
+      },
+      "symbol": "<=",
+      "number": 30
+    }
+  ]
+}
+
