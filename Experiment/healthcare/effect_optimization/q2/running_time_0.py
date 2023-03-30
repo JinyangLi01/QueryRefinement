@@ -72,9 +72,11 @@ def compare(q, c, time_output):
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
 
+    gain = (search_time2 - search_time1)/search_time2
     time_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
                       "{:0.4f},{:0.4f},{:0.4f}\n\n".format(idx, running_time1, provenance_time1, search_time1,
                                                          running_time2, provenance_time2, search_time2))
+    time_output.write("gain = {}\n".format(gain))
     time_output.write("{}\n\n".format(minimal_refinements1))
     time_output.write("{}\n\n".format(minimal_refinements2))
     # time_output.write("{}\n\n".format(minimal_refinements3))
@@ -82,7 +84,7 @@ def compare(q, c, time_output):
     result_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
                       "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
                                                          running_time2, provenance_time2, search_time2))
-
+    result_output.write("gain = {}\n".format(gain))
 
 summary_file = open(r"time1.csv", "w")
 summary_file.write("file,PS,LT\n")
@@ -98,6 +100,6 @@ def run(q, c):
 # run(1, 1)
 # run(1, 2)
 # run(1, 3)
-# run(2, 1)
+run(2, 1)
 run(2, 2)
 # run(2, 3)
