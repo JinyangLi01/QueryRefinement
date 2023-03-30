@@ -90,7 +90,10 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-run("3", "refine1")
-#
-# summary_file.close()
+# run("3", "refine1")
+# run("3", "relax1")
+# run("3", "contract1")
+run("1", "refine1")
+# run("1", "relax1")
+# run("1", "contract1")
 

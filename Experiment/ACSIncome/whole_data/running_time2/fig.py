@@ -82,7 +82,7 @@ plt.yticks(fontsize=65, weight='bold')
 plt.xlabel('Query and Constraint', fontsize=65, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
-lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.06), fontsize=44, ncol=2, labelspacing=0.4,
+lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.08), fontsize=44, ncol=2, labelspacing=0.3,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
