@@ -61,7 +61,6 @@ def compare(q, c, time_output):
 
     # print("========================== baseline  ===================================")
     #
-    #
     # minimal_refinements3, _, running_time3, \
     #     provenance_time3, search_time3 = \
     #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file,
@@ -96,9 +95,5 @@ def run(q, c):
     time_output.close()
 
 
-run(1, "constraint_relax1")
-# run(1, 2)
-# run(1, 3)
-# run(2, 1)
-# run(2, 2)
-# run(2, 3)
+run(3, "constraint_relax1")
+# run(3, "constraint_relax1")
