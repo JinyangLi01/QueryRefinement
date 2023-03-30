@@ -1,0 +1,10 @@
+{
+  "tables": ["acs_income"],
+  "selection_numeric_attributes": {
+    "WKHP": ["<=", 45, 1],
+    "SCHL": ["<=", 19, 1]
+  },
+  "selection_categorical_attributes": {
+    "OCCP_bucket": ["CSSO", "HPTO", "PSO", "PCSO", "CEO", "MBSA", "FS", "FPASO", "EM"]
+  }
+}
