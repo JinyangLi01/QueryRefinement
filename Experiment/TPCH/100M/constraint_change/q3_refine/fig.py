@@ -87,7 +87,7 @@ def run(query, size, constraint):
     plt.xlabel(r'\{c\underline{ }nationkey = 12\} $>=$ (\%)',
                fontsize=75, weight='bold').set_position((0.46, -0.1))
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.0, 0.88), fontsize=55)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.0, 0.56), fontsize=55)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

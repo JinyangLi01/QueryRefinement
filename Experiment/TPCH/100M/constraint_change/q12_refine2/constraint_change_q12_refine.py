@@ -9,6 +9,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
+sys.path.append(r"../../../../../")
 
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
@@ -23,7 +25,7 @@ running_time2 = []
 
 data_file_prefix = r"../../../../../InputData/TPC-H/100Mdata/"
 query_file_prefix = r"./q"
-time_limit = 5 * 60
+time_limit = 60 * 60 * 3
 
 time_output_prefix = r"./result_"
 
@@ -41,13 +43,13 @@ def run_constraint(q, c):
     result_output = open(result_output_file, "w")
     result_output.write("selection file, result\n")
 
-    for i in range(3, 9):
+    for i in range(1, 7):
         print("constraint {}\n".format(i))
         constraint_file = r"./constraint_" + c + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, _, \
+        minimal_refinements1, _, running_time1, _, \
             provenance_time1, search_time1 = \
-            ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, time_limit)
+            ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, dataformat, time_limit)
 
         print("running time = {}".format(running_time1))
         print(*minimal_refinements1, sep="\n")
@@ -82,5 +84,5 @@ def run_constraint(q, c):
 
 
 separator = '|'
-
+dataformat = ".tbl"
 run_constraint(12, "refine")

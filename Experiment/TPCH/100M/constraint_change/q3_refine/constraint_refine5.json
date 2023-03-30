@@ -1,22 +1,24 @@
 {
-  "all_sensitive_attributes": ["c_nationkey", "l_shipmode"],
-  "number_fairness_constraints": 1,
+  "all_sensitive_attributes": ["l_shipmode", "o_orderstatus", "l_linenumber"],
+  "number_fairness_constraints": 2,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "c_nationkey": 12
-      },
-      "symbol": ">=",
-      "number": 139
-    },
-    {
-      "sensitive_attributes":
-      {
-        "l_shipmode": "TRUCK"
+        "l_shipmode": "TRUCK",
+        "o_orderstatus": "P"
       },
       "symbol": "<=",
-      "number": 422
+      "number": 116
+    },
+    {
+        "sensitive_attributes":
+        {
+            "l_linenumber": 6,
+            "l_shipmode": "SHIP"
+        },
+        "symbol": ">=",
+        "number": 32
     }
   ]
 }

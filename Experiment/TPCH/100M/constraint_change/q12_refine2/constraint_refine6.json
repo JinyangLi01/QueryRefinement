@@ -1,0 +1,26 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "o_orderstatus", "l_linenumber", "l_returnflag", "l_shipinstruct"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "3-MEDIUM",
+        "o_orderstatus": "P",
+        "l_linenumber": 1
+      },
+      "symbol": "<=",
+      "number": 29
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_returnflag": "R",
+        "o_orderstatus": "P"
+      },
+      "symbol": ">=",
+      "number": 107
+    }
+  ]
+}
+
