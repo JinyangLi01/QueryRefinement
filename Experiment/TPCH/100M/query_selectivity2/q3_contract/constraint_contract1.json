@@ -1,0 +1,49 @@
+{
+  "all_sensitive_attributes": ["c_nationkey", "o_orderstatus", "l_returnflag", "l_shipmode",
+    "l_shipinstruct", "l_linenumber"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_nationkey": 2
+      },
+      "symbol": "<=",
+      "number": 96
+    },
+    {
+      "sensitive_attributes":
+      {
+        "o_orderstatus": "P",
+        "l_returnflag": "N"
+      },
+      "symbol": "<=",
+      "number": 366
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipmode": "SHIP"
+      },
+      "symbol": "<=",
+      "number": 435
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "COLLECT COD"
+      },
+      "symbol": "<=",
+      "number": 797
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_linenumber": 5
+      },
+      "symbol": "<=",
+      "number": 323
+    }
+  ]
+}
+
