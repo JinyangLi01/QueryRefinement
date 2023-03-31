@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["c_nationkey", "l_shipmode"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "c_nationkey": 23
+      },
+      "symbol": ">=",
+      "number": 129
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipmode": "MAIL"
+      },
+      "symbol": ">=",
+      "number": 527
+    }
+  ]
+}
+
