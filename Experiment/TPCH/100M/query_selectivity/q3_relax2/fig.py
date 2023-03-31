@@ -59,7 +59,7 @@ def run(query, size, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    x_list = [19940828, '', '', 19950828]
+    x_list = ['', '', '', '', '', '', '', '']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -82,11 +82,12 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80)
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold', fontname="Times New Roman")
 
-    plt.xlabel(r'o\underline{ }orderdate, 2m apart', fontsize=80, weight='bold')
-    # plt.ylabel('Running time (s)')
+
+    plt.xlabel(r'o\underline{ }orderdate starting from \\08/28/1994, 2m interval', fontsize=80, weight='bold')
+
     # plt.legend(loc='upper right', bbox_to_anchor=(0.65, 0.55), fontsize=60)
     plt.legend(loc='upper right', bbox_to_anchor=(1.05, 1.06), fontsize=65)
     plt.tight_layout()

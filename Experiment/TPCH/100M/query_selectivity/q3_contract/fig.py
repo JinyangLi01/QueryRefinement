@@ -60,7 +60,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [19940828, '', '', 19950828]
+    x_list = ['', '', '', '', '', '', '', '']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -82,12 +82,13 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80, weight='bold')
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'o\underline{ }orderdate, 2m apart', fontsize=80, weight='bold')
-    # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.48), fontsize=58)
+    plt.xlabel(r'o\underline{ }orderdate starting from \\08/28/1994, 2m interval', fontsize=80, weight='bold')
+
+
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.05), fontsize=58)
     # plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.07), fontsize=65)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"

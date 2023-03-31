@@ -57,7 +57,7 @@ def run(query, size, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    x_list = ['19941001', ' ', ' ', '19961001']
+    x_list = ['', '', '', '', '', '', '', '']
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
@@ -79,11 +79,12 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80, weight='bold')
     plt.yticks(fontsize=80, weight='bold', fontname="Times New Roman")
 
-    plt.xlabel(r'l\underline{ }receiptdate, 4m apart', fontsize=80, weight='bold')
-    # plt.ylabel('Running time (s)')
+    plt.xlabel(r'l\underline{ }receiptdate starting from\\ 10/01/1994, 4m interval',
+               fontsize=80, weight='bold').set_position((0.45, -0.1))
+
     plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05), fontsize=65)
     # plt.legend(loc='upper right', bbox_to_anchor=(0.65, 0.55), fontsize=58)
     plt.tight_layout()
