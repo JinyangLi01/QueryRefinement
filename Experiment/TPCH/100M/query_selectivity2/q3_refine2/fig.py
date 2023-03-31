@@ -83,12 +83,13 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
 
     plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80, weight='bold')
-    plt.yticks(fontsize=80, weight='bold')
+    plt.yticks([1, 10, 100, 1000], [1, 10, 100, 1000], fontsize=80, weight='bold')
+    plt.ylim(1)
 
-
-    plt.xlabel(r'o\underline{ }orderdate starting from \\08/28/1994, 2m interval', fontsize=80, weight='bold')
+    plt.xlabel(r'o\underline{ }orderdate starting from \\08/28/1994, 2m interval',
+               fontsize=80, weight='bold').set_position((0.44, -0.1))
     plt.yscale('log')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.60), fontsize=50)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.7), fontsize=55)
     # plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.07), fontsize=65)
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
