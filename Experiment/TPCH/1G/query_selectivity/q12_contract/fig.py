@@ -33,6 +33,7 @@ execution_timebl2 = list()
 
 input_path_prefix = r'query_change_'
 
+
 def run(query, size, constraint):
     input_path = input_path_prefix + "q" + str(query) + "_" + constraint + ".csv"
     input_file = open(input_path, "r")
@@ -59,7 +60,7 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [19930401, '', '', 19940401]
+    x_list = ['', '', '', '', '', '', '', '']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -81,10 +82,11 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80)
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'l\underline{ }receiptdate, 2m apart', fontsize=80, weight='bold')
+    plt.xlabel(r'l\underline{ }receiptdate starting from\\ 04/01/1993, 2m interval',
+               fontsize=80, weight='bold').set_position((0.45, 0.1))
 
     # plt.ylabel('Running time (s)')
     plt.legend(loc='upper right', bbox_to_anchor=(1.02, 1.05), fontsize=65)
