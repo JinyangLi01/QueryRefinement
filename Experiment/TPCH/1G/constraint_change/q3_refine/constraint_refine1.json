@@ -1,22 +1,27 @@
 {
-  "all_sensitive_attributes": ["c_nationkey", "l_shipmode"],
-  "number_fairness_constraints": 1,
+  "all_sensitive_attributes": ["l_shipmode", "l_shipinstruct", "o_orderpriority", "l_linenumber", "o_orderstatus"],
+  "number_fairness_constraints": 2,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "c_nationkey": 12
-      },
-      "symbol": ">=",
-      "number": 1361
-    },
-    {
-      "sensitive_attributes":
-      {
-        "l_shipmode": "TRUCK"
+        "l_shipinstruct": "DELIVER IN PERSON",
+        "o_orderpriority": "2-HIGH",
+        "o_orderstatus": "P"
       },
       "symbol": "<=",
-      "number": 4134
+      "number": 208
+    },
+    {
+        "sensitive_attributes":
+        {
+            "l_linenumber": 6,
+            "l_shipmode": "SHIP",
+            "o_orderstatus": "F",
+            "o_orderpriority": "1-URGENT"
+        },
+        "symbol": ">=",
+        "number": 46
     }
   ]
 }

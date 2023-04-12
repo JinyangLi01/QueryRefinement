@@ -57,13 +57,12 @@ def run(query, size, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [102, 104, 106, 108, 110, 112]
+    x_list = [88, 90, 92, 94, 96, 98]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -84,10 +83,15 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{c\underline{ }nationkey = 12\} $>=$ (\%)',
-               fontsize=75, weight='bold').set_position((0.43, -0.1))
+
+    plt.xlabel(r'\{l\underline{ }shipinstruct = DELIVER IN \\'
+               r'PERSON, o\underline{ }orderpriority = 2-HIGH,\\'
+               r'o\underline{ }orderstatus=P\} $<=$ (\%)',
+               fontsize=60, weight='bold').set_position((0.43, -0.1))
+
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper left', bbox_to_anchor=(0.25, 0.7), fontsize=65)
+    plt.legend(loc='lower left', bbox_to_anchor=(0, 0), fontsize=55, ncol=2,
+               handlelength=1.5, handletextpad=0.5, markerscale=0.5, columnspacing=0.3)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
