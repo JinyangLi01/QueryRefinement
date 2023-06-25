@@ -90,6 +90,6 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-run("2", "relax1")
+run("2", "refine1")
 
 
