@@ -25,7 +25,7 @@ running_time2 = []
 
 data_file_prefix = r"../../../data/"
 query_file_prefix = r"./q"
-time_limit = 60 * 60
+time_limit = 60 * 60 * 5
 
 time_output_prefix = r"./result_"
 
@@ -46,7 +46,7 @@ def run_constraint(q, c):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, _, \
+        minimal_refinements1, _, running_time1, _, \
             provenance_time1, search_time1 = \
             ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
@@ -84,4 +84,4 @@ def run_constraint(q, c):
 
 separator = ','
 data_format = ".csv"
-run_constraint(2, "refine1")
+run_constraint(3, "refine1")

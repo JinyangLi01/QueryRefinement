@@ -65,11 +65,11 @@ def run_constraint(q, c):
         result_output.write("\n")
         idx = i
         if running_time2 < time_limit:
-            time_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
-                              "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
+            time_output.write("{},{:0.2f},{:0.2f},{:0.2f},"
+                              "{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1, search_time1,
                                                                  running_time2, provenance_time2, search_time2))
         else:
-            time_output.write("{},{:0.4f},{:0.4f},{:0.4f},,,\n".format(idx, running_time1, provenance_time1,
+            time_output.write("{},{:0.2f},{:0.2f},{:0.2f},,,\n".format(idx, running_time1, provenance_time1,
                                                                        search_time1))
         result_output.write("{}\n".format(idx))
         result_output.write(",".join(str(item) for item in minimal_added_refinements1))
@@ -82,4 +82,4 @@ def run_constraint(q, c):
 
 separator = ','
 data_format = ".csv"
-run_constraint(2, "relax")
+run_constraint(3, "relax")

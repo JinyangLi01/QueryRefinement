@@ -9,7 +9,7 @@
         "MAR": 1
       },
       "symbol": ">=",
-      "number": 128183
+      "number": 125492
     },
     {
       "sensitive_attributes":
@@ -17,7 +17,7 @@
         "RAC1P": 2
       },
       "symbol": ">=",
-      "number": 66927
+      "number": 69207
     }
   ]
 }

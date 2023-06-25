@@ -9,7 +9,7 @@
         "RELP": 1
       },
       "symbol": "<=",
-      "number": 36161
+      "number": 33674
     },
     {
       "sensitive_attributes":
@@ -18,7 +18,7 @@
         "MAR": 3
       },
       "symbol": "<=",
-      "number": 37037
+      "number": 36921
     }
   ]
 }
