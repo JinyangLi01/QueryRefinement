@@ -22,7 +22,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10.7)
+f_size = (14, 10)
 
 x_list = list()
 x_naive = list()
@@ -58,7 +58,6 @@ def run(query, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
     x_list = [25, 30, 35, 40, 45, 50, 55, 60]
 
     print(x_list, execution_timeps1, execution_timeps2)
@@ -86,7 +85,8 @@ def run(query, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'Hours worked per week', fontsize=80, weight='bold')
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.7), fontsize=65)
+    # plt.ylabel('Running time (s)')
+    plt.legend(loc='upper left', bbox_to_anchor=(0, 0.65), fontsize=60)
 
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + constraint + ".png"
@@ -95,4 +95,4 @@ def run(query, constraint):
     plt.show()
 
 
-run(1, "refine1")
+run(3, "relax1")

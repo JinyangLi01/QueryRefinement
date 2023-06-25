@@ -44,7 +44,7 @@ def run_constraint(q, c):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, _, \
+        minimal_refinements1, _, running_time1, _, \
             provenance_time1, search_time1 = \
             ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
