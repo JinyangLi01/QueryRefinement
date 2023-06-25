@@ -82,4 +82,4 @@ def run_constraint(q, c):
 
 separator = ','
 data_format = ".csv"
-run_constraint(2, "contract")
+run_constraint(3, "contract")
