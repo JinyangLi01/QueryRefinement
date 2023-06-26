@@ -41,7 +41,7 @@ def compare(q, c, time_output):
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
+    minimal_refinements1, _, running_time1, _, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
@@ -90,6 +90,6 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-run("2", "refine1")
+run("3", "refine1")
 
 
