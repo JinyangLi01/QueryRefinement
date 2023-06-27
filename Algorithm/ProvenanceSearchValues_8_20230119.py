@@ -51,6 +51,8 @@ Get provenance expressions
 
     if only_greater_than:
         data['satisfy'] = 0
+        only_data_involved_in_constraints = copy.deepcopy(data)
+        only_data_involved_in_constraints["involved"] = 0
         all_relevant_attributes = sensitive_attributes + selected_attributes + ['protected_greater_than',
                                                                                 'protected_smaller_than', 'satisfy']
         data = data[all_relevant_attributes]
@@ -62,12 +64,19 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             fairness_constraints_provenance_greater_than.append(fc_dic)
+        data = only_data_involved_in_constraints[only_data_involved_in_constraints["involved"] == 1]
+        print(len(data))
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold
+            contraction_threshold, data
 
     else:  # contraction
+        only_data_involved_in_constraints = copy.deepcopy(data)
+        only_data_involved_in_constraints["involved"] = 0
         data['satisfy'] = 0
         all_relevant_attributes = sensitive_attributes + selected_attributes + ['protected_greater_than',
                                                                                 'protected_smaller_than', 'satisfy']
@@ -80,11 +89,16 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             fairness_constraints_provenance_smaller_than.append(fc_dic)
         # print("time of get_provenance_contract_only = {}".format(time.time() - time2))
+        data = only_data_involved_in_constraints[only_data_involved_in_constraints["involved"] == 1]
+        print(len(data))
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold
+            contraction_threshold, data
 
 
 def subtract_provenance_refinement(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -161,6 +175,8 @@ Get provenance expressions
                         'occurrence'].sum() < fc_number:  # assume fairness constraints has >= but no >
                         contraction_threshold[att].add(value)
 
+    only_data_involved_in_constraints = copy.deepcopy(data)
+    only_data_involved_in_constraints["involved"] = 0
     for fc in fairness_constraints:
         fc_dic = dict()
         fc_dic['symbol'] = fc['symbol']
@@ -172,10 +188,16 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["first_sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["first_sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['first_provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             fc_data = copy.deepcopy(data)
             for k in fc["second_sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["second_sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['second_provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
                 fairness_constraints_provenance_complex.append(fc_dic)
@@ -184,6 +206,9 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
                 fairness_constraints_provenance_smaller_than.append(fc_dic)
@@ -192,8 +217,10 @@ Get provenance expressions
                 for att in selected_attributes:
                     get_contraction_threshold(fc_data[[att, 'occurrence']], fc_dic['number'], att)
 
+    data = only_data_involved_in_constraints[only_data_involved_in_constraints["involved"] == 1]
+    print(len(data))
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        fairness_constraints_provenance_complex, contraction_threshold
+        fairness_constraints_provenance_complex, contraction_threshold, data
 
 
 # put categorical columns before numerical ones
@@ -2396,7 +2423,24 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_
             pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att][1]]
     for att in selection_categorical_attributes:
         pe_dataframe = pe_dataframe[pe_dataframe[att].isin(selection_categorical_attributes[att])]
+    # data["involved_constraints"] = 0  # only need to deal with tuples involved in constraints
+    # for fc in fairness_constraints:
+    #     if "first_sensitive_attributes" in fc:
+    #         first_sensitive_attributes = fc['first_sensitive_attributes']
+    #         second_sensitive_attributes = fc['second_sensitive_attributes']
+    #         for att in first_sensitive_attributes:
+    #             data.loc[data[att] == first_sensitive_attributes[att], 'involved_constraints'] = 1
+    #         for att in second_sensitive_attributes:
+    #             data.loc[data[att] == second_sensitive_attributes[att], 'involved_constraints'] = 1
+    #     else:
+    #         sensitive_attributes = fc['sensitive_attributes']
+    #         for att in sensitive_attributes:
+    #             data.loc[data[att] == sensitive_attributes[att], 'involved_constraints'] = 1
+    #
+    # data = data[data["involved_constraints"] == 1]
+    # data.drop(columns=["involved_constraints"], inplace=True)
 
+    # print(len(data))
     for fc in fairness_constraints:
         if "first_sensitive_attributes" in fc:
             df = copy.deepcopy(pe_dataframe)
@@ -2493,7 +2537,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     if only_greater_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold \
+            contraction_threshold, data \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -2542,7 +2586,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
     elif only_smaller_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-            contraction_threshold \
+            contraction_threshold, data \
             = subtract_provenance_relaxation_contraction(data, selected_attributes, sensitive_attributes,
                                                          fairness_constraints,
                                                          numeric_attributes, categorical_attributes,
@@ -2588,7 +2632,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        fairness_constraints_provenance_complex, contraction_threshold \
+        fairness_constraints_provenance_complex, contraction_threshold, data \
         = subtract_provenance_refinement(data, selected_attributes, sensitive_attributes,
                                          fairness_constraints,
                                          numeric_attributes, categorical_attributes,
