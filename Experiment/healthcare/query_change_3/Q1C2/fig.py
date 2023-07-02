@@ -79,10 +79,10 @@ def run(query, constraint):
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
 
-    plt.xticks(np.arange(0, 8), range(100, 500, 50), rotation=0, fontsize=58, weight='bold')
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 8), range(100, 500, 50), rotation=0, fontsize=60, weight='bold')
+    plt.yticks(fontsize=75, weight='bold')
 
-    plt.xlabel(r'income, 50 apart (K)', fontsize=80, weight='bold')
+    plt.xlabel(r'income (K)', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)')
     plt.legend(loc='upper right', bbox_to_anchor=(1.04, 1.03), fontsize=64)
     plt.tight_layout()

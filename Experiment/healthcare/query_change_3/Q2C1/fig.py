@@ -80,12 +80,12 @@ def run(query, constraint):
             color=color[1], label=label[1])
 
     # plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
-    plt.xticks(np.arange(0, 8), range(100, 500, 50), rotation=0, fontsize=58, weight='bold')
-    plt.yticks(fontsize=70, weight='bold')
+    plt.xticks(np.arange(0, 8), range(100, 500, 50), rotation=0, fontsize=60, weight='bold')
+    plt.yticks(fontsize=75, weight='bold')
 
-    plt.xlabel(r'income, 50 apart (K)', fontsize=80, weight='bold')
+    plt.xlabel(r'income (K)', fontsize=80, weight='bold')
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.6), fontsize=65)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 0.7), fontsize=65)
     plt.tight_layout()
     fig_path = "healthcare_query_selectivity_q" + str(query) + "_" + constraint + ".png"
 
