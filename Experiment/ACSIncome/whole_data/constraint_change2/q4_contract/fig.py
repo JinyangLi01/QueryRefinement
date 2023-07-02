@@ -57,7 +57,7 @@ def run(query, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    x_list = [88, 90, 92, 94, 96, 98]
+    x_list = [40, 50, 60, 70, 80, 90]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -82,11 +82,10 @@ def run(query, constraint):
 
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=85)
     plt.yticks(fontsize=85, weight='bold')
-
-    plt.xlabel(r'\{age = 30-60\} $<=$ (\%)',
+    plt.xlabel(r'\{race=White\} $<=$ (\%)',
                fontsize=85, weight='bold').set_position((0.47, -0.1))
 
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.04, 0.8), fontsize=70)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.7), fontsize=70)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + constraint + ".png"
@@ -95,4 +94,4 @@ def run(query, constraint):
     plt.show()
 
 
-run(3,  "refine")
+run(4,  "contract")
