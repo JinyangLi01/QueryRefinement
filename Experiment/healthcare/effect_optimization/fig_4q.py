@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C7', 'C6']
 label = ['PS-prov', "PS-search", "PS-prov\_no\_opt", "PS-search\_no\_opt"]
 
-f_size = (14, 12)
+f_size = (26, 12)
 
 x_list = list()
 x_naive = list()
@@ -29,7 +29,7 @@ execution_timebl1 = list()
 execution_timebl2 = list()
 
 
-input_path = r'time.csv'
+input_path = r'time_4q.csv'
 input_file = open(input_path, "r")
 
 Lines = input_file.readlines()
@@ -42,7 +42,7 @@ for line in Lines:
         continue
     if count < 2:
         continue
-    if count > 8:
+    if count > 10:
         break
     items = line.strip().split(',')
     x_list.append(items[0])
@@ -72,18 +72,20 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[3], label=l
 # x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath$C^H_2$',
 #           '\\boldmath$Q^H_2$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\n\\boldmath$C^H_2$']
 x_list = ['\\boldmath$Q^H_1$\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\\boldmath$C^H_2$',
-          '\\boldmath$Q^H_2$\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\\boldmath$C^H_2$']
+          '\\boldmath$Q^H_2$\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\\boldmath$C^H_2$',
+          '\\boldmath$Q^H_3$\\boldmath$C^H_4$', '\\boldmath$Q^H_3$\\boldmath$C^H_5$',
+          '\\boldmath$Q^H_4$\\boldmath$C^H_7$', '\\boldmath$Q^H_4$\\boldmath$C^H_8$',
+          ]
 
-
-plt.xticks(np.arange(0, 4) + bar_width/2, x_list, rotation=0, fontsize=54)
+plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=60)
 plt.yticks(fontsize=80, weight='bold')
 
 plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.93), fontsize=55, ncol=1, labelspacing=0.4,
+lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.8, 1.05), fontsize=70, ncol=1, labelspacing=0.4,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
-plt.savefig("healthcare_optimization_effect.png", bbox_inches='tight')
+plt.savefig("healthcare_optimization_effect_4q.png", bbox_inches='tight')
 plt.show()
