@@ -1,23 +1,22 @@
 {
-  "all_sensitive_attributes": ["race", "age-group"],
+  "all_sensitive_attributes": ["smoker", "race"],
   "number_fairness_constraints": 2,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "race": "race3"
+        "smoker": "no"
       },
       "symbol": ">=",
-      "number": 13
+      "number": 8
     },
     {
       "sensitive_attributes":
       {
-        "race": "race1",
-        "age-group": "group1"
+        "race": "race2"
       },
       "symbol": ">=",
-      "number": 3
+      "number": 14
     }
   ]
 }

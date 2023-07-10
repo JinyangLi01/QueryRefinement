@@ -82,12 +82,12 @@ def run(query, constraint):
     #
 
     plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=85)
-    plt.yticks(fontsize=80, weight='bold')
+    plt.yticks(fontsize=85, weight='bold')
 
-    plt.xlabel(r'\{race=race3\} $>=$ (\%)',
+    plt.xlabel(r'\{smoker=False\} $>=$ (\%)',
                fontsize=85, weight='bold').set_position((0.45, -0.1))
 
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.8), fontsize=65)
+    plt.legend(loc='upper left', bbox_to_anchor=(0, 0.7), fontsize=58)
     plt.tight_layout()
     fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"
 
@@ -95,4 +95,4 @@ def run(query, constraint):
     plt.show()
 
 
-run(1, "1")
+run(4, "1")
