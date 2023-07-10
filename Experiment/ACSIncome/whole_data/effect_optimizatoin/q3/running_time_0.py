@@ -95,5 +95,5 @@ def run(q, c):
     time_output.close()
 
 
+run(3, "constraint_contract1")
 run(3, "constraint_relax1")
-# run(3, "constraint_relax1")

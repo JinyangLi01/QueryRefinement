@@ -86,7 +86,7 @@ def run(query, constraint):
 
     plt.xlabel(r'Hours worked per week', fontsize=85, weight='bold').set_position((0.45, -0.1))
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper left', bbox_to_anchor=(0, 0.7), fontsize=70)
+    plt.legend(loc='upper left', bbox_to_anchor=(0, 1.04), fontsize=70)
 
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + constraint + ".png"

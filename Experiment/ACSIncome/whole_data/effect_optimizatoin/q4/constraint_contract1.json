@@ -1,22 +1,22 @@
 {
-  "all_sensitive_attributes": ["RAC1P", "age_bucket"],
+  "all_sensitive_attributes": ["RAC1P", "SEX"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
-        "RAC1P": 2
+        "RAC1P": 1
       },
-      "symbol": ">=",
-      "number": 521
+      "symbol": "<=",
+      "number": 1862
     },
     {
       "sensitive_attributes":
       {
-        "age_bucket": "30-60"
+        "SEX": "M"
       },
       "symbol": "<=",
-      "number": 2280
+      "number": 1727
     }
   ]
 }
