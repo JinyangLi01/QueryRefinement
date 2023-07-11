@@ -1,0 +1,32 @@
+{
+  "all_sensitive_attributes": ["address", "sex", "school"],
+  "number_fairness_constraints": 3,
+  "fairness_constraints":
+  [
+    {
+      "sensitive_attributes":
+      {
+        "address": "Urban"
+      },
+      "symbol": "<=",
+      "number": 50
+    },
+    {
+      "sensitive_attributes":
+      {
+        "sex": "F"
+      },
+      "symbol": "<=",
+      "number": 40
+    },
+    {
+      "sensitive_attributes":
+      {
+        "school": "MS"
+      },
+      "symbol": "<=",
+      "number": 50
+    }
+  ]
+}
+

@@ -1,0 +1,16 @@
+{
+  "tables": ["students"],
+  "categorical_attributes": {
+    "extraActivities": ["yes", "no"],
+    "age": ["15-16", "17-18", "19-20", "21-22"]
+  },
+  "selection_numeric_attributes": {
+    "grade1": [">=", 13, 1],
+    "grade2": [">=", 13, 1]
+  },
+  "selection_categorical_attributes": {
+    "age": ["15-16", "17-18"],
+    "higherEdIntention": ["yes"]
+  }
+}
+

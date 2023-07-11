@@ -1,0 +1,13 @@
+{
+  "tables": ["students"],
+  "selection_numeric_attributes": {
+    "grade1": [">=", 13, 1],
+    "grade2": [">=", 13, 1]
+  },
+  "selection_categorical_attributes": {
+    "age": ["15-16", "17-18"],
+    "higherEdIntention": ["yes"],
+    "Mjob": ["at_home", "health", "other"]
+  }
+}
+
