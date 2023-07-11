@@ -1,0 +1,23 @@
+{
+  "all_sensitive_attributes": ["RAC1P"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "RAC1P": 2
+      },
+      "symbol": ">=",
+      "number": 521
+    },
+    {
+      "sensitive_attributes":
+      {
+        "RAC1P": "1"
+      },
+      "symbol": "<=",
+      "number": 1862
+    }
+  ]
+}
+
