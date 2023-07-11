@@ -78,8 +78,7 @@ x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath
           '\\boldmath$Q^H_3$\n\\boldmath$C^H_4$', '\\boldmath$Q^H_3$\n\\boldmath$C^H_5$',
           '\\boldmath$Q^H_3$\n\\boldmath$C^H_6$',
           '\\boldmath$Q^H_4$\n\\boldmath$C^H_7$', '\\boldmath$Q^H_4$\n\\boldmath$C^H_8$',
-          '\\boldmath$Q^H_4$\n\\boldmath$C^H_9$'
-          ]
+          '\\boldmath$Q^H_4$\n\\boldmath$C^H_9$']
 
 # x_list = ['\\boldmath$Q^H_1$\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\\boldmath$C^H_2$',
 #           '\\boldmath$Q^H_1$\\boldmath$C^H_3$',
