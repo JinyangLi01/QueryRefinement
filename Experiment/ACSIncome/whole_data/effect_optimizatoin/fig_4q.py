@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C7', 'C6']
 label = ['PS-prov', "PS-search", "PS-prov\_no\_opt", "PS-search\_no\_opt"]
 
-f_size = (26, 12)
+f_size = (24, 12)
 
 x_list = list()
 x_naive = list()
@@ -71,20 +71,20 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[3], label=l
 
 # x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath$C^A_2$',
 #           '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$']
-x_list = ['\\boldmath$Q^A_1$\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\\boldmath$C^A_2$',
-          '\\boldmath$Q^A_2$\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\\boldmath$C^A_2$',
-          '\\boldmath$Q^A_3$\\boldmath$C^A_4$', '\\boldmath$Q^A_3$\\boldmath$C^A_5$',
-          '\\boldmath$Q^A_4$\\boldmath$C^A_7$', '\\boldmath$Q^A_4$\\boldmath$C^A_8$',
+x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath$C^A_2$',
+          '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$',
+          '\\boldmath$Q^A_3$\n\\boldmath$C^A_4$', '\\boldmath$Q^A_3$\n\\boldmath$C^A_5$',
+          '\\boldmath$Q^A_4$\n\\boldmath$C^A_7$', '\\boldmath$Q^A_4$\n\\boldmath$C^A_8$',
           ]
 
 
-plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=60)
+plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=80)
 plt.yticks(fontsize=80, weight='bold')
 
 plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper left', bbox_to_anchor=(0, 1.0), fontsize=80, ncol=1, labelspacing=0.4,
+lgnd = plt.legend(loc='upper left', bbox_to_anchor=(0, 1.06), fontsize=80, ncol=1, labelspacing=0.4,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()

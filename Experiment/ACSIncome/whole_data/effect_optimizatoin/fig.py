@@ -71,17 +71,17 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[3], label=l
 
 # x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath$C^A_2$',
 #           '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$']
-x_list = ['\\boldmath$Q^A_1$\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\\boldmath$C^A_2$',
-          '\\boldmath$Q^A_2$\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\\boldmath$C^A_2$']
+x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath$C^A_2$',
+          '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$']
 
 
-plt.xticks(np.arange(0, 4) + bar_width/2, x_list, rotation=0, fontsize=55)
+plt.xticks(np.arange(0, 4) + bar_width/2, x_list, rotation=0, fontsize=70)
 plt.yticks(fontsize=80, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
 
 # plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.9), fontsize=55, ncol=1, labelspacing=0.4,
+lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.93), fontsize=55, ncol=1, labelspacing=0.4,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
