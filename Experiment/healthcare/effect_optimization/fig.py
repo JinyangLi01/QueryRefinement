@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C7', 'C6']
 label = ['PS-prov', "PS-search", "PS-prov\_no\_opt", "PS-search\_no\_opt"]
 
-f_size = (14, 12)
+f_size = (14, 12.5)
 
 x_list = list()
 x_naive = list()
@@ -71,17 +71,17 @@ plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[3], label=l
 
 # x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath$C^H_2$',
 #           '\\boldmath$Q^H_2$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\n\\boldmath$C^H_2$']
-x_list = ['\\boldmath$Q^H_1$\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\\boldmath$C^H_2$',
-          '\\boldmath$Q^H_2$\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\\boldmath$C^H_2$']
+x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath$C^H_2$',
+          '\\boldmath$Q^H_2$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_2$\n\\boldmath$C^H_2$']
 
 
-plt.xticks(np.arange(0, 4) + bar_width/2, x_list, rotation=0, fontsize=54)
+plt.xticks(np.arange(0, 4) + bar_width/2, x_list, rotation=0, fontsize=70)
 plt.yticks(fontsize=80, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.93), fontsize=55, ncol=1, labelspacing=0.4,
+lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.04, 0.98), fontsize=55, ncol=1, labelspacing=0.4,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
 plt.tight_layout()
