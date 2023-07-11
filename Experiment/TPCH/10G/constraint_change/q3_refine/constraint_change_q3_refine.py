@@ -28,7 +28,7 @@ running_time2 = []
 
 data_file_prefix = r"../../../../../InputData/TPC-H/10Gdata/"
 query_file_prefix = r"./q"
-time_limit = 60 * 60 * 10
+time_limit = 60 * 60 * 3
 
 time_output_prefix = r"./result_"
 

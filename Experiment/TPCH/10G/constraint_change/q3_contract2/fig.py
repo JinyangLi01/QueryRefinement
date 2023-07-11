@@ -62,7 +62,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -79,12 +79,14 @@ def run(query, size, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
     #
-    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
+    plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=85)
     plt.yticks(fontsize=80, weight='bold')
     plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $<=$ (\%)',
-               fontsize=70, weight='bold').set_position((0.43, -0.1))
+               fontsize=80, weight='bold').set_position((0.43, -0.1))
 
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=60)
+    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.7), fontsize=70,
+               labelspacing=0.2, handletextpad=0.2, markerscale=0.4, columnspacing=0.4)
+
     # plt.legend(loc="best", fontsize=60)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

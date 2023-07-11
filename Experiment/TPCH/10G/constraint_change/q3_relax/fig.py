@@ -62,7 +62,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -82,9 +82,11 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipmode = MAIL\} $>=$ (\%)', fontsize=68,
+    plt.xlabel(r'\{l\underline{ }shipmode=MAIL\}$>=$(\%)', fontsize=75,
                weight='bold').set_position((0.43, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.7), fontsize=60, ncol=1)
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.7), fontsize=70, ncol=1,
+    labelspacing = 0.2, handletextpad = 0.2, markerscale = 0.4, columnspacing = 0.4)
+
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 

@@ -82,9 +82,11 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{c\underline{ }nationkey = 12\} $>=$ (\%)', fontsize=75,
+    plt.xlabel(r'\{c\underline{ }nationkey$=$12\} $>=$ (\%)', fontsize=80,
                weight='bold').set_position((0.39, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.8), fontsize=65, ncol=1)
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.8), fontsize=70, ncol=1,
+               labelspacing=0.2, handletextpad=0.2, markerscale=0.4, columnspacing=0.4)
+
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 

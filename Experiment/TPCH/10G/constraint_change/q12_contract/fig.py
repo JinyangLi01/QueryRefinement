@@ -22,7 +22,7 @@ plt.rcParams['ytick.left'] = True
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
-f_size = (14, 10)
+f_size = (14, 10.5)
 
 x_list = list()
 x_naive = list()
@@ -64,7 +64,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -84,9 +84,11 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }returnflag = A, \\o\underline{ }orderstatus=F\} $<=$ (\%)',
-               fontsize=75).set_position((0.43, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(0.65, 0.60), fontsize=60)
+    plt.xlabel(r'\{l\underline{ }returnflag=A, \\o\underline{ }orderstatus=F\} $<=$ (\%)',
+               fontsize=80).set_position((0.43, -0.1))
+    plt.legend(loc='upper right', bbox_to_anchor=(1.05, 1.08), fontsize=63, ncol=1,
+               labelspacing=0.1, handletextpad=0.2, markerscale=0.5, columnspacing=0.2)
+
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

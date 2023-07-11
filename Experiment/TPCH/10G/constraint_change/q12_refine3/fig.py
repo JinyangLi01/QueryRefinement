@@ -65,7 +65,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -85,11 +85,12 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct =\\ TAKE BACK RETURN\} $<=$ (\%)',
-               fontsize=60).set_position((0.43, -0.1))
+    plt.xlabel(r'\{l\underline{ }returnflag=R,l\underline{ }shipinstruct=\\ TAKE BACK RETURN\}$<=$(\%)',
+               fontsize=68).set_position((0.41, -0.1))
     # plt.ylabel('Running time (s)')
     # plt.legend(loc="lower right", bbox_to_anchor=(0.6, -0.05), fontsize=50)
-    plt.legend(loc="upper right", bbox_to_anchor=(1.0, 0.7), fontsize=65)
+    plt.legend(loc="upper right", bbox_to_anchor=(1.0, 0.7), fontsize=70,
+               labelspacing=0.2, handletextpad=0.1, markerscale=0.5, columnspacing=0.3)
 
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
