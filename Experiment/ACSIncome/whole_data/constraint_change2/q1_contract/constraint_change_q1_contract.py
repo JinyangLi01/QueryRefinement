@@ -26,7 +26,7 @@ query_file_prefix = r"./q"
 time_limit = 10 * 60
 
 time_output_prefix = r"./result_"
-
+num_provenance_prefix = r"./num_refinement_"
 
 def run_constraint(q, c):
     print("running query {} constraint change {}".format(q, c))
@@ -34,6 +34,7 @@ def run_constraint(q, c):
     query_file = query_file_prefix + str(q) + ".json"
 
     time_output_file = r"./constraint_change_q" + str(q) + "_" + c + ".csv"
+
     time_output = open(time_output_file, "w")
     time_output.write("_,PS,PS_prov,PS_search,base,base_prov,base_search\n")
 

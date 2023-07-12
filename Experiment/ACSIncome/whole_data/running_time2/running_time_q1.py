@@ -41,30 +41,33 @@ def compare(q, c, time_output):
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, _, running_time1, _, \
+    minimal_refinements1, _, running_time1, num_refinements1, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
-    print("running time = {}".format(running_time1))
+    print("running time = {}, num refinements = {}".format(running_time1, num_refinements1))
     print(*minimal_refinements1, sep="\n")
 
     print("========================== lattice traversal ===================================")
     running_time2, provenance_time2, search_time2 = 0, 0, 0
     minimal_refinements2 = []
-    minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
+    minimal_refinements2, minimal_added_refinements2, running_time2, num_refinements2, \
+        provenance_time2, search_time2 = \
         lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
     if running_time2 > time_limit:
         print("naive alg out of time")
     else:
-        print("running time = {}".format(running_time2))
+        print("running time = {}, num refinements = {}".format(running_time2, num_refinements2))
         print(*minimal_refinements2, sep="\n")
 
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + c
-    time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1, search_time1))
+    time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, provenance_time1, search_time1,
+                                                               num_refinements1))
     if running_time2 < time_limit:
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time2, provenance_time2, search_time2))
+        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time2, provenance_time2, search_time2,
+                                                                   num_refinements2))
 
     time_output.write("\n\n=================================== provenance search ===================================\n")
     time_output.write("\n".join(str(item) for item in minimal_refinements1))
@@ -90,8 +93,5 @@ def run(q, c):
 separator = ','
 data_format = '.csv'
 
-# run("3", "refine1")
-# run("3", "relax1")
-# run("3", "contract1")
-run("4", "refine1")
+run("4", "relax1")
 

@@ -86,7 +86,7 @@ def run(query, constraint):
     plt.xlabel(r'\{sex=female\} $>=$ (\%)',
                fontsize=85, weight='bold').set_position((0.47, -0.1))
 
-    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.86), fontsize=70)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.7), fontsize=70)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + constraint + ".png"
