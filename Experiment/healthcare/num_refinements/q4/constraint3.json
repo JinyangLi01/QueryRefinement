@@ -1,0 +1,22 @@
+{
+  "all_sensitive_attributes": ["race", "smoker"],
+  "number_fairness_constraints": 2,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "smoker": "no"
+      },
+      "symbol": ">=",
+      "number": 7
+    },
+    {
+      "sensitive_attributes":
+      {
+        "race": "race3"
+      },
+      "symbol": "<=",
+      "number": 28
+    }
+  ]
+}
