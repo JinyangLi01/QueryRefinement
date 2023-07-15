@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10)
+f_size = (13, 8.5)
 
 x_list = list()
 x_naive = list()
@@ -80,13 +80,15 @@ def run(query, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=85)
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=85, weight='bold')
 
     plt.xlabel(r'\{sex=female\} $>=$ (\%)',
-               fontsize=85, weight='bold').set_position((0.47, -0.1))
+               fontsize=80, weight='bold').set_position((0.47, -0.1))
 
-    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.7), fontsize=70)
+    plt.legend(loc='upper left', bbox_to_anchor=(0.2, 0.7), fontsize=70,
+               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + constraint + ".png"

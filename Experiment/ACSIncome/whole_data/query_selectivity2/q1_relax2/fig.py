@@ -22,7 +22,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10)
+f_size = (13, 8.5)
 
 x_list = list()
 x_naive = list()
@@ -81,12 +81,14 @@ def run(query, constraint):
     #         color=color[3], label=label[3])
 
 
-    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80)
-    plt.yticks(fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=85)
+    plt.yticks(fontsize=85, weight='bold')
 
-    plt.xlabel(r'Hours worked per week', fontsize=80, weight='bold')
+    plt.xlabel(r'Hours worked per week', fontsize=85, weight='bold').set_position((0.47, -0.1))
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.65), fontsize=65)
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.65), fontsize=65,
+               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
 
     plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + constraint + ".png"

@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10.5)
+f_size = (13, 8.5)
 
 x_list = list()
 x_naive = list()
@@ -62,7 +62,7 @@ def run(query, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.45
+    bar_width = 0.5
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -80,13 +80,16 @@ def run(query, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
-    plt.yticks(fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=85)
+    plt.yticks(fontsize=85, weight='bold')
 
     plt.xlabel(r'\{sex=male, race = \\Asian alone\} $<=$ (\%)',
                fontsize=75, weight='bold').set_position((0.45, -0.1))
 
-    plt.legend(loc='upper left', bbox_to_anchor=(0.05, 0.8), fontsize=65)
+
+    plt.legend(loc='upper left', bbox_to_anchor=(0.0, 0.8), fontsize=65,
+               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + constraint + ".png"
