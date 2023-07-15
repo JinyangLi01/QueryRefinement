@@ -1,0 +1,30 @@
+{
+  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_shipinstruct",
+    "o_orderstatus", "l_returnflag"],
+  "number_fairness_constraints": 1,
+  "fairness_constraints": [
+    {
+      "sensitive_attributes":
+      {
+        "o_orderpriority": "4-NOT SPECIFIED",
+        "l_linenumber": 7,
+        "l_shipinstruct": "TAKE BACK RETURN",
+        "l_returnflag": "A"
+      },
+      "symbol": "<=",
+      "number": 2
+    },
+    {
+      "sensitive_attributes":
+      {
+        "l_shipinstruct": "NONE",
+         "l_linenumber": 7,
+        "o_orderpriority": "5-LOW",
+        "o_orderstatus": "F"
+      },
+      "symbol": ">=",
+      "number": 5
+    }
+  ]
+}
+

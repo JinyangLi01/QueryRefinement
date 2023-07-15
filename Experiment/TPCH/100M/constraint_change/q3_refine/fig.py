@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (14, 10)
+f_size = (13, 9)
 
 x_list = list()
 x_naive = list()
@@ -63,7 +63,7 @@ def run(query, size, constraint):
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.45
+    bar_width = 0.5
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -84,12 +84,14 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }shipinstruct = DELIVER IN \\'
-               r'PERSON, o\underline{ }orderpriority = 2-HIGH,\\'
+    plt.xlabel(r'\{l\underline{ }shipinstruct=DELIVER IN \\'
+               r'PERSON, o\underline{ }orderpriority=2-HIGH,\\'
                r'o\underline{ }orderstatus=P\} $<=$ (\%)',
-               fontsize=60, weight='bold').set_position((0.43, -0.1))
+               fontsize=60, weight='bold').set_position((0.42, -0.1))
     # plt.ylabel('Running time (s)')
-    plt.legend(loc='lower left', bbox_to_anchor=(0, 0), fontsize=45)
+    plt.legend(loc='lower left', bbox_to_anchor=(0, -0.15), fontsize=53,
+               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=55)
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

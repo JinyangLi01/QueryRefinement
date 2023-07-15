@@ -100,5 +100,5 @@ def run(q, c):
     time_output.close()
 
 
-run(3, "relax1")
+# run(3, "relax1")
 run(3, "contract1")

@@ -1,0 +1,34 @@
+query 0
+provenance time = 1.7910053730010986
+searching time = 145.73694682121277
+running time = 147.52795600891113
+
+query 1
+provenance time = 1.7098350524902344
+searching time = 119.84650087356567
+assign_to_provenance_num = 864795
+order in results: ['o_orderdate', 'l_shipdate', 'c_mktsegment__HOUSEHOLD', 'c_mktsegment__MACHINERY', 'c_mktsegment__FURNITURE', 'c_mktsegment__BUILDING', 'c_mktsegment__AUTOMOBILE']
+running time = 121.55633807182312
+
+query 2
+provenance time = 1.6986877918243408
+searching time = 68.55162811279297
+assign_to_provenance_num = 562494
+order in results: ['o_orderdate', 'l_shipdate', 'c_mktsegment__HOUSEHOLD', 'c_mktsegment__MACHINERY', 'c_mktsegment__FURNITURE', 'c_mktsegment__BUILDING', 'c_mktsegment__AUTOMOBILE']
+running time = 70.25031805038452
+
+query 3
+provenance time = 1.7093119621276855
+searching time = 317.53516006469727
+assign_to_provenance_num = 1519195
+order in results: ['o_orderdate', 'l_shipdate', 'c_mktsegment__HOUSEHOLD', 'c_mktsegment__MACHINERY', 'c_mktsegment__FURNITURE', 'c_mktsegment__BUILDING', 'c_mktsegment__AUTOMOBILE']
+running time = 319.24447417259216
+
+
+query 4
+provenance time = 1.7057371139526367
+searching time = 374.2546808719635
+assign_to_provenance_num = 1749788
+order in results: ['o_orderdate', 'l_shipdate', 'c_mktsegment__HOUSEHOLD', 'c_mktsegment__MACHINERY', 'c_mktsegment__FURNITURE', 'c_mktsegment__BUILDING', 'c_mktsegment__AUTOMOBILE']
+running time = 375.96041893959045
+

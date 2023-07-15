@@ -41,7 +41,7 @@ def compare(q, c, time_output):
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
+    minimal_refinements1, _, running_time1, _, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
@@ -50,15 +50,15 @@ def compare(q, c, time_output):
 
     minimal_refinements2 = []
     running_time2, provenance_time2, search_time2 = 0, 0, 0
-    print("========================== lattice traversal ===================================")
-
-    minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
-        lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
-    if running_time2 > time_limit:
-        print("naive alg out of time")
-    else:
-        print("running time = {}".format(running_time2))
-        print(*minimal_refinements2, sep="\n")
+    # print("========================== lattice traversal ===================================")
+    #
+    # minimal_refinements2, minimal_added_refinements2, running_time2, provenance_time2, search_time2 = \
+    #     lt.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
+    # if running_time2 > time_limit:
+    #     print("naive alg out of time")
+    # else:
+    #     print("running time = {}".format(running_time2))
+    #     print(*minimal_refinements2, sep="\n")
 
 
     time_output.write("\n")
