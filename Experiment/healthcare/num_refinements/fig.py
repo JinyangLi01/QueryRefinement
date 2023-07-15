@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C4', 'C8', 'C8', 'C2']
 label = ['PS', "PS-search", "BL", "BL-search"]
 
-f_size = (14, 10)
+f_size = (13, 9)
 
 x_list = list()
 x_naive = list()
@@ -64,14 +64,15 @@ x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath
           '\\boldmath$Q^A_2$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_2$\n\\boldmath$C^A_2$',
           '\\boldmath$Q^A_2$\n\\boldmath$C^A_3$']
 
-plt.ylim(0.001, 1000000)
 
-plt.xticks(np.arange(0, 6) + bar_width/2, x_list, rotation=0, fontsize=70)
-plt.yticks(fontsize=80, weight='bold')
-
-plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
-# plt.ylabel('Running time (s)')
 plt.yscale('log')
+
+plt.xticks(np.arange(0, 6) + bar_width/2, x_list, rotation=0, fontsize=60)
+plt.yticks([0.001, 1, 1000, 1000000], fontsize=75, weight='bold')
+
+plt.xlabel('Query and Constraint', fontsize=70, weight='bold')
+# plt.ylabel('Running time (s)')
+
 lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0.48), fontsize=60, ncol=2, labelspacing=0.3,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
 
