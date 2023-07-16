@@ -86,7 +86,7 @@ def run(query, size, constraint):
 
     plt.xlabel(r'\{l\underline{ }returnflag = A, \\o\underline{ }orderstatus=F\} $<=$ (\%)',
                fontsize=73, weight='bold').set_position((0.45, -0.1))
-    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 0.75), fontsize=60,
+    plt.legend(loc='upper left', bbox_to_anchor=(0.01, 0.7), fontsize=60,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=50)
