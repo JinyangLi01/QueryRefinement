@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C4', 'C10', 'tan', 'C2']
 label = ['PS', "PS-search", "total-number", "BL-search"]
 
-f_size = (17, 13)
+f_size = (16, 12)
 
 x_list = list()
 x_naive = list()
@@ -63,16 +63,16 @@ x_list = ['\\boldmath$Q^{T}_3$\n \\boldmath$C^{T,3}_1$', '\\boldmath$Q^T_3$\n \\
           '\\boldmath$Q^T_{12}$\n$~~$\\boldmath$C^{T,12~~}_3$']
 
 
-plt.xticks(np.arange(0, 6) + bar_width/2, x_list, rotation=0, fontsize=65)
+plt.xticks(np.arange(0, 6) + bar_width/2, x_list, rotation=0, fontsize=60)
 plt.yticks(fontsize=80, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=75, weight='bold')
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper left', bbox_to_anchor=(0.1, 1.25), fontsize=60,
+lgnd = plt.legend(loc='upper left', bbox_to_anchor=(0.1, 1.3), fontsize=60,
                   ncol=2, labelspacing=0.4,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.5, frameon=False)
 
 plt.tight_layout()
-plt.savefig("TPCH_optimization_effect.png", bbox_inches='tight')
+plt.savefig("TPCH100M_num_refinements.png", bbox_inches='tight')
 plt.show()

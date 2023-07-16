@@ -91,7 +91,7 @@ def run(q, c):
 separator = '|'
 data_file_format = ".tbl"
 
-run(12, "relax1")
+# run(12, "relax1")
 run(12, "contract1")
-run(12, "refine5")
+# run(12, "refine5")
 
