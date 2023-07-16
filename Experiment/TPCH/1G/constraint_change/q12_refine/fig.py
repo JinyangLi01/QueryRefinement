@@ -60,12 +60,12 @@ def run(query, size, constraint):
             execution_timebl1.append(0)
             execution_timebl2.append(0)
     # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [88, 90, 92, 94, 96, 98]
+    x_list = [102, 104, 106, 108, 110, 112]
 
     print(x_list, execution_timeps1, execution_timeps2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.4
+    bar_width = 0.45
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -86,9 +86,12 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'\{l\underline{ }returnflag = R, l\underline{ }shipinstruct =\\ TAKE BACK RETURN\} $<=$ (\%)',
-               fontsize=63).set_position((0.45, -0.1))
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 0.59), fontsize=60)
+    plt.xlabel(r'\{l\underline{ }shipinstruct = NONE, l\underline{ }line-\\-number '
+               r'= 7, o\underline{ }orderpriority=5-LOW, \\'
+               r'o\underline{ }orderstatus=F\} $<=$ (\%)',
+               fontsize=57).set_position((0.40, -0.1))
+
+    plt.legend(loc='upper left', bbox_to_anchor=(0, 1), fontsize=55)
     # plt.legend(loc="best")
     plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"

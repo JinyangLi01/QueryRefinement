@@ -9,7 +9,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
-
+import sys
+sys.path.append('../../../../../')
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
@@ -23,7 +24,7 @@ running_time2 = []
 
 data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
 query_file_prefix = r"./q"
-time_limit = 60 * 60
+time_limit = 60 * 60 * 6
 
 time_output_prefix = r"./result_"
 
@@ -33,7 +34,7 @@ def run_constraint(q, c):
     print("query", q)
     query_file = query_file_prefix + str(q) + ".json"
 
-    time_output_file = r"./constraint_change_q" + str(q) + "_" + c + ".csv"
+    time_output_file = r"./constraint_change_q" + str(q) + "_" + c + "6.csv"
     time_output = open(time_output_file, "w")
     time_output.write("_,PS,PS_prov,PS_search,base,base_prov,base_search\n")
 
@@ -83,4 +84,5 @@ def run_constraint(q, c):
 
 separator = '|'
 dataformat = ".tbl"
+print("time limit = {}".format(time_limit))
 run_constraint(12, "refine")

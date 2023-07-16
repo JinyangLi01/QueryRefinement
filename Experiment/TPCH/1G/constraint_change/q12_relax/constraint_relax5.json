@@ -9,7 +9,7 @@
         "l_linenumber": 3
       },
       "symbol": ">=",
-      "number": 1557
+      "number": 1257
     },
     {
       "sensitive_attributes":
@@ -25,7 +25,7 @@
         "l_returnflag": "A"
       },
       "symbol": ">=",
-      "number": 21315
+      "number": 17216
     }
   ]
 }
