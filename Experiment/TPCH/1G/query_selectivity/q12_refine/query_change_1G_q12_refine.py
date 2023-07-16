@@ -21,7 +21,7 @@ running_time2 = []
 data_file_prefix = r"../../../../../InputData/TPC-H/1Gdata/"
 query_file_prefix = r"./q12_"
 constraint_file_prefix = r"./"
-time_limit = 60 * 60 * 3
+time_limit = 60 * 60 * 6
 
 time_output_prefix = r"./result_"
 
