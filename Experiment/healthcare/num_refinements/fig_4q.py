@@ -72,13 +72,13 @@ x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath
 plt.ylim(1, 10000000)
 
 plt.xticks(np.arange(0, 12) + bar_width/2, x_list, rotation=0, fontsize=65)
-plt.yticks(fontsize=80, weight='bold')
+plt.yticks(fontsize=75, weight='bold')
 
 plt.xlabel('Query and Constraint', fontsize=75, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.9, 1.2), fontsize=65, ncol=2, labelspacing=0.3,
-                  handletextpad=0.1, markerscale=0.5, columnspacing=0.5)
+lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.7, 1.2), fontsize=65, ncol=2, labelspacing=0.3,
+                  handletextpad=0.2, markerscale=0.5, columnspacing=0.5, frameon=False)
 
 plt.tight_layout()
 plt.savefig("Healthcare_num_refinements_4q.png", bbox_inches='tight')

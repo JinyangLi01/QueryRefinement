@@ -68,7 +68,7 @@ x_list = ['\\boldmath$Q^A_1$\n\\boldmath$C^A_1$', '\\boldmath$Q^A_1$\n\\boldmath
 
 plt.yscale('log')
 plt.xticks(np.arange(0, 6) + bar_width / 2, x_list, rotation=0, fontsize=60)
-plt.yticks([0.001, 1, 1000, 1000000], fontsize=75, weight='bold')
+plt.yticks([0.001, 1, 1000, 1000000], fontsize=70, weight='bold')
 
 plt.xlabel('Query and Constraint', fontsize=70, weight='bold')
 
