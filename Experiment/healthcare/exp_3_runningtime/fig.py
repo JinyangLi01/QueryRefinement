@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
-f_size = (13, 10)
+f_size = (12, 10)
 
 x_list = list()
 x_naive = list()
@@ -88,8 +88,8 @@ plt.xlabel('Query and Constraint', fontsize=70, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
 # plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
-lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.46, 1.2), fontsize=45, ncol=2, labelspacing=0.25,
-                  handletextpad=0.1, markerscale=0.5, columnspacing=0.3)
+lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.46, 1.2), fontsize=45, ncol=2, labelspacing=0.1,
+                  handletextpad=0.1, markerscale=0.5, columnspacing=0.4,frameon=False)
 
 plt.tight_layout()
 plt.savefig("healthcare_time.png", bbox_inches='tight')

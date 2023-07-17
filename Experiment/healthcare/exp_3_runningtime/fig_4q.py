@@ -86,13 +86,13 @@ x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath
 #           '\\boldmath$Q^H_2$\\boldmath$C^H_3$']
 
 plt.xticks(np.arange(0, 12) + bar_width / 2, x_list, rotation=0, fontsize=70)
-plt.yticks(fontsize=85, weight='bold')
+plt.yticks(fontsize=80, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=80, weight='bold')
 # plt.ylabel('Running time (s)')
 plt.yscale('log')
 # plt.legend(loc='upper right', bbox_to_anchor=(1, 1.05), ncol=2, fontsize=40)
-lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.05), fontsize=40, ncol=4, labelspacing=0.25,
+lgnd = plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.08), fontsize=45, ncol=4, labelspacing=0.25,
                   handletextpad=0.1, markerscale=0.5, columnspacing=0.3)
 
 plt.tight_layout()

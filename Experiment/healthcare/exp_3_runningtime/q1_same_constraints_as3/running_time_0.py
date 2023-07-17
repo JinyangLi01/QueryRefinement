@@ -10,7 +10,9 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
 
+sys.path.append('../../../../')
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
@@ -31,7 +33,7 @@ result_output = open(result_output_file, "w")
 result_output.write("selection file, result\n")
 
 
-time_limit = 10*60
+time_limit = 60 * 60 * 3
 separator = ','
 
 def compare(q, c, time_output):
@@ -62,13 +64,14 @@ def compare(q, c, time_output):
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
     time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, provenance_time1,
-                                                            search_time1,num_refinements1))
+                                                            search_time1, num_refinements1))
     if running_time2 < time_limit:
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{},"
-                          "{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, provenance_time1, search_time1,num_refinements1,
+        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{}"
+                          "{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, provenance_time1, search_time1,
+                                                                num_refinements1,
                                                              running_time2, provenance_time2, search_time2, num_refinements2))
     else:
-        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{},\n".format(idx, running_time1, provenance_time1,
+        time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{},,,\n".format(idx, running_time1, provenance_time1,
                                                                    search_time1, num_refinements1))
     result_output.write("{}\n".format(idx))
     result_output.write(",".join(str(item) for item in minimal_refinements1))
@@ -90,7 +93,7 @@ def run(q, c):
 
 # run(1, 1)
 # run(1, 2)
-# run(1, 3)
-# run(3, 1)
-run(3, 1)
-# run(3, 3)
+run(1, 3)
+# run(2, 1)
+# run(2, 2)
+# run(2, 3)
