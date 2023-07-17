@@ -2,7 +2,8 @@
 executable
 without optimizations
 """
-
+import sys
+sys.path.append("../../../../../")
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
@@ -17,7 +18,7 @@ running_time2 = []
 data_file_prefix = r"../../../../../InputData/TPC-H/10Gdata/"
 query_file_prefix = r"./q12_"
 constraint_file_prefix = r"./"
-time_limit = 5 * 60
+time_limit = 60 * 60 * 3
 
 time_output_prefix = r"./result_"
 
@@ -38,7 +39,7 @@ def run_constraint(c):
         print("query", i)
         query_file = query_file_prefix + str(i) + ".json"
         print("========================== provenance search ===================================")
-        minimal_refinements1, running_time1, _, \
+        minimal_refinements1, _, running_time1, _, \
             provenance_time1, search_time1 = \
             ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, dataformat, time_limit)
 

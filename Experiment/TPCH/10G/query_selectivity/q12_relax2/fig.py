@@ -58,8 +58,7 @@ def run(query, size, constraint):
         else:
             execution_timebl1.append(0)
             execution_timebl2.append(0)
-    # x_list = [19941230, 19950115, 19950130, 19950215, 19950230, 19950315, 19950330, 19950415]
-    x_list = [19931001, '', '', 19940401]
+    x_list = ['', '', '', '', '', '', '', '']
 
     print(x_list, execution_timeps1, execution_timeps2)
 
@@ -82,12 +81,13 @@ def run(query, size, constraint):
     #         color=color[3], label=label[3])
     #
 
-    plt.xticks(np.arange(0, 8, 2), x_list, rotation=0, fontsize=80, weight='bold')
+    plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80, weight='bold')
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'l\underline{ }receiptdate, 1m apart', fontsize=80, weight='bold')
-    # plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55))
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.05), fontsize=60, labelspacing=0.25,
+    plt.xlabel(r'o\underline{ }receiptdate starting from\\ 01/10/1993, 1m interval',
+               fontsize=80, weight='bold').set_position((0.42, 0.1))
+
+    plt.legend(loc='lower left', bbox_to_anchor=(0, 0), fontsize=60, labelspacing=0.25,
                columnspacing=0.3, handletextpad=0.15)
 
     plt.tight_layout()
