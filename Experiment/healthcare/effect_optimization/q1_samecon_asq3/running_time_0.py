@@ -11,17 +11,14 @@ import time
 from intbitset import intbitset
 import json
 
-import sys
-sys.path.append('../../../../../')
-
-
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 from Algorithm import ProvenanceSearchValues_8_no_optimization as ps_no_optimization
 
-data_file_prefix = r"../../../../../InputData/TPC-H/100Mdata/"
-query_file_prefix = r"q"
-constraint_file_prefix = r"constraint_"
+
+data_file_prefix = r"../../../../InputData/Healthcare/incomeK/"
+query_file_prefix = r"query"
+constraint_file_prefix = r"constraint"
 time_output_prefix = r"./result_"
 
 
@@ -36,7 +33,8 @@ result_output = open(result_output_file, "w")
 result_output.write("QC,ps,ps_prov,ps_search,ps_noopt,ps_noopt_prov,ps_noopt_search\n")
 
 
-
+time_limit = 60 * 60
+separator = ','
 
 def compare(q, c, time_output):
     print("run with query{} constraint{}".format(q, c))
@@ -87,16 +85,21 @@ def compare(q, c, time_output):
                       "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
                                                          running_time2, provenance_time2, search_time2))
     result_output.write("gain = {}\n".format(gain))
+
 summary_file = open(r"time1.csv", "w")
 summary_file.write("file,PS,LT\n")
 
-data_file_format = '.tbl'
-time_limit = 60 * 60 * 3
-separator = '|'
+data_file_format = '.csv'
+
 def run(q, c):
     time_output = file(q, c)
     compare(q, c, time_output)
     time_output.close()
 
-# run(12, "relax1")
-run(12, "contract1")
+
+# run(1, 1)
+# run(1, 2)
+# run(1, 3)
+run(1, 1)
+run(1, 2)
+# run(2, 3)

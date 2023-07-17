@@ -1,7 +1,0 @@
-QC,ps,ps_prov,ps_search,ps_noopt,ps_noopt_prov,ps_noopt_search
-query12 constraintrelax1
-Q12Crelax1,1.6866,1.1610,0.5256,23.3888,1.0463,22.3425
-gain = 0.9764742921043112
-query12 constraintcontract1
-Q12Ccontract1,15.3742,1.0272,14.3470,10801.2771,1.0081,10800.2690
-gain = 0.9986716035494875

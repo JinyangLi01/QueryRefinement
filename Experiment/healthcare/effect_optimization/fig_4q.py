@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C7', 'C6']
 label = ['PS-prov', "PS-search", "PS-prov\_no\_opt", "PS-search\_no\_opt"]
 
-f_size = (24, 12.2)
+f_size = (22, 11)
 
 x_list = list()
 x_naive = list()
@@ -77,14 +77,14 @@ x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath
           '\\boldmath$Q^H_4$\n\\boldmath$C^H_7$', '\\boldmath$Q^H_4$\n\\boldmath$C^H_8$',
           ]
 
-plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=70)
-plt.yticks(fontsize=80, weight='bold')
+plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=65)
+plt.yticks(fontsize=75, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=85, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=75, weight='bold')
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.8, 1.10), fontsize=70, ncol=1, labelspacing=0.2,
-                  handletextpad=0.2, markerscale=0.2, columnspacing=0.4)
+lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.8, 1.15), fontsize=65, ncol=1, labelspacing=0.1,
+                  handletextpad=0.2, markerscale=0.2, columnspacing=0.2, frameon=False)
 
 # lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05), fontsize=70, ncol=2, labelspacing=0.2,
 #                   handletextpad=0.2, markerscale=0.2, columnspacing=0.4)
