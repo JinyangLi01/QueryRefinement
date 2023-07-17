@@ -10,6 +10,8 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+import sys
+sys.path.append(r"../../../../")
 
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
@@ -18,7 +20,7 @@ from Algorithm import LatticeTraversal_5_20230121 as lt
 data_file_prefix = r"../../../../InputData/TPC-H/10Gdata/"
 query_file_prefix = r"../"
 constraint_file_prefix = r"../"
-time_limit = 10 * 60
+time_limit = 60 * 60 * 2
 
 time_output_prefix = r"./result_"
 
@@ -39,7 +41,7 @@ def compare(q, c, time_output):
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
+    minimal_refinements1, _, running_time1, _, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, format, time_limit)
 
@@ -88,7 +90,9 @@ def run(q, c):
 
 separator = '|'
 format = ".tbl"
-run(12, "relax1")
-#
-# summary_file.close()
 
+# run(3, "relax1")
+# run(3, "contract1")
+# run(12, "relax1")
+# run(12, "contract1")
+run(12, "refine5")

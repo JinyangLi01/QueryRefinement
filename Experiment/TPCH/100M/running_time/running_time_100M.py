@@ -41,11 +41,11 @@ def compare(q, c, time_output):
     minimal_refinements1 = []
     running_time1, provenance_time1, search_time1 = 0, 0, 0
     print("========================== provenance search ===================================")
-    minimal_refinements1, _, running_time1, _, \
+    minimal_refinements1, _, running_time1, num_refinements1, \
         provenance_time1, search_time1 = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
-    print("running time = {}".format(running_time1))
+    print("running time = {}, num_refinements1 = {}".format(running_time1, num_refinements1))
     print(*minimal_refinements1, sep="\n")
 
     minimal_refinements2 = []
@@ -63,7 +63,7 @@ def compare(q, c, time_output):
 
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + c
-    time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time1, provenance_time1, search_time1))
+    time_output.write("{},{:0.2f},{:0.2f},{:0.2f},{}\n".format(idx, running_time1, provenance_time1, search_time1,num_refinements1))
     if running_time2 < time_limit:
         time_output.write("{},{:0.2f},{:0.2f},{:0.2f}\n".format(idx, running_time2, provenance_time2, search_time2))
 
