@@ -1,0 +1,7 @@
+QC,ps,ps_prov,ps_search,ps_noopt,ps_noopt_prov,ps_noopt_search
+query3 constraintcontract1
+Q3Ccontract1,29.2983,27.7320,1.5663,985.4435,21.4709,963.9726
+gain = 0.9983751724920897
+query3 constraintrelax1
+Q3Crelax1,31.3661,29.3502,2.0158,34.5503,28.0636,6.4867
+gain = 0.6892365865632551

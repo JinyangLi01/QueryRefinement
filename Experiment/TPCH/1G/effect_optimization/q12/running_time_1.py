@@ -11,6 +11,10 @@ import time
 from intbitset import intbitset
 import json
 
+import sys
+sys.path.append('../../../../../')
+
+
 from Algorithm import ProvenanceSearchValues_8_20230119 as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 from Algorithm import ProvenanceSearchValues_8_no_optimization as ps_no_optimization
@@ -70,23 +74,25 @@ def compare(q, c, time_output):
     time_output.write("\n")
     idx = "Q" + str(q) + "C" + str(c)
 
+    gain = (search_time2 - search_time1) / search_time2
     time_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
                       "{:0.4f},{:0.4f},{:0.4f}\n\n".format(idx, running_time1, provenance_time1, search_time1,
-                                                         running_time2, provenance_time2, search_time2))
+                                                           running_time2, provenance_time2, search_time2))
+    time_output.write("gain = {}\n".format(gain))
     time_output.write("{}\n\n".format(minimal_refinements1))
     time_output.write("{}\n\n".format(minimal_refinements2))
     # time_output.write("{}\n\n".format(minimal_refinements3))
 
     result_output.write("{},{:0.4f},{:0.4f},{:0.4f},"
-                      "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
-                                                         running_time2, provenance_time2, search_time2))
-
+                        "{:0.4f},{:0.4f},{:0.4f}\n".format(idx, running_time1, provenance_time1, search_time1,
+                                                           running_time2, provenance_time2, search_time2))
+    result_output.write("gain = {}\n".format(gain))
 
 summary_file = open(r"time1.csv", "w")
 summary_file.write("file,PS,LT\n")
 
 data_file_format = '.tbl'
-time_limit = 60 * 60
+time_limit = 60 * 60 * 10
 separator = '|'
 def run(q, c):
     time_output = file(q, c)
@@ -94,4 +100,5 @@ def run(q, c):
     time_output.close()
 
 
+run(12, "contract1")
 run(12, "relax1")
