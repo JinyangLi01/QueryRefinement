@@ -89,9 +89,9 @@ def run(query, size, constraint):
                fontsize=80, weight='bold').set_position((0.47, -0.1))
 
 
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.05), fontsize=60,
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.02, 1.05), fontsize=60,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
-               columnspacing=0.2, borderpad=0.2, frameon=True)
+               columnspacing=0.2, borderpad=0.2, handlelength=1.7, frameon=True)
 
     # plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.07), fontsize=65)
     plt.tight_layout()
