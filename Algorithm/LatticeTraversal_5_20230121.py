@@ -746,6 +746,8 @@ def LatticeTraversalGreaterThan(data, fairness_constraints_provenance_greater_th
 def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format,
                           time_limit=5 * 60):
     time1 = time.time()
+    global assign_to_provenance_num
+    assign_to_provenance_num = 0
     with open(query_file) as f:
         query_info = json.load(f)
 
@@ -864,7 +866,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     minimal_refinements = transform_back_to_refinement_format(minimal_added_refinements, len(numeric_attributes),
                                                               selection_numeric_attributes, numeric_attributes)
 
-    return minimal_refinements, minimal_added_refinements, time2 - time1, provenance_time, time2 - time_search1
+    return minimal_refinements, minimal_added_refinements, time2 - time1, assign_to_provenance_num,\
+        provenance_time, time2 - time_search1
 
 # data_file = r"../InputData/Pipelines/healthcare/incomeK/before_selection_incomeK.csv"
 # query_file = r"../InputData/Pipelines/healthcare/incomeK/relaxation/query4.json"
