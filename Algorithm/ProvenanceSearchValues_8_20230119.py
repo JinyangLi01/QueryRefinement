@@ -1803,9 +1803,8 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
 
 def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attributes, categorical_attributes,
                          selection_numeric, selection_categorical, num_columns,
-                         fairness_constraints_provenance_greater_than,
-                         fairness_constraints_provenance_smaller_than, fairness_constraints_provenance_complex,
-                         full_PVT, full_PVT_head, max_index_PVT,
+                         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than,
+                         fairness_constraints_provenance_complex, full_PVT, full_PVT_head, max_index_PVT,
                          checked_assignments_satisfying, checked_assignments_not_satisfying, time_limit=5 * 60):
     time1 = time.time()
     global assign_to_provenance_num
@@ -1958,7 +1957,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 cur_fixed_value = values_above[cur_value_id]
                 fixed_value_assignments_for_tighten[fixed_att] = cur_fixed_value
                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments_for_tighten}
-                # print("value_assignment: ", full_value_assignment)
                 assign, reason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                       categorical_attributes, selection_numeric,
                                                       selection_categorical, full_PVT_head,
@@ -2044,6 +2042,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                                                         full_PVT_head],
                                                                   shifted_length, initial_PVT, selection_numeric,
                                                                   full_PVT_head)
+
         # print("minimal_refinements: {}".format(minimal_refinements))
 
         if num_columns == 1:
@@ -2226,7 +2225,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                                              parent_max_index_PVT,
                                              col_idx_in_parent_PVT, fixed_value_assignments,
                                              fixed_value_assignments_positions)
-
     return minimal_refinements
 
 
