@@ -1265,7 +1265,6 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                 next_col_num_in_stack = len(PVT_head_stack[-1])
             else:
                 next_col_num_in_stack = len(full_PVT_head)
-            # FIXME
             check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, num_columns, find_relaxation,
                                   PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
                                   parent_PVT_head_stack,
@@ -2024,8 +2023,8 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         print("shifted_length: {}".format(shifted_length))
         print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
         print("max_index_PVT:\n{}".format(max_index_PVT))
-        if fixed_value_assignments == {'y__smaller': 811.3592713417162}:
-            print("debug, stop here")
+        # if fixed_value_assignments == {'y__smaller': 811.3592713417162}:
+        #     print("debug, stop here")
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -2364,6 +2363,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         tight_success = False
         tight_value_idx = -1
         fixed_att = str()
+
         # optimization: tighten the last fixed column
         if idx_in_this_col_in_parent_PVT > 0:
             left = 0
@@ -2376,17 +2376,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     cur_fixed_value = values_above[cur_value_id]
                     fixed_value_assignments_for_tighten[fixed_att] = cur_fixed_value
                     full_value_assignment = {**new_value_assignment, **fixed_value_assignments_for_tighten}
-                    # print("value_assignment: ", full_value_assignment)
-                    # full_value_assignment_str = num2string(
-                    #     [full_value_assignment[k] for k in full_PVT_head])
-                    # if full_value_assignment_str in checked_assignments_satisfying:
-                    #     # print("{} satisfies constraints".format(full_value_assignment))
-                    #     tight_value_idx = cur_value_id
-                    #     break
-                    # elif full_value_assignment_str in checked_assignments_not_satisfying:
-                    #     # print("{} doesn't satisfy constraints".format(full_value_assignment))
-                    #     left += 1
-
                     assign, reason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                           categorical_attributes, selection_numeric,
                                                           selection_categorical, full_PVT_head,
@@ -2409,17 +2398,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                     cur_fixed_value = values_above[cur_value_id]
                     fixed_value_assignments_for_tighten[fixed_att] = cur_fixed_value
                     full_value_assignment = {**new_value_assignment, **fixed_value_assignments_for_tighten}
-                    # print("value_assignment: ", full_value_assignment)
-                    # full_value_assignment_str = num2string(
-                    #     [full_value_assignment[k] for k in full_PVT_head if
-                    #      k in fixed_value_assignments_for_tighten.keys()])
-                    # if full_value_assignment_str in checked_assignments_satisfying:
-                    #     # print("{} satisfies constraints".format(full_value_assignment))
-                    #     right = cur_value_id - 1
-                    #     tight_value_idx = cur_value_id
-                    # elif full_value_assignment_str in checked_assignments_not_satisfying:
-                    #     # print("{} doesn't satisfy constraints".format(full_value_assignment))
-                    #     left = cur_value_id + 1
                     assign, reason = assign_to_provenance(full_value_assignment, numeric_attributes,
                                                           categorical_attributes, selection_numeric,
                                                           selection_categorical, full_PVT_head,
@@ -2451,7 +2429,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
                 full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
                 full_value_assignment_positions = {**full_value_assignment_positions,
                                                    **fixed_value_assignments_positions}
-
             find_relaxation[num_columns].append(find_base_refinement)
 
             minimal_refinements, minimal_refinements_positions, added = \
@@ -2499,6 +2476,7 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
             full_value_assignment_positions = dict(zip(PVT_head, last_satisfying_bounding_relaxation_location))
             full_value_assignment_positions = {**full_value_assignment_positions,
                                                **fixed_value_assignments_positions}
+
             find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
             minimal_refinements, minimal_refinements_positions, added = \
@@ -2737,6 +2715,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_
         if data[att].apply(is_int).all():
             data[att] = data[att].apply(lambda x: str(int(x)) if isinstance(x, float) else str(x))
     pe_dataframe = copy.deepcopy(data)
+    print(len(pe_dataframe))
     # get data selected
     for att in selection_numeric_attributes:
         if len(selection_numeric_attributes[att]) == 2:
@@ -2826,7 +2805,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     fairness_constraints = constraint_info['fairness_constraints']
 
     pd.set_option('display.float_format', '{:.2f}'.format)
-
+    assign_to_provenance_num += 1
     # data:after join
     whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables,
                                                                  joinkeys, comparekeys, selected_attributes,
@@ -2836,7 +2815,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                                  selection_categorical_attributes)
     if whether_satisfy:
         print("original query satisfies constraints already")
-        return {}, time.time() - time1, assign_to_provenance_num, time.time() - time1, 0
+        return {}, [], time.time() - time1, assign_to_provenance_num, time.time() - time1, 0
 
     # whether it's single-direction
     only_smaller_than = True
@@ -2866,7 +2845,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         provenance_time = time_provenance2 - time1
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+            return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         time_search1 = time.time()
         PVT, PVT_head, categorical_att_columns, \
@@ -2882,22 +2861,26 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
 
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+            return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
+        original_PVT_head = copy.deepcopy(PVT_head)
         minimal_refinements = searchPVT_relaxation(PVT, PVT_head, numeric_attributes,
                                                    categorical_attributes, selection_numeric_attributes,
                                                    selection_categorical_attributes, len(PVT_head),
                                                    fairness_constraints_provenance_greater_than, PVT,
-                                                   PVT_head,
-                                                   max_index_PVT,
+                                                   PVT_head, max_index_PVT,
                                                    checked_assignments_satisfying,
                                                    checked_assignments_unsatisfying, time_limit)
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
         print("searching time = {}".format(time2 - time_search1))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+        order_in_results = original_PVT_head
+        print("order_in_results = {}".format(order_in_results))
+        print("PVT size: {}".format(max_index_PVT))
+
+        return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     elif only_smaller_than:
         fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
@@ -2912,7 +2895,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         provenance_time = time_provenance2 - time1
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+            return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         time_search1 = time.time()
         PVT, PVT_head, categorical_att_columns, \
@@ -2926,11 +2909,11 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                     fairness_constraints_provenance_smaller_than)
         if time.time() - time1 > time_limit:
             print("time out")
-            return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+            return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
         checked_assignments_satisfying = []
         checked_assignments_unsatisfying = []
-
+        original_PVT_head = copy.deepcopy(PVT_head)
         minimal_refinements = searchPVT_contraction(PVT, PVT_head, numeric_attributes,
                                                     categorical_attributes, selection_numeric_attributes,
                                                     selection_categorical_attributes, len(PVT_head),
@@ -2938,11 +2921,16 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                     PVT_head,
                                                     max_index_PVT,
                                                     checked_assignments_satisfying,
-                                                    checked_assignments_unsatisfying, time_limit)
+                                                    checked_assignments_unsatisfying,
+                                                    time_limit)
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
         print("searching time = {}".format(time2 - time_search1))
-        return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+        order_in_results = original_PVT_head
+        print("order_in_results = {}".format(order_in_results))
+        print("PVT size: {}".format(max_index_PVT))
+
+        return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
         fairness_constraints_provenance_complex, contraction_threshold, data \
@@ -2956,7 +2944,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     provenance_time = time_provenance2 - time1
     if time.time() - time1 > time_limit:
         print("time out")
-        return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+        return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
 
     time_search1 = time.time()
     PVT, PVT_head, categorical_att_columns, \
@@ -2973,8 +2961,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                                     contraction_threshold)
     if time.time() - time1 > time_limit:
         print("time out")
-        return [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
-
+        return {}, [], time.time() - time1, assign_to_provenance_num, provenance_time, 0
+    original_PVT_head = copy.deepcopy(PVT_head)
     checked_assignments_satisfying = []
     checked_assignments_unsatisfying = []
     minimal_refinements = searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attributes,
@@ -2990,7 +2978,32 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     print("provenance time = {}".format(provenance_time))
     print("searching time = {}".format(time2 - time_search1))
     print("assign_to_provenance_num = {}".format(assign_to_provenance_num))
-    return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+    # reorder the minimal refinements, and add values of categorical attribtues in contraction threshold
+    print("PVT size: {}".format(max_index_PVT))
+
+    head_length = len(original_PVT_head)
+    num_categorical = head_length - len(numeric_attributes)
+    order_in_results = original_PVT_head[num_categorical:] + original_PVT_head[:num_categorical]
+    # print(order_in_results)
+    reordered_minimal_refinements = list()
+    for mr in minimal_refinements:
+        reordered_minimal_refinements.append(mr[num_categorical:] + mr[:num_categorical])
+    for att in contraction_threshold:
+        if att not in numeric_attributes:
+            for v in contraction_threshold[att]:
+                for i in range(len(order_in_results)):
+                    col = order_in_results[i]
+                    if col in numeric_attributes:
+                        continue
+                    attcol, vcol = col.split("__")
+                    if attcol == att:
+                        order_in_results.insert(i, att + '__' + v)
+                        for mr in reordered_minimal_refinements:
+                            mr.insert(i, 1)
+                        break
+    print("order in results: {}".format(order_in_results))
+    return reordered_minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, \
+        provenance_time, time2 - time_search1
 
 # data_file = r"../InputData/Adult/adult.data"
 # query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
