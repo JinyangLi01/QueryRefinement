@@ -122,8 +122,8 @@ Get provenance expressions
 
     # threshold for contraction
     contraction_threshold = {}
-    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>=' else data[att].min()
-                             for att in selection_numeric_attributes}
+    contraction_threshold = {att: data[att].max() if selection_numeric_attributes[att][0] == '>='
+        else data[att].min() for att in selection_numeric_attributes}
     print("prepare time = {}".format(time.time() - time0))
     time1 = time.time()
 
@@ -312,6 +312,8 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                 possible_values_lists[att] = [0, 1]
             else:
                 possible_values_lists[att] = [1, 0]
+
+
     possible_value_table = pd.DataFrame({key: pd.Series(value) for key, value in possible_values_lists.items()})
     # print("possible_value_table:\n", possible_value_table)
     possible_value_table = possible_value_table.drop_duplicates().reset_index(drop=True)
@@ -334,8 +336,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                          categorical_attributes, selection_numeric, selection_categorical,
                          sensitive_attributes, fairness_constraints,
                          fairness_constraints_provenance_greater_than,
-                         fairness_constraints_provenance_smaller_than
-                         ):
+                         fairness_constraints_provenance_smaller_than):
     """
     to build the sorted table
     :param fairness_constraints_provenance_greater_than:
@@ -620,8 +621,6 @@ def assign_to_provenance_relax_in_refinement(value_assignment, numeric_attribute
                                              selection_numeric,
                                              selection_categorical, columns_delta_table,
                                              fairness_constraints_provenance_greater_than):
-    global assign_to_provenance_num
-    assign_to_provenance_num += 1
     # greater than
     for fc in fairness_constraints_provenance_greater_than:
         pe_dataframe = fc["provenance_expression"]
@@ -659,8 +658,6 @@ def assign_to_provenance_contract_in_refinement(value_assignment, numeric_attrib
                                                 selection_numeric,
                                                 selection_categorical, columns_delta_table,
                                                 fairness_constraints_provenance_smaller_than):
-    global assign_to_provenance_num
-    assign_to_provenance_num += 1
     # smaller than
     for fc in fairness_constraints_provenance_smaller_than:
         pe_dataframe = fc["provenance_expression"]
@@ -879,10 +876,9 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                          selection_numeric, selection_categorical, num_columns,
                          fairness_constraints_provenance_greater_than,
                          full_PVT, full_PVT_head, max_index_PVT,
-                         checked_assignments_satisfying, checked_assignments_not_satisfying, time_limit=5 * 60):
+                         checked_assignments_satisfying, checked_assignments_not_satisfying,
+                         time_limit=5 * 60):
     time1 = time.time()
-    global assign_to_provenance_num
-    assign_to_provenance_num = 0
     PVT_stack = [PVT]
     PVT_head_stack = [PVT_head]
     max_index_PVT_stack = [max_index_PVT]
@@ -1865,9 +1861,6 @@ def searchPVT_refinement(PVT, PVT_head, possible_values_lists, numeric_attribute
         # print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
         # print("shifted_length: {}".format(shifted_length))
         # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-
-        # if fixed_value_assignments == {'COW__2': 0.0, 'COW__6': 0.0, 'COW__5': 0.0, 'COW__7': 0.0}:
-        #     print("debug")
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -2508,7 +2501,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     fairness_constraints = constraint_info['fairness_constraints']
 
     pd.set_option('display.float_format', '{:.2f}'.format)
-
+    assign_to_provenance_num += 1
     # data:after join
     whether_satisfy, data = whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_format, tables,
                                                                  joinkeys, comparekeys, selected_attributes,
@@ -2573,8 +2566,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                    categorical_attributes, selection_numeric_attributes,
                                                    selection_categorical_attributes, len(PVT_head),
                                                    fairness_constraints_provenance_greater_than, PVT,
-                                                   PVT_head,
-                                                   max_index_PVT,
+                                                   PVT_head, max_index_PVT,
                                                    checked_assignments_satisfying,
                                                    checked_assignments_unsatisfying, time_limit)
         time2 = time.time()
@@ -2582,6 +2574,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         print("searching time = {}".format(time2 - time_search1))
         order_in_results = original_PVT_head
         print("order_in_results = {}".format(order_in_results))
+        print("PVT size: {}".format(max_index_PVT))
+
         return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     elif only_smaller_than:
@@ -2623,12 +2617,15 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                     PVT_head,
                                                     max_index_PVT,
                                                     checked_assignments_satisfying,
-                                                    checked_assignments_unsatisfying, time_limit)
+                                                    checked_assignments_unsatisfying,
+                                                    time_limit)
         time2 = time.time()
         print("provenance time = {}".format(provenance_time))
         print("searching time = {}".format(time2 - time_search1))
         order_in_results = original_PVT_head
         print("order_in_results = {}".format(order_in_results))
+        print("PVT size: {}".format(max_index_PVT))
+
         return minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
@@ -2678,6 +2675,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
     print("searching time = {}".format(time2 - time_search1))
     print("assign_to_provenance_num = {}".format(assign_to_provenance_num))
     # reorder the minimal refinements, and add values of categorical attribtues in contraction threshold
+    print("PVT size: {}".format(max_index_PVT))
 
     head_length = len(original_PVT_head)
     num_categorical = head_length - len(numeric_attributes)
@@ -2700,7 +2698,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                             mr.insert(i, 1)
                         break
     print("order in results: {}".format(order_in_results))
-    return reordered_minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
+    return reordered_minimal_refinements, order_in_results, time2 - time1, assign_to_provenance_num, \
+        provenance_time, time2 - time_search1
 
 # data_file = r"../InputData/Adult/adult.data"
 # query_file = r"../Experiment/adult/exp_1_runningtime/query1.json"
