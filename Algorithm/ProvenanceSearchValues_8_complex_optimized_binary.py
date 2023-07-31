@@ -13,6 +13,7 @@ import pandas as pd
 import time
 from intbitset import intbitset
 import json
+from bisect import bisect
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 assign_to_provenance_num = 0
@@ -346,6 +347,7 @@ def is_int(val):
         return val.is_integer()
     else:
         return False
+
 
 def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                          categorical_attributes, selection_numeric, selection_categorical,
@@ -714,6 +716,7 @@ def assign_to_provenance(value_assignment, numeric_attributes, categorical_attri
                          fairness_constraints_provenance_smaller_than, fairness_constraints_provenance_complex):
     global assign_to_provenance_num
     assign_to_provenance_num += 1
+
     def filter(pe_dataframe):
         for va in numeric_attributes:
             if va in value_assignment:
@@ -895,8 +898,6 @@ def update_minimal_relaxation_and_position_refinement(minimal_refinements, minim
     return minimal_refinements, minimal_refinements_positions, True
 
 
-
-
 def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_columns, find_relaxation,
                           PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack, parent_PVT_head_stack,
                           parent_max_index_PVT_stack, col_idx_in_parent_PVT_stack, idx_in_this_col_in_parent_PVT_stack,
@@ -952,8 +953,6 @@ def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_colum
                 to_put_to_stack.append(to_put2)
     find_relaxation[this_num_columns] = []
     return PVT_from_to_put
-
-
 
 
 def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attributes,
@@ -1233,7 +1232,8 @@ def searchPVT_relaxation(PVT, PVT_head, numeric_attributes, categorical_attribut
                             fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
                             left_side_binary_search_stack.append(to_put['for_left_binary'])
                             shifted_length_stack.append(to_put['shifted_length'])
-                            fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
+                            fixed_value_assignments_to_tighten_stack.append(
+                                to_put['fixed_value_assignments_to_tighten'])
                 fixed_value_assignments = fixed_value_assignments_for_tighten
                 fixed_value_assignments_positions[fixed_att] = tight_value_idx
                 if tight_value_idx == 0 and len(to_put_to_stack) > 0:
@@ -1713,7 +1713,8 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
                             fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
                             left_side_binary_search_stack.append(to_put['for_left_binary'])
                             shifted_length_stack.append(to_put['shifted_length'])
-                            fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
+                            fixed_value_assignments_to_tighten_stack.append(
+                                to_put['fixed_value_assignments_to_tighten'])
                 fixed_value_assignments = fixed_value_assignments_for_tighten
                 fixed_value_assignments_positions[fixed_att] = tight_value_idx
                 if tight_value_idx == 0 and len(to_put_to_stack) > 0:
@@ -1896,8 +1897,6 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
     return minimal_refinements
 
 
-
-
 # this procedure is called only when the current recursion ends here
 def check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, this_num_columns, find_relaxation,
                                      PVT_stack, PVT_head_stack, max_index_PVT_stack, parent_PVT_stack,
@@ -1963,27 +1962,67 @@ def check_to_put_to_stack_refinement(to_put_to_stack, next_col_num_in_stack, thi
     return PVT_from_to_put
 
 
-
 def same_att_first_two_columns(data, two_col_PVT, two_col_PVT_head, full_value_assignment,
-                                                       full_value_assignment_positions,
-                                                       tight_value_idx, fairness_constraints_provenance_complex):
+                               full_value_assignment_positions, fixed_att, original_idx, tight_value_idx,
+                               fairness_constraints_provenance_complex, minimal_refinements,
+                               minimal_refinements_positions):
     print("Here is same_att_first_two_columns\n")
-    # apply fixed columns
+    cur_lowerbound = full_value_assignment[two_col_PVT_head[0]]
+    cur_upperbound = full_value_assignment[two_col_PVT_head[1]]
+    fixed_att_idx_PVT = [tight_value_idx, original_idx - 1]
+    other_att_idx_PVT = [0, full_value_assignment_positions[two_col_PVT_head[0]] - 1]
+    if fixed_att.split('__')[1] == "smaller":
+        right_att_idx_PVT = fixed_att_idx_PVT
+        left_att_idx_PVT = other_att_idx_PVT
+        right_col_name = fixed_att
+        left_col_name = fixed_att.split('__')[0] + "__smaller"
+    else:
+        left_att_idx_PVT = fixed_att_idx_PVT
+        right_att_idx_PVT = other_att_idx_PVT
+        left_col_name = fixed_att
+        right_col_name = fixed_att.split('__')[0] + "__smaller"
+    disparity_goal = fairness_constraints_provenance_complex[0]['plus']
     fixed_values = copy.deepcopy(full_value_assignment)
     del fixed_values[two_col_PVT_head[0]]
     del fixed_values[two_col_PVT_head[1]]
-    fixed_cols = list(fixed_values.keys())
-    fixed_cols.sort()
-    first_col_name = two_col_PVT_head[0].split('__')[0]
-    for i in range(0, len(fixed_cols), 2):
-        col_name = fixed_cols[i].split('__')[0]
-        data = data[data[col_name] >= fixed_values[fixed_cols[i]]]
-        data = data[data[col_name] <= fixed_values[fixed_cols[i+1]]]
-    data = data.sort_values(by=first_col_name)
-    greater_idx = full_value_assignment_positions[first_col_name+"__greater"]
-    smaller_idx = full_value_assignment_positions[first_col_name+"__smaller"]
-    disparity_goal = fairness_constraints_provenance_complex[0]['plus']
-    #TODO
+    temp_data = copy.deepcopy(data)
+    # apply fixed columns
+    for k, v in fixed_values.items():
+        att = k.split('__')[0]
+        if k == att + "__smaller":
+            temp_data = temp_data[temp_data[att] <= v]
+        else:
+            temp_data = temp_data[temp_data[att] >= v]
+    att = two_col_PVT_head[0].split('__')[0]
+    temp_data = temp_data.sort_values(by=att)
+    value_list = temp_data[att].tolist()
+    cur_left_idx_valuelist = bisect(value_list, cur_lowerbound) - 1
+    cur_right_idx_valuelist = bisect(value_list, cur_upperbound) - 1
+    # idx in value list
+    left_PVT_list = two_col_PVT[left_col_name].tolist()[left_att_idx_PVT[0] : left_att_idx_PVT[1] + 1]
+    right_PVT_list = two_col_PVT[right_col_name].tolist()[right_att_idx_PVT[0] : right_att_idx_PVT[1] + 1]
+    s = temp_data[cur_left_idx_valuelist : cur_right_idx_valuelist + 1]
+    cur_blue_num = len(s[s[binary_sensitive_att] == 1])
+    cur_red_num = cur_right_idx_valuelist + 1 - cur_left_idx_valuelist - cur_blue_num
+    diff = cur_blue_num - cur_red_num
+    print(cur_blue_num, cur_red_num)
+    result = []
+    right_upper_idx = right_att_idx_PVT[0]
+    if left_att_idx_PVT[0] == 0:
+        for i in range(0, left_att_idx_PVT[1]):
+            lb = left_PVT_list[i]
+            for j in range(right_att_idx_PVT[0], right_upper_idx):
+                ub = right_PVT_list[j]
+                s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
+                blue_num = len(s[s[binary_sensitive_att] == 1])
+                red_num = len(s[s[binary_sensitive_att] == 0])
+                if abs(blue_num - red_num) <= disparity_goal:
+                    result.append([i, j])
+                    right_upper_idx = j
+
+                    break
+    if len(result) > 0:
+        print("result = {}".format(result))
 
     return
 
@@ -1992,7 +2031,8 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                          selection_numeric, selection_categorical, num_columns,
                          fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than,
                          fairness_constraints_provenance_complex, full_PVT, full_PVT_head, max_index_PVT,
-                         checked_assignments_satisfying, checked_assignments_not_satisfying, single_binary_sensitive_att,
+                         checked_assignments_satisfying, checked_assignments_not_satisfying,
+                         single_binary_sensitive_att,
                          time_limit=5 * 60):
     time1 = time.time()
     global assign_to_provenance_num
@@ -2053,7 +2093,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         # print("to_put_to_stack: {}".format(to_put_to_stack))
         print("num in to_put_to_stack: {}".format(len(to_put_to_stack)))
         print("len of stack: {}".format(len(PVT_stack)))
-        if fixed_value_assignments_positions == {'y__smaller': 0, 'y__greater': 1113}:
+        if fixed_value_assignments_positions == {'y__smaller': 0, 'y__greater': 1}:
             print("debug, stop here")
         new_value_assignment = {}
         full_value_assignment = {}
@@ -2073,10 +2113,12 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
             full_att = fixed_attributes + PVT_head[:att_idx + 1]
             new_value_assignment_position[att_idx] += 1
             # binary search in the last column numeric, new_value_assignment_position[att_idx] must be 0
-            if att_idx == num_columns - 1 and (col in numeric_attributes or col.split('__')[0] in numeric_attributes):  # last column
+            if att_idx == num_columns - 1 and (
+                    col in numeric_attributes or col.split('__')[0] in numeric_attributes):  # last column
                 original = new_value_assignment_position[att_idx]
                 # values_to_consider = possible_values_lists[col]
                 values_to_consider = list(PVT[col])
+
                 # assume greater is always before smaller in PVL_head
                 def get_values_to_consider(values_to_consider, col, compared_to):
                     if col.split('__')[0] + '__greater' in compared_to:
@@ -2116,7 +2158,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                 left = original + 1
                 idx_list = range(left, right + 1)
                 if originalreason == 3:  # traversal, can't do binary search
-                    if single_binary_sensitive_att: # when only one binary sensitive attribute
+                    if single_binary_sensitive_att:  # when only one binary sensitive attribute
                         temp_data = copy.deepcopy(data)
                         # apply fixed value assignments
                         for k, v in fixed_value_assignments.items():
@@ -2131,13 +2173,15 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                 temp_data = temp_data[temp_data[col_name] <= full_value_assignment[PVT_head[i]]]
                             else:
                                 temp_data = temp_data[temp_data[col_name] >= full_value_assignment[PVT_head[i]]]
-                        temp_data = temp_data.sort_values(by=col.split('__')[0], key=lambda x: abs(x - values_to_consider[original]))
+                        temp_data = temp_data.sort_values(by=col.split('__')[0],
+                                                          key=lambda x: abs(x - values_to_consider[original]))
                         # print(temp_data)
                         binary_sensitive_att = 'blue'
                         disparity_goal = fairness_constraints_provenance_complex[0]['plus']
                         res_idx = -1
                         res_val = -1
-                        for i, (y_value, _) in enumerate(temp_data[[col.split('__')[0], binary_sensitive_att]].itertuples(index=False), start=0):
+                        for i, (y_value, _) in enumerate(
+                                temp_data[[col.split('__')[0], binary_sensitive_att]].itertuples(index=False), start=0):
                             if col.split('__')[1] == "smaller":
                                 subset = temp_data[temp_data[col.split('__')[0]] <= y_value]
                             else:
@@ -2221,10 +2265,12 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                     if originalreason == 0 and (selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
                         idx_list = [x for x in idx_list if values_to_consider[x]
                                     < selection_numeric[col][1]]
-                    elif originalreason == 0 and (selection_numeric[col][0] == '<' or selection_numeric[col][0] == '<='):
+                    elif originalreason == 0 and (
+                            selection_numeric[col][0] == '<' or selection_numeric[col][0] == '<='):
                         idx_list = [x for x in idx_list if values_to_consider[x]
                                     > selection_numeric[col][1]]
-                    elif originalreason == 1 and (selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
+                    elif originalreason == 1 and (
+                            selection_numeric[col][0] == '>' or selection_numeric[col][0] == '>='):
                         idx_list = [x for x in idx_list if values_to_consider[x]
                                     > selection_numeric[col][1]]
                     else:
@@ -2359,12 +2405,13 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                     continue
             else:
                 idx_to_consider = range(new_value_assignment_position[att_idx], max_index_PVT[att_idx] + 1)
+
                 # assume greater is always before smaller in PVL_head
                 def get_idx_to_consider(idx_to_consider, col, compared_to):
                     if col.split('__')[0] + '__greater' in compared_to:
                         idx_to_consider = [k for k in idx_to_consider if
-                                               possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
-                                                                                                     + '__greater']]
+                                           possible_values_lists[col][k] >= new_value_assignment[col.split('__')[0]
+                                                                                                 + '__greater']]
                     elif col.split('__')[0] + '__smaller' in compared_to:
                         idx_to_consider = [k for k in idx_to_consider if
                                            possible_values_lists[col][k] <= new_value_assignment[col.split('__')[0]
@@ -2373,7 +2420,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
 
                 if '__' in col:
                     if col.split('__')[0] in numeric_attributes:
-                        if col.split('__')[0] +'__greater' in new_value_assignment:
+                        if col.split('__')[0] + '__greater' in new_value_assignment:
                             idx_to_consider = get_idx_to_consider(idx_to_consider, col, new_value_assignment)
                             idx_to_consider = get_idx_to_consider(idx_to_consider, col, fixed_value_assignments)
                         #     idx_to_consider = [k for k in idx_to_consider if
@@ -2495,7 +2542,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                         left += 1
             else:  # binary search to tighten this column
                 # print("tighten the last fixed column {}:\n {}".format(fixed_att, values_above))
-                #TODO: when try to tighten, can use the same opt for single binary att
+                # TODO: when try to tighten, can use the same opt for single binary att
                 while left <= right:
                     cur_value_id = int((right + left) / 2)
                     cur_fixed_value = values_above[cur_value_id]
@@ -2546,35 +2593,42 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                 # in the following situation, we need to traverse the values between tightened and original value
                 if len(to_put_to_stack) > 0:
                     if not all(v == 0 for v in last_satisfying_bounding_relaxation_location):
-                        if len(PVT_head) == 1 and '__greater' in PVT_head[0]:
+                        if len(PVT_head) == 1 and PVT_head[0].split('__')[0] \
+                                == list(fixed_value_assignments.keys())[-1].split('__')[0]:
                             same_att_first_two_columns(data, parent_PVT, parent_PVT_head,
                                                        full_value_assignment,
                                                        full_value_assignment_positions,
+                                                       fixed_att,
+                                                       idx_in_this_col_in_parent_PVT,
                                                        tight_value_idx,
-                                                       fairness_constraints_provenance_complex
+                                                       fairness_constraints_provenance_complex,
+                                                       minimal_refinements,
+                                                       minimal_refinements_positions
                                                        )
-                        for j in range(idx_in_this_col_in_parent_PVT - 1, tight_value_idx, -1):
-                            to_put = copy.deepcopy(to_put_to_stack[-1])
-                            to_put['idx_in_this_col_in_parent_PVT'] = j
-                            to_put['fixed_value_assignments'][fixed_att] = values_above[j]
-                            to_put['fixed_value_assignments_to_tighten'] = values_above[:j]
-                            to_put['fixed_value_assignments_positions'][fixed_att] = j
-                            # if len(to_put['PVT_head']) == 1:
-                            #     to_put['PVT'] = to_put['PVT'][:new_value_assignment_position[0]]
-                            #     to_put['max_index_PVT'] = new_value_assignment_position
-                            PVT_stack.append(to_put['PVT'])
-                            PVT_head_stack.append(to_put['PVT_head'])
-                            max_index_PVT_stack.append(to_put['max_index_PVT'])
-                            parent_PVT_stack.append(to_put['parent_PVT'])
-                            parent_PVT_head_stack.append(to_put['parent_PVT_head'])
-                            parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
-                            col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
-                            idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
-                            fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
-                            fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
-                            left_side_binary_search_stack.append(to_put['for_left_binary'])
-                            shifted_length_stack.append(to_put['shifted_length'])
-                            fixed_value_assignments_to_tighten_stack.append(to_put['fixed_value_assignments_to_tighten'])
+                        else:
+                            for j in range(idx_in_this_col_in_parent_PVT - 1, tight_value_idx, -1):
+                                to_put = copy.deepcopy(to_put_to_stack[-1])
+                                to_put['idx_in_this_col_in_parent_PVT'] = j
+                                to_put['fixed_value_assignments'][fixed_att] = values_above[j]
+                                to_put['fixed_value_assignments_to_tighten'] = values_above[:j]
+                                to_put['fixed_value_assignments_positions'][fixed_att] = j
+                                # if len(to_put['PVT_head']) == 1:
+                                #     to_put['PVT'] = to_put['PVT'][:new_value_assignment_position[0]]
+                                #     to_put['max_index_PVT'] = new_value_assignment_position
+                                PVT_stack.append(to_put['PVT'])
+                                PVT_head_stack.append(to_put['PVT_head'])
+                                max_index_PVT_stack.append(to_put['max_index_PVT'])
+                                parent_PVT_stack.append(to_put['parent_PVT'])
+                                parent_PVT_head_stack.append(to_put['parent_PVT_head'])
+                                parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
+                                col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
+                                idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
+                                fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
+                                fixed_value_assignments_positions_stack.append(to_put['fixed_value_assignments_positions'])
+                                left_side_binary_search_stack.append(to_put['for_left_binary'])
+                                shifted_length_stack.append(to_put['shifted_length'])
+                                fixed_value_assignments_to_tighten_stack.append(
+                                    to_put['fixed_value_assignments_to_tighten'])
                     fixed_value_assignments = fixed_value_assignments_for_tighten
                     fixed_value_assignments_positions[fixed_att] = tight_value_idx
                     if tight_value_idx == 0 and len(to_put_to_stack) > 0:
@@ -2583,8 +2637,10 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                         #  no need to test values between now and last fixed value
                         if len(to_put_to_stack) > 0:
                             to_put_to_stack[-1]['idx_in_this_col_in_parent_PVT'] = tight_value_idx - 1
-                            to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[tight_value_idx - 1]
-                            to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[: tight_value_idx - 1]
+                            to_put_to_stack[-1]['fixed_value_assignments'][fixed_att] = values_above[
+                                tight_value_idx - 1]
+                            to_put_to_stack[-1]['fixed_value_assignments_to_tighten'] = values_above[
+                                                                                        : tight_value_idx - 1]
                             to_put_to_stack[-1]['fixed_value_assignments_positions'][fixed_att] = tight_value_idx - 1
         else:
             fva = [full_value_assignment[k] for k in full_PVT_head]
@@ -3090,7 +3146,8 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
                                                fairness_constraints_provenance_complex, PVT,
                                                copy.deepcopy(PVT_head), max_index_PVT,
                                                checked_assignments_satisfying,
-                                               checked_assignments_unsatisfying, single_binary_sensitive_att, time_limit)
+                                               checked_assignments_unsatisfying, single_binary_sensitive_att,
+                                               time_limit)
     time2 = time.time()
     print("provenance time = {}".format(provenance_time))
     print("searching time = {}".format(time2 - time_search1))
