@@ -2053,7 +2053,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         # print("to_put_to_stack: {}".format(to_put_to_stack))
         print("num in to_put_to_stack: {}".format(len(to_put_to_stack)))
         print("len of stack: {}".format(len(PVT_stack)))
-        if fixed_value_assignments_positions == {'y__smaller': 2779}:
+        if fixed_value_assignments_positions == {'y__smaller': 0, 'y__greater': 1113}:
             print("debug, stop here")
         new_value_assignment = {}
         full_value_assignment = {}
@@ -2149,14 +2149,22 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                 res_val = y_value
                                 break
                         if res_idx > -1:
-                            if res_val <= PVT.iloc[0, att_idx]:
+                            if (res_val <= PVT.iloc[0, att_idx] and col.split('__')[1] == "smaller") or \
+                                    (res_val > PVT.iloc[0, att_idx] and col.split('__')[1] == "greater"):
                                 temp_data_col_values = temp_data[col.split('__')[0]].tolist()[:res_idx]
                                 val_threshold = -1
-                                for value in reversed(temp_data_col_values):
-                                    if value < PVT.iloc[0, att_idx]:
-                                        val_threshold = value
-                                        break
-                                idx_in_PVT = PVT.index[PVT[col] < val_threshold].min()
+                                if col.split('__')[1] == "smaller":
+                                    for value in reversed(temp_data_col_values):
+                                        if value < PVT.iloc[0, att_idx]:
+                                            val_threshold = value
+                                            break
+                                    idx_in_PVT = PVT.index[PVT[col] < val_threshold].min()
+                                else:
+                                    for value in reversed(temp_data_col_values):
+                                        if value > PVT.iloc[0, att_idx]:
+                                            val_threshold = value
+                                            break
+                                    idx_in_PVT = PVT.index[PVT[col] > val_threshold].min()
                                 new_value_assignment[col] = PVT.iloc[idx_in_PVT, PVT.columns.get_loc(col)]
                                 full_value_assignment = {**new_value_assignment, **fixed_value_assignments}
                                 new_value_assignment_position[att_idx] = idx_in_PVT
@@ -2487,6 +2495,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                         left += 1
             else:  # binary search to tighten this column
                 # print("tighten the last fixed column {}:\n {}".format(fixed_att, values_above))
+                #TODO: when try to tighten, can use the same opt for single binary att
                 while left <= right:
                     cur_value_id = int((right + left) / 2)
                     cur_fixed_value = values_above[cur_value_id]
