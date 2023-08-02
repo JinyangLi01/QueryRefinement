@@ -2969,7 +2969,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_
                 pe_dataframe = pe_dataframe[pe_dataframe[att] > selection_numeric_attributes[att]['greater'][1]]
             elif selection_numeric_attributes[att]['greater'][0] == ">=":
                 pe_dataframe = pe_dataframe[pe_dataframe[att] >= selection_numeric_attributes[att]['greater'][1]]
-            elif selection_numeric_attributes[att]['smaller'][0] == "<":
+            if selection_numeric_attributes[att]['smaller'][0] == "<":
                 pe_dataframe = pe_dataframe[pe_dataframe[att] < selection_numeric_attributes[att]['smaller'][1]]
             elif selection_numeric_attributes[att]['smaller'][0] == "<=":
                 pe_dataframe = pe_dataframe[pe_dataframe[att] <= selection_numeric_attributes[att]['smaller'][1]]
