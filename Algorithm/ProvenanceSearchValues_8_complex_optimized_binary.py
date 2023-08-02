@@ -1968,7 +1968,9 @@ def same_att_first_two_columns(data, two_col_PVT, two_col_PVT_head, full_value_a
                                fairness_constraints_provenance_complex, minimal_refinements,
                                minimal_refinements_positions, shifted_length, initial_PVT, selection_numeric,
                                full_PVT_head):
-    print("Here is same_att_first_two_columns\n")
+    # print("Here is same_att_first_two_columns\n")
+    # print("full_value_assignment_positions: {}".format(full_value_assignment_positions))
+    # print("full_value_assignment: {}".format(full_value_assignment))
     cur_lowerbound = full_value_assignment[two_col_PVT_head[0]]
     cur_upperbound = full_value_assignment[two_col_PVT_head[1]]
     att = two_col_PVT_head[0].split('__')[0]
@@ -1986,41 +1988,649 @@ def same_att_first_two_columns(data, two_col_PVT, two_col_PVT_head, full_value_a
         else:
             temp_data = temp_data[temp_data[fixedatt] >= v]
     temp_data = temp_data.sort_values(by=att)
+    temp_data = temp_data.reset_index(drop=True)
     value_list = temp_data[att].tolist()
     left_PVT_list = two_col_PVT[att + "__greater"].tolist()
     right_PVT_list = two_col_PVT[att + "__smaller"].tolist()
     result = []
-    right_PVT_idx_bound = right_idx_PVT
-    for i in range(left_idx_PVT, len(left_PVT_list)):
-        lb = left_PVT_list[i]
-        for j in range(0, right_PVT_idx_bound):
-            ub = right_PVT_list[j]
-            s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
-            blue_num = len(s[s[binary_sensitive_att] == 1])
-            red_num = len(s[s[binary_sensitive_att] == 0])
-            if abs(blue_num - red_num) <= disparity_goal:
-                result.append([i, j])
-                right_PVT_idx_bound = j
-                fva = copy.deepcopy(full_value_assignment)
-                fva[att + "__greater"] = lb
-                fva[att + "__smaller"] = ub
-                fva = [fva[k] for k in full_PVT_head]
-                fva_positions = copy.deepcopy(full_value_assignment_positions)
-                fva_positions[att + "__greater"] = i
-                fva_positions[att + "__smaller"] = j
-                minimal_refinements, minimal_refinements_positions, added = \
-                    update_minimal_relaxation_and_position_refinement(minimal_refinements,
-                                                                      minimal_refinements_positions,
-                                                                      fva, [fva_positions[x] for x in
-                                                                            full_PVT_head],
-                                                                      shifted_length, initial_PVT, selection_numeric,
-                                                                      full_PVT_head)
+    if len(left_PVT_list) - left_idx_PVT < right_idx_PVT:
+        right_PVT_idx_bound = right_idx_PVT
+        for i in range(left_idx_PVT + 1, len(left_PVT_list)):
+            lb = left_PVT_list[i]
+            if i > 0 and lb not in value_list:
+                continue
+            for j in range(0, right_PVT_idx_bound):
+                ub = right_PVT_list[j]
+                if j > 0 and ub not in value_list:
+                    continue
+                s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
+                blue_num = len(s[s[binary_sensitive_att] == 1])
+                red_num = len(s[s[binary_sensitive_att] == 0])
+                if abs(blue_num - red_num) <= disparity_goal:
+                    result.append([i, j])
+                    right_PVT_idx_bound = j
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = lb
+                    fva[att + "__smaller"] = ub
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = i
+                    fva_positions[att + "__smaller"] = j
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT, selection_numeric,
+                                                                          full_PVT_head)
+                    break
+            if right_PVT_idx_bound == 0:
                 break
-        if right_PVT_idx_bound == 0:
-            break
+    else:
+        left_PVT_idx_bound = len(left_PVT_list)
+        for j in range(0, right_idx_PVT):
+            ub = right_PVT_list[j]
+            if j > 0 and ub not in value_list:
+                continue
+            for i in range(left_idx_PVT + 1, left_PVT_idx_bound):
+                lb = left_PVT_list[i]
+                if i > 0 and lb not in value_list:
+                    continue
+                s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
+                blue_num = len(s[s[binary_sensitive_att] == 1])
+                red_num = len(s[s[binary_sensitive_att] == 0])
+                if abs(blue_num - red_num) <= disparity_goal:
+                    result.append([i, j])
+                    left_PVT_idx_bound = i
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = lb
+                    fva[att + "__smaller"] = ub
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = i
+                    fva_positions[att + "__smaller"] = j
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT, selection_numeric,
+                                                                          full_PVT_head)
+                    break
+            if left_PVT_idx_bound == left_idx_PVT + 1:
+                break
+    # if len(result) > 0:
+    #     print("two column, find other result = {}".format(result))
+    return minimal_refinements, minimal_refinements_positions
+
+
+def same_att_first_two_columns_new1(data, two_col_PVT, two_col_PVT_head, full_value_assignment,
+                               full_value_assignment_positions, fixed_value_assignments, fixed_att, original_idx,
+                               tight_value_idx,
+                               fairness_constraints_provenance_complex, minimal_refinements,
+                               minimal_refinements_positions, shifted_length, initial_PVT, selection_numeric,
+                               full_PVT_head):
+    # print("Here is same_att_first_two_columns\n")
+    print("full_value_assignment_positions: {}".format(full_value_assignment_positions))
+    print("full_value_assignment: {}".format(full_value_assignment))
+    cur_lowerbound = full_value_assignment[two_col_PVT_head[0]]
+    cur_upperbound = full_value_assignment[two_col_PVT_head[1]]
+    att = two_col_PVT_head[0].split('__')[0]
+    left_idx_PVT = full_value_assignment_positions[att + "__greater"]  # idx in pvt column x__greater
+    right_idx_PVT = full_value_assignment_positions[att + "__smaller"]
+    if right_idx_PVT == 0:
+        return
+    disparity_goal = fairness_constraints_provenance_complex[0]['plus']
+    temp_data = copy.deepcopy(data)
+    # apply fixed columns
+    for k, v in fixed_value_assignments.items():
+        fixedatt = k.split('__')[0]
+        if k == fixedatt + "__smaller":
+            temp_data = temp_data[temp_data[fixedatt] <= v]
+        else:
+            temp_data = temp_data[temp_data[fixedatt] >= v]
+    temp_data = temp_data.sort_values(by=att)
+    temp_data = temp_data.reset_index(drop=True)
+    value_list = temp_data[att].tolist()
+    color_list = temp_data[binary_sensitive_att].tolist()
+    left_PVT_list = two_col_PVT[att + "__greater"].tolist()
+    right_PVT_list = two_col_PVT[att + "__smaller"].tolist()
+    result = []
+    if left_idx_PVT == 0:
+        s = temp_data[(temp_data[att] >= left_PVT_list[0]) & (temp_data[att] <= right_PVT_list[right_idx_PVT])]
+        blue_num = len(s[s[binary_sensitive_att] == 1])
+        red_num = len(s[s[binary_sensitive_att] == 0])
+        dominate_color = 1
+        if blue_num < red_num:
+            dominate_color = 0
+        cur_dis = abs(blue_num - red_num)
+        num_more_dominate = disparity_goal - cur_dis
+        num_more_other = disparity_goal + cur_dis
+        right_original_idx = next(x[0] for x in enumerate(value_list) if x[1] > right_PVT_list[0])
+        right_moving_idx = next(x[0] for x in enumerate(value_list) if x[1] > cur_upperbound) - 1
+
+        # find other pointers for left side
+        left_left_pointers = []
+        left_right_pointers = []
+        left_left_domi_pointers = []
+        left_right_domi_pointers = []
+        left_original_idx = next(x[0] for x in enumerate(value_list) if x[1] > left_PVT_list[0])
+        left_other_more = 0
+        left_domi_more = 0
+        next_left_other_more = 1
+        next_left_domi_more = 1
+        for i in range(left_original_idx - 1, -1, -1):
+            if color_list[i] == dominate_color:
+                left_other_more -= 1
+                left_domi_more += 1
+            else:
+                left_other_more += 1
+                left_domi_more -= 1
+            if next_left_other_more == left_other_more:
+                left_left_pointers.append(i)
+                next_left_other_more += 1
+            elif left_domi_more == next_left_domi_more:
+                left_left_domi_pointers.append(i)
+                next_left_domi_more += 1
+        left_other_more = 0
+        next_left_other_more = 1
+        for i in range(left_original_idx + 1, right_original_idx + right_original_idx - right_moving_idx):
+            if color_list[i] == dominate_color:
+                left_other_more -= 1
+            else:
+                left_other_more += 1
+            if next_left_other_more == left_other_more:
+                left_right_pointers.append(i)
+                next_left_other_more += 1
+            elif left_domi_more == next_left_domi_more:
+                left_right_domi_pointers.append(i)
+                next_left_domi_more += 1
+        if len(left_left_pointers) == 0 and len(left_right_pointers) == 0 \
+                and len(left_left_domi_pointers) == 0 and len(left_right_domi_pointers) == 0:
+            return minimal_refinements, minimal_refinements_positions
+        if right_PVT_list[right_idx_PVT] <= right_PVT_list[0]:
+            right_domi = 0
+            right_other = 0
+            right_more_domi = 0
+            next_right_more = 1
+            for i in range(right_moving_idx + 1, right_original_idx + right_original_idx - right_moving_idx):
+                if color_list[i] == dominate_color:
+                    right_domi += 1
+                    right_more_domi += 1
+                else:
+                    right_other += 1
+                    right_more_domi -= 1
+                if right_more_domi == next_right_more:
+                    if len(left_left_pointers) < next_right_more:
+                        j1 = -1
+                    else:
+                        j1 = left_PVT_list.index(value_list[left_left_pointers[next_right_more - 1]])
+                    if len(left_right_pointers) < next_right_more:
+                        j2 = -1
+                    else:
+                        j2 = left_PVT_list.index(value_list[left_right_pointers[next_right_more - 1]])
+                    if j1 == -1:
+                        j = j2
+                    elif j2 == -1:
+                        j = j1
+                    else:
+                        j = min(j1, j2)
+                    result.append([j, i])
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = left_PVT_list[j]
+                    fva[att + "__smaller"] = right_PVT_list[i]
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = j
+                    fva_positions[att + "__smaller"] = i
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT,
+                                                                          selection_numeric,
+                                                                          full_PVT_head)
+                    next_right_more += 1
+                    if next_right_more > max(len(left_left_pointers), len(left_right_pointers)):
+                        break
+        else:
+            right_domi = 0
+            right_other = 0
+            right_more_domi = 0
+            next_right_more_domi = 1
+            right_more_other = 0
+            next_right_more_other = 1
+
+            s = right_PVT_list[:right_idx_PVT]
+            s = s[::-1]
+            left_smallest_value = next(value for value in s if value < right_PVT_list[0])
+            # Using next() and list comprehension to find the index of the first element > 10
+            try:
+                right_end_idx_on_value_list = next(index for index, value in enumerate(value_list) if value > left_smallest_value) - 1
+            except StopIteration:
+                # Raised when no element is greater than 10
+                right_end_idx_on_value_list = None
+            right_piv_idx_list = next(index for index, value in enumerate(value_list) if value > right_PVT_list[0]) - 1
+            for i in range(right_moving_idx - 1, right_end_idx_on_value_list, -1):
+                if color_list[i] == dominate_color:
+                    right_domi += 1
+                    right_more_domi += 1
+                    right_more_other -= 1
+                else:
+                    right_other += 1
+                    right_more_domi -= 1
+                    right_more_other += 1
+                if next_right_more_domi <= max(len(left_left_pointers), len(left_right_pointers)):
+                    if right_more_domi == next_right_more_domi:
+                        if len(left_left_pointers) < next_right_more_domi:
+                            j1 = -1
+                        else:
+                            j1 = left_PVT_list.index(value_list[left_left_pointers[next_right_more_domi - 1]])
+                        if len(left_right_pointers) < next_right_more_domi:
+                            j2 = -1
+                        else:
+                            j2 = left_PVT_list.index(value_list[left_right_pointers[next_right_more_domi - 1]])
+                        if j1 == -1:
+                            j = j2
+                        elif j2 == -1:
+                            j = j1
+                        else:
+                            j = min(j1, j2)
+                        result.append([j, i])
+                        fva = copy.deepcopy(full_value_assignment)
+                        fva[att + "__greater"] = left_PVT_list[j]
+                        fva[att + "__smaller"] = right_PVT_list[i]
+                        fva = [fva[k] for k in full_PVT_head]
+                        fva_positions = copy.deepcopy(full_value_assignment_positions)
+                        fva_positions[att + "__greater"] = j
+                        fva_positions[att + "__smaller"] = i
+                        minimal_refinements, minimal_refinements_positions, added = \
+                            update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                              minimal_refinements_positions,
+                                                                              fva, [fva_positions[x] for x in
+                                                                                    full_PVT_head],
+                                                                              shifted_length, initial_PVT,
+                                                                              selection_numeric,
+                                                                              full_PVT_head)
+                        next_right_more_domi += 1
+                if next_right_more_other <= max(len(left_left_domi_pointers), len(left_right_domi_pointers)):
+                    if right_more_other == next_right_more_other:
+                        if len(left_left_domi_pointers) < next_right_more_other:
+                            j1 = -1
+                        else:
+                            j1 = left_PVT_list.index(value_list[left_left_domi_pointers[next_right_more_other - 1]])
+                        if len(left_right_domi_pointers) < next_right_more_other:
+                            j2 = -1
+                        else:
+                            j2 = left_PVT_list.index(value_list[left_right_domi_pointers[next_right_more_other - 1]])
+                        if j1 == -1:
+                            j = j2
+                        elif j2 == -1:
+                            j = j1
+                        else:
+                            j = min(j1, j2)
+                        ub_idx_in_PVT = right_PVT_list.index(value_list[i])
+
+                        result.append([j, ub_idx_in_PVT])
+                        fva = copy.deepcopy(full_value_assignment)
+                        fva[att + "__greater"] = left_PVT_list[j]
+                        fva[att + "__smaller"] = right_PVT_list[ub_idx_in_PVT]
+                        fva = [fva[k] for k in full_PVT_head]
+                        fva_positions = copy.deepcopy(full_value_assignment_positions)
+                        fva_positions[att + "__greater"] = j
+                        fva_positions[att + "__smaller"] = ub_idx_in_PVT
+                        minimal_refinements, minimal_refinements_positions, added = \
+                            update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                              minimal_refinements_positions,
+                                                                              fva, [fva_positions[x] for x in
+                                                                                    full_PVT_head],
+                                                                              shifted_length, initial_PVT,
+                                                                              selection_numeric,
+                                                                              full_PVT_head)
+                        next_right_more_other += 1
+
+    else:
+        right_PVT_idx_bound = right_idx_PVT
+        for i in range(left_idx_PVT + 1, len(left_PVT_list)):
+            lb = left_PVT_list[i]
+            for j in range(0, right_PVT_idx_bound):
+                ub = right_PVT_list[j]
+                s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
+                blue_num = len(s[s[binary_sensitive_att] == 1])
+                red_num = len(s[s[binary_sensitive_att] == 0])
+                if abs(blue_num - red_num) <= disparity_goal:
+                    result.append([i, j])
+                    right_PVT_idx_bound = j
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = lb
+                    fva[att + "__smaller"] = ub
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = i
+                    fva_positions[att + "__smaller"] = j
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT, selection_numeric,
+                                                                          full_PVT_head)
+                    break
+            if right_PVT_idx_bound == 0:
+                break
     if len(result) > 0:
         print("two column, find other result = {}".format(result))
     return minimal_refinements, minimal_refinements_positions
+
+
+
+
+
+def same_att_first_two_columns_new(data, two_col_PVT, two_col_PVT_head, full_value_assignment,
+                               full_value_assignment_positions, fixed_value_assignments, fixed_att, original_idx,
+                               tight_value_idx,
+                               fairness_constraints_provenance_complex, minimal_refinements,
+                               minimal_refinements_positions, shifted_length, initial_PVT, selection_numeric,
+                               full_PVT_head):
+    # print("Here is same_att_first_two_columns\n")
+    print("full_value_assignment_positions: {}".format(full_value_assignment_positions))
+    print("full_value_assignment: {}".format(full_value_assignment))
+    cur_lowerbound = full_value_assignment[two_col_PVT_head[0]]
+    cur_upperbound = full_value_assignment[two_col_PVT_head[1]]
+    att = two_col_PVT_head[0].split('__')[0]
+    left_idx_PVT = full_value_assignment_positions[att + "__greater"]  # idx in pvt column x__greater
+    right_idx_PVT = full_value_assignment_positions[att + "__smaller"]
+    if right_idx_PVT == 0:
+        return
+    disparity_goal = fairness_constraints_provenance_complex[0]['plus']
+    temp_data = copy.deepcopy(data)
+    # apply fixed columns
+    for k, v in fixed_value_assignments.items():
+        fixedatt = k.split('__')[0]
+        if k == fixedatt + "__smaller":
+            temp_data = temp_data[temp_data[fixedatt] <= v]
+        else:
+            temp_data = temp_data[temp_data[fixedatt] >= v]
+    temp_data = temp_data.sort_values(by=att)
+    temp_data = temp_data.reset_index(drop=True)
+    value_list = temp_data[att].tolist()
+    color_list = temp_data[binary_sensitive_att].tolist()
+    left_PVT_list = two_col_PVT[att + "__greater"].tolist()
+    right_PVT_list = two_col_PVT[att + "__smaller"].tolist()
+    result = []
+    if left_idx_PVT == 0:
+        s = temp_data[(temp_data[att] >= left_PVT_list[0]) & (temp_data[att] <= right_PVT_list[right_idx_PVT])]
+        blue_num = len(s[s[binary_sensitive_att] == 1])
+        red_num = len(s[s[binary_sensitive_att] == 0])
+        dominate_color = 1
+        if blue_num < red_num:
+            dominate_color = 0
+        cur_dis = abs(blue_num - red_num)
+        num_more_dominate = disparity_goal - cur_dis
+        num_more_other = disparity_goal + cur_dis
+        right_original_idx = next(x[0] for x in enumerate(value_list) if x[1] > right_PVT_list[0])
+        right_moving_idx = next(x[0] for x in enumerate(value_list) if x[1] > cur_upperbound) - 1
+
+        # find other pointers for left side
+        left_left_pointers = []
+        left_right_pointers = []
+        left_left_domi_pointers = []
+        left_right_domi_pointers = []
+        left_original_idx = next(x[0] for x in enumerate(value_list) if x[1] > left_PVT_list[0])
+        left_other_more = 0
+        left_domi_more = 0
+        next_left_other_more = 1
+        next_left_domi_more = 1
+        for i in range(left_original_idx - 1, -1, -1):
+            if color_list[i] == dominate_color:
+                left_other_more -= 1
+                left_domi_more += 1
+            else:
+                left_other_more += 1
+                left_domi_more -= 1
+            if next_left_other_more == left_other_more:
+                left_left_pointers.append(i)
+                next_left_other_more += 1
+            elif left_domi_more == next_left_domi_more:
+                left_left_domi_pointers.append(i)
+                next_left_domi_more += 1
+        left_other_more = 0
+        next_left_other_more = 1
+        for i in range(left_original_idx + 1, right_original_idx + right_original_idx - right_moving_idx):
+            if color_list[i] == dominate_color:
+                left_other_more += 1
+            else:
+                left_other_more -= 1
+            if next_left_other_more == left_other_more:
+                left_right_pointers.append(i)
+                next_left_other_more += 1
+            elif left_domi_more == next_left_domi_more:
+                left_right_domi_pointers.append(i)
+                next_left_domi_more += 1
+        if len(left_left_pointers) == 0 and len(left_right_pointers) == 0 \
+                and len(left_left_domi_pointers) == 0 and len(left_right_domi_pointers) == 0:
+            return minimal_refinements, minimal_refinements_positions
+        if right_PVT_list[right_idx_PVT] <= right_PVT_list[0]:
+            right_domi = 0
+            right_other = 0
+            right_more_domi = 0
+            next_right_more = 1
+            for i in range(right_moving_idx + 1, right_original_idx + right_original_idx - right_moving_idx):
+                if color_list[i] == dominate_color:
+                    right_domi += 1
+                    right_more_domi += 1
+                else:
+                    right_other += 1
+                    right_more_domi -= 1
+                if right_more_domi == next_right_more:
+                    if len(left_left_pointers) < next_right_more:
+                        j1 = -1
+                    else:
+                        j1 = left_PVT_list.index(value_list[left_left_pointers[next_right_more - 1]])
+                    if len(left_right_pointers) < next_right_more:
+                        j2 = -1
+                    else:
+                        j2 = left_PVT_list.index(value_list[left_right_pointers[next_right_more - 1]])
+                    if j1 == -1:
+                        j = j2
+                    elif j2 == -1:
+                        j = j1
+                    else:
+                        j = min(j1, j2)
+                    result.append([j, i])
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = left_PVT_list[j]
+                    fva[att + "__smaller"] = right_PVT_list[i]
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = j
+                    fva_positions[att + "__smaller"] = i
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT,
+                                                                          selection_numeric,
+                                                                          full_PVT_head)
+                    next_right_more += 1
+                    if next_right_more > max(len(left_left_pointers), len(left_right_pointers)):
+                        break
+        else:
+            right_piv_idx_list = next(index for index, value in enumerate(value_list) if value > right_PVT_list[0]) - 1
+            left_piv_idx_list = next(index for index, value in enumerate(value_list) if value > left_PVT_list[0])
+            color_list_temp = temp_data[binary_sensitive_att].tolist()[left_piv_idx_list : right_piv_idx_list + 1]
+            right_domi = color_list_temp.count(dominate_color)
+            right_other = color_list_temp.count(1-dominate_color)
+            right_more_domi = right_domi - right_other
+            next_right_more_domi = 1
+            right_more_other = right_other - right_domi
+            next_right_more_other = 1
+            more_other_needed = right_more_domi - disparity_goal
+            s = right_PVT_list[:right_idx_PVT]
+            s = s[::-1]
+            left_smallest_value = next(value for value in s if value < right_PVT_list[0])
+            # Using next() and list comprehension to find the index of the first element > 10
+            try:
+                right_end_idx_on_value_list = next(index for index, value in enumerate(value_list) if value > left_smallest_value) - 1
+            except StopIteration:
+                # Raised when no element is greater than 10
+                right_end_idx_on_value_list = None
+
+            for i in range(right_piv_idx_list, right_end_idx_on_value_list, -1):
+                if i < right_piv_idx_list:
+                    if color_list[i] == dominate_color:
+                        right_domi += 1
+                        right_more_domi += 1
+                        right_more_other -= 1
+                        more_other_needed -= 1
+                    else:
+                        right_other += 1
+                        right_more_domi -= 1
+                        right_more_other += 1
+                        more_other_needed += 1
+                    idx_right_pvt_list = right_PVT_list.index(value_list[i])
+                else:
+                    idx_right_pvt_list = 0
+                if more_other_needed < 0:
+                    if len(left_left_domi_pointers) < -more_other_needed:
+                        j1 = -1
+                    else:
+                        j1 = left_PVT_list.index(value_list[left_left_domi_pointers[-more_other_needed - 1]])
+                    if len(left_right_domi_pointers) < -more_other_needed:
+                        j2 = -1
+                    else:
+                        j2 = left_PVT_list.index(value_list[left_right_domi_pointers[-more_other_needed - 1]])
+                    if j1 == -1 and j2 == -1:
+                        continue
+                    elif j1 == -1:
+                        j = j2
+                    elif j2 == -1:
+                        j = j1
+                    else:
+                        j = min(j1, j2)
+                    result.append([j, idx_right_pvt_list])
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = left_PVT_list[j]
+                    fva[att + "__smaller"] = right_PVT_list[idx_right_pvt_list]
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = j
+                    fva_positions[att + "__smaller"] = idx_right_pvt_list
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT,
+                                                                          selection_numeric,
+                                                                          full_PVT_head)
+                else:
+                    if len(left_left_pointers) < more_other_needed:
+                        j1 = -1
+                    else:
+                        j1 = left_PVT_list.index(value_list[left_left_pointers[more_other_needed - 1]])
+                    if len(left_right_pointers) < more_other_needed:
+                        j2 = -1
+                    else:
+                        j2 = left_PVT_list.index(value_list[left_right_pointers[more_other_needed - 1]])
+                    if j1 == -1 and j2 == -1:
+                        continue
+                    elif j1 == -1:
+                        j = j2
+                    elif j2 == -1:
+                        j = j1
+                    else:
+                        j = min(j1, j2)
+                    result.append([j, idx_right_pvt_list])
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = left_PVT_list[j]
+                    fva[att + "__smaller"] = right_PVT_list[idx_right_pvt_list]
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = j
+                    fva_positions[att + "__smaller"] = idx_right_pvt_list
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT,
+                                                                          selection_numeric,
+                                                                          full_PVT_head)
+
+
+                next_right_more_domi += 1
+                # if next_right_more_other <= max(len(left_left_domi_pointers), len(left_right_domi_pointers)):
+                #     if right_more_other == next_right_more_other:
+                #         if len(left_left_domi_pointers) < next_right_more_other:
+                #             j1 = -1
+                #         else:
+                #             j1 = left_PVT_list.index(value_list[left_left_domi_pointers[next_right_more_other - 1]])
+                #         if len(left_right_domi_pointers) < next_right_more_other:
+                #             j2 = -1
+                #         else:
+                #             j2 = left_PVT_list.index(value_list[left_right_domi_pointers[next_right_more_other - 1]])
+                #         if j1 == -1:
+                #             j = j2
+                #         elif j2 == -1:
+                #             j = j1
+                #         else:
+                #             j = min(j1, j2)
+                #         ub_idx_in_PVT = right_PVT_list.index(value_list[i])
+                #
+                #         result.append([j, ub_idx_in_PVT])
+                #         fva = copy.deepcopy(full_value_assignment)
+                #         fva[att + "__greater"] = left_PVT_list[j]
+                #         fva[att + "__smaller"] = right_PVT_list[ub_idx_in_PVT]
+                #         fva = [fva[k] for k in full_PVT_head]
+                #         fva_positions = copy.deepcopy(full_value_assignment_positions)
+                #         fva_positions[att + "__greater"] = j
+                #         fva_positions[att + "__smaller"] = ub_idx_in_PVT
+                #         minimal_refinements, minimal_refinements_positions, added = \
+                #             update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                #                                                               minimal_refinements_positions,
+                #                                                               fva, [fva_positions[x] for x in
+                #                                                                     full_PVT_head],
+                #                                                               shifted_length, initial_PVT,
+                #                                                               selection_numeric,
+                #                                                               full_PVT_head)
+                #         next_right_more_other += 1
+
+    else:
+        right_PVT_idx_bound = right_idx_PVT
+        for i in range(left_idx_PVT + 1, len(left_PVT_list)):
+            lb = left_PVT_list[i]
+            for j in range(0, right_PVT_idx_bound):
+                ub = right_PVT_list[j]
+                s = temp_data[(temp_data[att] >= lb) & (temp_data[att] <= ub)]
+                blue_num = len(s[s[binary_sensitive_att] == 1])
+                red_num = len(s[s[binary_sensitive_att] == 0])
+                if abs(blue_num - red_num) <= disparity_goal:
+                    result.append([i, j])
+                    right_PVT_idx_bound = j
+                    fva = copy.deepcopy(full_value_assignment)
+                    fva[att + "__greater"] = lb
+                    fva[att + "__smaller"] = ub
+                    fva = [fva[k] for k in full_PVT_head]
+                    fva_positions = copy.deepcopy(full_value_assignment_positions)
+                    fva_positions[att + "__greater"] = i
+                    fva_positions[att + "__smaller"] = j
+                    minimal_refinements, minimal_refinements_positions, added = \
+                        update_minimal_relaxation_and_position_refinement(minimal_refinements,
+                                                                          minimal_refinements_positions,
+                                                                          fva, [fva_positions[x] for x in
+                                                                                full_PVT_head],
+                                                                          shifted_length, initial_PVT, selection_numeric,
+                                                                          full_PVT_head)
+                    break
+            if right_PVT_idx_bound == 0:
+                break
+    if len(result) > 0:
+        print("two column, find other result = {}".format(result))
+    return minimal_refinements, minimal_refinements_positions
+
 
 
 """
@@ -2148,19 +2758,19 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         shifted_length = shifted_length_stack.pop()
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
-        print("shifted_length: {}".format(shifted_length))
-        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-        print("max_index_PVT:\n{}".format(max_index_PVT))
-        # print("to_put_to_stack: {}".format(to_put_to_stack))
-        print("num in to_put_to_stack: {}".format(len(to_put_to_stack)))
-        print("len of stack: {}".format(len(PVT_stack)))
-        if fixed_value_assignments_positions == {'y__smaller': 65, 'y__greater': 12}:
-            print("debug, stop here")
+        # print("==========================  searchPVT  ========================== ")
+        # print("PVT_head: {}".format(PVT_head))
+        # print("PVT:\n{}".format(PVT))
+        # print("fixed_value_assignments: {}".format(fixed_value_assignments))
+        # print("fixed_value_assignments_positions: {}".format(fixed_value_assignments_positions))
+        # print("shifted_length: {}".format(shifted_length))
+        # print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        # print("max_index_PVT:\n{}".format(max_index_PVT))
+        # # print("to_put_to_stack: {}".format(to_put_to_stack))
+        # print("num in to_put_to_stack: {}".format(len(to_put_to_stack)))
+        # print("len of stack: {}".format(len(PVT_stack)))
+        # if fixed_value_assignments_positions == {'y__smaller': 65, 'y__greater': 12}:
+        #     print("debug, stop here")
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -2212,7 +2822,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                               fairness_constraints_provenance_complex)
                 if assign:
                     # checked_assignments_satisfying.append(full_value_assignment_str)
-                    print("{} satisfies constraints".format(full_value_assignment))
+                    # print("{} satisfies constraints".format(full_value_assignment))
                     last_satisfying_bounding_relaxation_location = new_value_assignment_position
                     find_base_refinement = True
                     find_value_this_col = True
@@ -2282,7 +2892,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                 find_base_refinement = True
                                 find_value_this_col = True
                                 idx_in_col = idx_in_PVT
-                                print("{} satisfies constraints, id = {}".format(full_value_assignment, res_idx))
+                                # print("{} satisfies constraints, id = {}".format(full_value_assignment, res_idx))
                             else:
                                 idx_in_PVT = PVT.index[PVT[col] == res_val].min()
                                 new_value_assignment[col] = PVT.iloc[idx_in_PVT, PVT.columns.get_loc(col)]
@@ -2292,7 +2902,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                 find_base_refinement = True
                                 find_value_this_col = True
                                 idx_in_col = idx_in_PVT
-                                print("{} satisfies constraints, id = {}".format(full_value_assignment, res_idx))
+                                # print("{} satisfies constraints, id = {}".format(full_value_assignment, res_idx))
                         else:
                             find_base_refinement = False
                             find_value_this_col = False
@@ -2315,7 +2925,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                             if assign:
                                 # checked_assignments_satisfying.append(full_value_assignment_str)
                                 idx_in_PVT = possible_values_lists[col].index(new_value_assignment[col])
-                                print("{} satisfies constraints, id = {}".format(full_value_assignment, idx_in_PVT))
+                                # print("{} satisfies constraints, id = {}".format(full_value_assignment, idx_in_PVT))
                                 new_value_assignment_position[att_idx] = idx_in_PVT
                                 last_satisfying_bounding_relaxation_location = new_value_assignment_position
                                 find_base_refinement = True
@@ -2391,7 +3001,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                                   fairness_constraints_provenance_complex)
                         if assign:
                             # checked_assignments_satisfying.append(full_value_assignment_str)
-                            print("{} satisfies constraints".format(full_value_assignment))
+                            # print("{} satisfies constraints".format(full_value_assignment))
                             new_value_assignment_position[att_idx] = idx_list[mid]
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_base_refinement = True
@@ -2521,13 +3131,13 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                               fairness_constraints_provenance_complex)
                         if assign:
                             # checked_assignments_satisfying.append(full_value_assignment_str)
-                            print("{} satisfies constraints".format(new_value_assignment))
+                            # print("{} satisfies constraints".format(new_value_assignment))
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_base_refinement = True
                             find_value_this_col = True
                             break
-                        else:
-                            print("{} doesn't satisfy constraints".format(full_value_assignment))
+                        # else:
+                            # print("{} doesn't satisfy constraints".format(full_value_assignment))
                             # checked_assignments_not_satisfying.append(full_value_assignment_str)
                     else:
                         if assign_to_provenance_relax_only_partial_query(full_value_assignment, numeric_attributes,
@@ -2536,12 +3146,12 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                                          full_PVT_head,
                                                                          fairness_constraints_provenance_greater_than):
                             # checked_assignments_satisfying.append(full_value_assignment_str)
-                            print("{} satisfies constraints".format(new_value_assignment))
+                            # print("{} satisfies constraints".format(new_value_assignment))
                             last_satisfying_bounding_relaxation_location = new_value_assignment_position
                             find_value_this_col = True
                             break
-                        else:
-                            print("{} doesn't satisfy relaxation partial query".format(full_value_assignment))
+                        # else:
+                            # print("{} doesn't satisfy relaxation partial query".format(full_value_assignment))
                             # checked_assignments_not_satisfying.append(full_value_assignment_str)
                     idx_in_col += 1
             if find_value_this_col:
@@ -2573,8 +3183,8 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
             search_space += len(PVT) * len(PVT_head)
             continue
 
-        print("find base refinement {}".format(new_value_assignment))
-        print("position: {}".format(new_value_assignment_position))
+        # print("find base refinement {}".format(new_value_assignment))
+        # print("position: {}".format(new_value_assignment_position))
         tight_success = False
         tight_value_idx = -1
         fixed_att = str()
@@ -2632,7 +3242,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
             if tight_value_idx >= 0:  # can be tightened
                 if tight_value_idx < idx_in_this_col_in_parent_PVT:
                     # tight this fixed column successfully
-                    print("after tighten last fixed col: {}".format(tight_value_idx))
+                    # print("after tighten last fixed col: {}".format(tight_value_idx))
                     fixed_value_assignments_for_tighten[fixed_att] = values_above[tight_value_idx]
                     full_value_assignment[fixed_att] = values_above[tight_value_idx]
                     tight_success = True
@@ -2675,31 +3285,31 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                            shifted_length, initial_PVT, selection_numeric,
                                                            full_PVT_head
                                                            )
-                        else:
-                            for j in range(idx_in_this_col_in_parent_PVT - 1, tight_value_idx, -1):
-                                to_put = copy.deepcopy(to_put_to_stack[-1])
-                                to_put['idx_in_this_col_in_parent_PVT'] = j
-                                to_put['fixed_value_assignments'][fixed_att] = values_above[j]
-                                to_put['fixed_value_assignments_to_tighten'] = values_above[:j]
-                                to_put['fixed_value_assignments_positions'][fixed_att] = j
-                                # if len(to_put['PVT_head']) == 1:
-                                #     to_put['PVT'] = to_put['PVT'][:new_value_assignment_position[0]]
-                                #     to_put['max_index_PVT'] = new_value_assignment_position
-                                PVT_stack.append(to_put['PVT'])
-                                PVT_head_stack.append(to_put['PVT_head'])
-                                max_index_PVT_stack.append(to_put['max_index_PVT'])
-                                parent_PVT_stack.append(to_put['parent_PVT'])
-                                parent_PVT_head_stack.append(to_put['parent_PVT_head'])
-                                parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
-                                col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
-                                idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
-                                fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
-                                fixed_value_assignments_positions_stack.append(
-                                    to_put['fixed_value_assignments_positions'])
-                                left_side_binary_search_stack.append(to_put['for_left_binary'])
-                                shifted_length_stack.append(to_put['shifted_length'])
-                                fixed_value_assignments_to_tighten_stack.append(
-                                    to_put['fixed_value_assignments_to_tighten'])
+                        # else:
+                        #     for j in range(idx_in_this_col_in_parent_PVT - 1, tight_value_idx, -1):
+                        #         to_put = copy.deepcopy(to_put_to_stack[-1])
+                        #         to_put['idx_in_this_col_in_parent_PVT'] = j
+                        #         to_put['fixed_value_assignments'][fixed_att] = values_above[j]
+                        #         to_put['fixed_value_assignments_to_tighten'] = values_above[:j]
+                        #         to_put['fixed_value_assignments_positions'][fixed_att] = j
+                        #         # if len(to_put['PVT_head']) == 1:
+                        #         #     to_put['PVT'] = to_put['PVT'][:new_value_assignment_position[0]]
+                        #         #     to_put['max_index_PVT'] = new_value_assignment_position
+                        #         PVT_stack.append(to_put['PVT'])
+                        #         PVT_head_stack.append(to_put['PVT_head'])
+                        #         max_index_PVT_stack.append(to_put['max_index_PVT'])
+                        #         parent_PVT_stack.append(to_put['parent_PVT'])
+                        #         parent_PVT_head_stack.append(to_put['parent_PVT_head'])
+                        #         parent_max_index_PVT_stack.append(to_put['parent_max_index_PVT'])
+                        #         col_idx_in_parent_PVT_stack.append(to_put['col_idx_in_parent_PVT'])
+                        #         idx_in_this_col_in_parent_PVT_stack.append(to_put['idx_in_this_col_in_parent_PVT'])
+                        #         fixed_value_assignments_stack.append(to_put['fixed_value_assignments'])
+                        #         fixed_value_assignments_positions_stack.append(
+                        #             to_put['fixed_value_assignments_positions'])
+                        #         left_side_binary_search_stack.append(to_put['for_left_binary'])
+                        #         shifted_length_stack.append(to_put['shifted_length'])
+                        #         fixed_value_assignments_to_tighten_stack.append(
+                        #             to_put['fixed_value_assignments_to_tighten'])
                     fixed_value_assignments = fixed_value_assignments_for_tighten
                     fixed_value_assignments_positions[fixed_att] = tight_value_idx
                     if tight_value_idx == 0 and len(to_put_to_stack) > 0:
@@ -2728,8 +3338,8 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                                                                   shifted_length, initial_PVT, selection_numeric,
                                                                   full_PVT_head)
 
-        print("minimal_refinements: {}".format(minimal_refinements))
-        print("minimal_refinements_positions: {}".format(minimal_refinements_positions))
+        # print("minimal_refinements: {}".format(minimal_refinements))
+        # print("minimal_refinements_positions: {}".format(minimal_refinements_positions))
 
         if num_columns == 2:
             if len(PVT_head_stack) > 0:
