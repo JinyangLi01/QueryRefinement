@@ -357,7 +357,7 @@ def build_PVT_relax_only(data, selected_attributes, numeric_attributes,
                 try:
                     idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 except StopIteration:
-                    idx = len(unique_values)
+                    idx = len(unique_values) - 1
                 # idx = next(i for i, v in enumerate(unique_values) if v >= selection_numeric[att][1])
                 others = unique_values[:idx]
                 possible_values_sets[att].update(others)
