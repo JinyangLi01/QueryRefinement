@@ -87,13 +87,13 @@ def run(query, size, constraint):
     plt.xlabel(r'\{l\underline{ }shipinstruct=DELIVER IN \\'
                r'PERSON, o\underline{ }orderpriority=2-HIGH,\\'
                r'o\underline{ }orderstatus=P\} $<=$ (\%)',
-               fontsize=60, weight='bold').set_position((0.42, -0.1))
-    # plt.ylabel('Running time (s)')
+               fontsize=60, weight='bold', labelpad=-5).set_position((0.42, -0.1))
+    plt.tight_layout()
     plt.legend(loc='lower left', bbox_to_anchor=(0, -0.15), fontsize=53,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=55)
-    plt.tight_layout()
+
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

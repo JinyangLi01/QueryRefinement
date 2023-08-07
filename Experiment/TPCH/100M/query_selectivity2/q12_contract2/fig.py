@@ -18,7 +18,7 @@ plt.rcParams['ytick.left'] = True
 
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
-f_size = (13, 8.5)
+f_size = (13, 8)
 
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
@@ -83,14 +83,14 @@ def run(query, size, constraint):
     plt.yticks(fontsize=80, weight='bold', fontname="Times New Roman")
 
     plt.xlabel(r'l\underline{ }receiptdate starting from\\$~~$10/01/1994, 4m interval',
-               fontsize=78, weight='bold').set_position((0.45, -0.1))
-
-    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05), fontsize=65,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               fontsize=78, weight='bold', labelpad=-5).set_position((0.45, -0.1))
+    plt.tight_layout()
+    plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.07), fontsize=65,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
 
     # plt.legend(loc='upper right', bbox_to_anchor=(0.65, 0.55), fontsize=58)
-    plt.tight_layout()
+
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

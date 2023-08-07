@@ -23,7 +23,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (13, 8.5)
+f_size = (13, 8)
 
 x_list = list()
 x_naive = list()
@@ -87,14 +87,14 @@ def run(query, size, constraint):
 
 
     plt.xlabel(r'o\underline{ }orderdate starting from \\$~~$08/28/1994, 2m interval',
-               fontsize=80, weight='bold').set_position((0.44, -0.1))
+               fontsize=80, weight='bold', labelpad=-5).set_position((0.44, -0.1))
 
+    plt.tight_layout()
     # plt.legend(loc='upper right', bbox_to_anchor=(0.65, 0.55), fontsize=60)
     plt.legend(loc='upper right', bbox_to_anchor=(1.05, 1.06), fontsize=65,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
 
-    plt.tight_layout()
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

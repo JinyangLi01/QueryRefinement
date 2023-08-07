@@ -23,7 +23,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
-f_size = (13, 8.5)
+f_size = (13, 8)
 
 x_list = list()
 x_naive = list()
@@ -89,14 +89,14 @@ def run(query, size, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'l\underline{ }receiptdate starting from\\$~$10/01/1994, 4m interval', fontsize=77,
-               weight='bold').set_position((0.44, -0.1))
-
-    # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
-    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.06), fontsize=65,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
-               columnspacing=0.2, borderpad=0.2, frameon=True)
+               weight='bold', labelpad=-5).set_position((0.44, -0.1))
 
     plt.tight_layout()
+    # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.03, 1.08), fontsize=65,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.1,
+               columnspacing=0.2, borderpad=0.2, frameon=True, handlelength=1.7)
+
     fig_path = "query_selectivity_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

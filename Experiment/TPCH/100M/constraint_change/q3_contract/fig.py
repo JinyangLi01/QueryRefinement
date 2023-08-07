@@ -83,15 +83,13 @@ def run(query, size, constraint):
     #
     plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
-
     plt.xlabel(r'\{l\underline{ }shipinstruct = \\COLLECT COD\} $<=$ (\%)',
-               fontsize=73, weight='bold').set_position([0.45, -0.1])
-
+               fontsize=73, weight='bold', labelpad=-10).set_position([0.45, -0.1])
+    plt.tight_layout()
     plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.72), fontsize=60,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best")
-    plt.tight_layout()
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

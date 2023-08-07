@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (13, 9)
+f_size = (13, 8.5)
 
 x_list = list()
 x_naive = list()
@@ -83,14 +83,13 @@ def run(query, size, constraint):
 
     plt.xticks(np.arange(0, 6, 1), x_list, rotation=0, fontsize=80)
     plt.yticks(fontsize=80, weight='bold')
-
     plt.xlabel(r'\{l\underline{ }shipmode=MAIL\}$>=$(\%)',
-               fontsize=73, weight='bold').set_position((0.47, -0.1))
-
-    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.55), fontsize=65,
+               fontsize=73, weight='bold', labelpad=-10).set_position((0.47, -0.1))
+    plt.tight_layout()
+    plt.legend(loc='upper right', bbox_to_anchor=(0.98, 0.60), fontsize=65,
                ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
-    plt.tight_layout()
+
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

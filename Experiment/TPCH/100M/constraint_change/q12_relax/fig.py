@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (13, 9)
+f_size = (13, 8.5)
 
 x_list = list()
 x_naive = list()
@@ -85,13 +85,15 @@ def run(query, size, constraint):
     plt.yticks(fontsize=80, weight='bold')
 
     plt.xlabel(r'\{l\underline{ }returnflag=A, o\underline{ }order-\\$~~$status=F\} $<=$ (\%)',
-               fontsize=80, weight='bold').set_position((0.46, -0.05))
-    # plt.legend(loc='upper left', bbox_to_anchor=(0.01, 1.05), fontsize=60)
-    plt.legend(loc='lower right', bbox_to_anchor=(1, -0.3), fontsize=60,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
-               columnspacing=0.2, borderpad=0.2, frameon=True)
-    # plt.legend(loc="best", fontsize=50)
+               fontsize=80, weight='bold', labelpad=-10).set_position((0.46, -0.05))
     plt.tight_layout()
+    # plt.legend(loc='lower right', bbox_to_anchor=(1, -0.3), fontsize=60,
+    #            ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
+    #            columnspacing=0.2, borderpad=0.2, frameon=True)
+    plt.legend(loc='upper left', bbox_to_anchor=(-0.05, 1.12), fontsize=60,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
+
     fig_path = "constraint_change_q" + str(query) + "_" + size + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
