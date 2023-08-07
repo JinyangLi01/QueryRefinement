@@ -27,7 +27,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (16, 9.4)
+f_size = (16.3, 7.8)
 
 x_list = list()
 x_naive = list()
@@ -52,7 +52,7 @@ def run(q):
     print(execution_timeps1, execution_timeps2, execution_timebl1, execution_timebl2)
 
     index = np.arange(len(execution_timeps1))
-    bar_width = 0.5
+    bar_width = 0.48
 
     fig, ax = plt.subplots(1, 1, figsize=f_size)
 
@@ -62,11 +62,12 @@ def run(q):
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(AutoDateFormatter(locator))
 
-    plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
-    plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
+    x_tick_list = [0.2, 1.25, 2.18, 3.32, 4.33, 5.23, 6.33, 7.34, 8.3]
+    plt.bar([x - bar_width / 2 for x in x_tick_list], execution_timeps1, bar_width, color=color[0], label=label[0])
+    plt.bar([x - bar_width / 2 for x in x_tick_list], execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
-    plt.bar(index + bar_width, execution_timebl1, bar_width, color=color[2], label=label[2])
-    plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
+    plt.bar([x + bar_width / 2 for x in x_tick_list], execution_timebl1, bar_width, color=color[2], label=label[2])
+    plt.bar([x + bar_width / 2 for x in x_tick_list], execution_timebl2, bar_width, bottom=execution_timebl1,
             color=color[3], label=label[3])
 
     # x_list = [r"\boldmath$C^{T,3}_1$\n\textbf{100M}",
@@ -75,15 +76,16 @@ def run(q):
     x_list = ['\\boldmath$C^{T,3}_1$\n\\textbf{100M}', '\\boldmath$C^{T,3}_1$\n\\textbf{1G}','\\boldmath$C^{T,3}_1$\n\\textbf{10G}',
               '\\boldmath$C^{T,3}_2$\n\\textbf{100M}', '\\boldmath$C^{T,3}_2$\n\\textbf{1G}', '\\boldmath$C^{T,3}_2$\n\\textbf{10G}',
                 '\\boldmath$C^{T,3}_3$\n\\textbf{100M}', '\\boldmath$C^{T,3}_3$\n\\textbf{1G}', '\\boldmath$C^{T,3}_3$\n\\textbf{10G}']
-    plt.xticks([0.25, 1.25, 2.2, 3.3, 4.3, 5.2, 6.3, 7.3, 8.25], x_list, fontsize=45, weight='bold')
+    plt.xticks(x_tick_list, x_list, fontsize=45, weight='bold')
     plt.yticks(fontsize=70, weight='bold')
     plt.yscale('log')
     plt.xlabel(r'Constraint and Dataset Size', fontsize=70, weight='bold')
     # plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.3,
     #                   handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
+    plt.tight_layout()
     plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=52, ncol=2, labelspacing=0.1,
                handletextpad=0.2, markerscale=0.3, columnspacing=2, frameon=False)
-    plt.tight_layout()
+
     fig_path = "running_time_" + str(q) + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

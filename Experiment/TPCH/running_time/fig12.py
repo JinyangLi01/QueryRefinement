@@ -27,7 +27,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (16, 8)
+f_size = (16.3, 7.8)
 
 x_list = list()
 x_naive = list()
@@ -61,7 +61,7 @@ def run(q):
     locator = AutoDateLocator()
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(AutoDateFormatter(locator))
-
+    x_tick_list = [-0.1, 0.95, 2, 3.05, 4.07, 5.08, 6.12, 7.15, 8.15]
     plt.bar(index, execution_timeps1, bar_width, color=color[0], label=label[0])
     plt.bar(index, execution_timeps2, bar_width, bottom=execution_timeps1,
             color=color[1], label=label[1])
@@ -76,15 +76,16 @@ def run(q):
               '\\boldmath$C^{T,12}_2$\n\\textbf{100M}', '\\boldmath$C^{T,12}_2$\n\\textbf{1G}', '\\boldmath$C^{T,12}_2$\n\\textbf{10G}',
                 '\\boldmath$C^{T,12}_3$\n\\textbf{100M}', '\\boldmath$C^{T,12}_3$\n\\textbf{1G}', '\\boldmath$C^{T,12}_3$\n\\textbf{10G}']
 
-    plt.xticks([0, 1, 2, 3, 4, 5, 6, 7, 8], x_list, fontsize=45, weight='bold')
+    plt.xticks(x_tick_list, x_list, fontsize=44, weight='bold')
     plt.yticks([1, 10, 100, 1000], fontsize=70, weight='bold')
     plt.yscale('log')
     plt.xlabel(r'Constraint and Dataset Size', fontsize=70, weight='bold')
     # plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.3,
     #                   handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
-    plt.legend(loc='upper center', bbox_to_anchor=(0.43, 1.0), fontsize=58, ncol=2, labelspacing=0.3,
-               handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
     plt.tight_layout()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.43, 1.3), fontsize=58, ncol=2, labelspacing=0.3,
+               handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
+
     fig_path = "running_time_" + str(q) + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
