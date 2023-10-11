@@ -1,24 +1,25 @@
 {
-  "all_sensitive_attributes": ["o_orderpriority", "l_linenumber", "l_returnflag", "l_shipinstruct"],
+  "all_sensitive_attributes": ["o_orderpriority", "o_orderstatus", "l_linenumber", "l_returnflag", "l_shipinstruct"],
   "number_fairness_constraints": 1,
   "fairness_constraints": [
     {
       "sensitive_attributes":
       {
         "o_orderpriority": "3-MEDIUM",
-        "l_linenumber": 3
+        "o_orderstatus": "P",
+        "l_linenumber": 1
       },
-      "symbol": ">=",
-      "number": 1178
+      "symbol": "<=",
+      "number": 0
     },
     {
       "sensitive_attributes":
       {
         "l_returnflag": "R",
-        "l_shipinstruct": "TAKE BACK RETURN"
+        "o_orderstatus": "P"
       },
-      "symbol": "<=",
-      "number": 1064
+      "symbol": ">=",
+      "number": 0
     }
   ]
 }
