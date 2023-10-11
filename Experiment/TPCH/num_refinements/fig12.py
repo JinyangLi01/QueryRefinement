@@ -24,7 +24,7 @@ label = ['PS', "PS-search", "total-number", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (17, 9.5)
+f_size = (17, 7)
 
 x_list = list()
 x_naive = list()
@@ -70,13 +70,15 @@ def run(q):
     plt.xticks([0.2, 1.22, 2.23, 3.26, 4.28, 5.25, 6.3, 7.3, 8.3], x_list, fontsize=45, weight='bold')
     plt.yticks([1000, 100000], fontsize=70, weight='bold')
     plt.yscale('log')
-    plt.xlabel(r'Constraint and Dataset Size', fontsize=65, weight='bold')
+    plt.ylim(10, 100000000)
+    plt.tight_layout()
+    plt.xlabel(r'Constraint and Dataset Size', fontsize=65, weight='bold', labelpad=0)
     # plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=54, ncol=4, labelspacing=0.3,
     #                   handletextpad=0.1, markerscale=0.2, columnspacing=0.3, frameon=False)
-    plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.18), fontsize=57, ncol=2, labelspacing=0.2,
+    plt.legend(loc='upper center', bbox_to_anchor=(0.45, 1.3), fontsize=57, ncol=2, labelspacing=0.2,
                handletextpad=0.2, markerscale=0.3, columnspacing=1, frameon=False)
-    plt.tight_layout()
-    fig_path = "num_refinements_" + str(q) + ".png"
+
+    fig_path = "TPCH_num_refinements_" + str(q) + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
     plt.show()
