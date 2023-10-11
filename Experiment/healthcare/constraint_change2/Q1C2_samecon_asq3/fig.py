@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (13, 8.5)
+f_size = (13, 8)
 
 x_list = list()
 x_naive = list()
@@ -84,12 +84,12 @@ def run(query, constraint):
     plt.yticks(fontsize=80, weight='bold')
     plt.ylim(0, 0.1)
     plt.xlabel(r'\{race=race1\} $<=$ (\%)',
-               fontsize=85, weight='bold').set_position((0.41, -0.1))
-
-    plt.legend(loc='upper right', bbox_to_anchor=(1, 1.1), fontsize=58,
+               fontsize=85, weight='bold', labelpad=-10).set_position((0.41, -0.1))
+    plt.tight_layout()
+    plt.legend(loc='upper right', bbox_to_anchor=(1, 1.15), fontsize=58,
                ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
-    plt.tight_layout()
+
     fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

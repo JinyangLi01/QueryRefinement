@@ -19,7 +19,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C7', 'C6']
 label = ['PS-prov', "PS-search", "PS-prov\_no\_opt", "PS-search\_no\_opt"]
 
-f_size = (22, 11)
+f_size = (20, 10)
 
 x_list = list()
 x_naive = list()
@@ -80,16 +80,17 @@ x_list = ['\\boldmath$Q^H_1$\n\\boldmath$C^H_1$', '\\boldmath$Q^H_1$\n\\boldmath
 plt.xticks(np.arange(0, 8) + bar_width/2, x_list, rotation=0, fontsize=65)
 plt.yticks(fontsize=75, weight='bold')
 
-plt.xlabel('Query and Constraint', fontsize=75, weight='bold')
+plt.xlabel('Query and Constraint', fontsize=75, weight='bold', labelpad=-0)
 
 plt.yscale('log')
-lgnd = plt.legend(loc='upper right', bbox_to_anchor=(0.8, 1.15), fontsize=65, ncol=1, labelspacing=0.1,
+
+plt.tight_layout()
+lgnd = plt.legend(loc='upper left', bbox_to_anchor=(0, 1.2), fontsize=70, ncol=2, labelspacing=0.1,
                   handletextpad=0.2, markerscale=0.2, columnspacing=0.2, frameon=False)
 
 # lgnd = plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05), fontsize=70, ncol=2, labelspacing=0.2,
 #                   handletextpad=0.2, markerscale=0.2, columnspacing=0.4)
 
 
-plt.tight_layout()
 plt.savefig("healthcare_optimization_effect_4q.png", bbox_inches='tight')
 plt.show()

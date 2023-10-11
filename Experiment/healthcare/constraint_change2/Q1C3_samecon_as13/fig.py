@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=80, weight='bold')
 
-f_size = (13, 8.5)
+f_size = (13, 7.3)
 
 x_list = list()
 x_naive = list()
@@ -79,15 +79,16 @@ def run(query, constraint):
     # plt.bar(index + bar_width, execution_timebl2, bar_width, bottom=execution_timebl1,
     #         color=color[3], label=label[3])
 
-    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=80)
+    plt.xticks(np.arange(0, 6), x_list, rotation=0, fontsize=75)
     plt.yticks(fontsize=80, weight='bold')
-
-    plt.xlabel(r'\{age = group1\} $>=$ (\%)', fontsize=75, weight='bold').set_position((0.44, -0.1))
+    plt.tight_layout()
+    plt.xlabel(r'\{age = group1\} $>=$ (\%)', fontsize=72,
+               weight='bold', labelpad=-10).set_position((0.44, -0.1))
     plt.legend(loc='upper right', bbox_to_anchor=(1.02, 0.8), fontsize=63,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=60)
-    plt.tight_layout()
+
     fig_path = "healthcare_constraint_change_q" + str(query) + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')

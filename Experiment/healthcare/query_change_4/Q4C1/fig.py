@@ -23,7 +23,7 @@ plt.rc('font', size=70, weight='bold')
 color = ['C1', 'C0', 'C3', 'C2']
 label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 
-f_size = (13, 8.5)
+f_size = (13, 8)
 
 x_list = list()
 x_naive = list()
@@ -83,13 +83,13 @@ def run(query, constraint):
     plt.xticks(np.arange(0, 8), range(1, 9), rotation=0, fontsize=85, weight='bold')
     plt.yticks(fontsize=75, weight='bold')
 
-    plt.xlabel(r'complications', fontsize=85, weight='bold')
-    # plt.ylabel('Running time (s)')
-    plt.legend(loc='upper left', bbox_to_anchor=(0.3, 0.55), fontsize=60,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
-               columnspacing=0.2, borderpad=0.2, frameon=True)
+    plt.xlabel(r'complications', fontsize=85, weight='bold', labelpad=-10)
 
     plt.tight_layout()
+    plt.legend(loc='upper left', bbox_to_anchor=(0.3, 0.55), fontsize=60,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
+               columnspacing=0.2, borderpad=0.2, frameon=True)
+
     fig_path = "healthcare_query_selectivity_q" + str(query) + "_" + constraint + ".png"
 
     plt.savefig(fig_path, bbox_inches='tight')
