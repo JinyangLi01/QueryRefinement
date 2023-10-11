@@ -21,7 +21,7 @@ label = ['PS-prov', "PS-search", "BL-prov", "BL-search"]
 plt.rc('text', usetex=True)
 plt.rc('font', size=70, weight='bold')
 
-f_size = (13, 8)
+f_size = (13, 8.6)
 
 x_list = list()
 x_naive = list()
@@ -87,7 +87,7 @@ def run(query, constraint):
                fontsize=85, weight='bold', labelpad=-10).set_position((0.44, -0.1))
     plt.tight_layout()
     plt.legend(loc='upper left', bbox_to_anchor=(-0.04, 0.85), fontsize=70,
-               ncol=1, labelspacing=0.2, handletextpad=0.2, markerscale=0.3,
+               ncol=1, labelspacing=0.1, handletextpad=0.2, markerscale=0.3,
                columnspacing=0.2, borderpad=0.2, frameon=True)
     # plt.legend(loc="best", fontsize=55)
 
