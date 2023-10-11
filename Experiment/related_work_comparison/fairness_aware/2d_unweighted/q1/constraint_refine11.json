@@ -1,0 +1,27 @@
+{
+  "all_sensitive_attributes": ["blue"],
+  "number_fairness_constraints": 2,
+  "fairness_constraints": [
+    {
+      "first_sensitive_attributes": {
+        "blue": 1
+      },
+      "symbol": "<=",
+      "second_sensitive_attributes": {
+        "blue": 0
+      },
+      "plus": 9
+    },
+    {
+      "first_sensitive_attributes": {
+        "blue": 0
+      },
+      "symbol": "<=",
+      "second_sensitive_attributes": {
+        "blue": 1
+      },
+      "plus": 9
+    }
+  ]
+}
+

@@ -6,7 +6,8 @@ import time
 from intbitset import intbitset
 import json
 
-from Algorithm import ProvenanceSearchValues_8_optimized as ps
+# from Algorithm import ProvenanceSearchValues_8_complex_constraints as ps
+from Algorithm import ProvenanceSearchValues_8_complex_optimized_binary as ps
 from Algorithm import LatticeTraversal_5_20230121 as lt
 
 
@@ -36,13 +37,20 @@ def run(c, q):
     data_format = ".csv"
     print("query", q)
     query_file = query_file_prefix + str(q) + ".json"
-    print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
-        provenance_time1, search_time1 = \
-        ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
+    single_binary_sensitive_att = True
 
-    print("running time = {}".format(running_time1))
+    print("========================== provenance search ===================================")
+    minimal_refinements1, order_in_results, running_time1, assign_to_provenance_num, \
+        provenance_time1, search_time1, time_first_minimal_refinement = \
+        ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format,
+                                 single_binary_sensitive_att, time_limit)
+
+    print("running time = {}, num refinements = {}, time per refinement = {}, time first refinement = {}".
+          format(running_time1, len(minimal_refinements1), running_time1 / len(minimal_refinements1),
+                 time_first_minimal_refinement))
     print(*minimal_refinements1, sep="\n")
 
 
-run('refine11', 1)
+# run('refine11', 1)
+
+run('refine21', 2)

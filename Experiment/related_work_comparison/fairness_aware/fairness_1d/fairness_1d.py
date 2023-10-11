@@ -33,11 +33,18 @@ def run(c, q):
         query_info = json.load(f)
 
     print("========================== provenance search ===================================")
-    minimal_refinements1, running_time1, _, \
-        provenance_time1, search_time1 = \
+    minimal_refinements1, running_time1, assign_to_provenance_num, \
+        provenance_time1, search_time1, time_first_minimal_refinement = \
         ps.FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_format, time_limit)
 
-    print("running time = {}".format(running_time1))
+    print(
+        "running time = {}, num refinements = {}, time per refinement = {}, time first refinement = {}".format(
+            running_time1,
+            len(minimal_refinements1),
+            running_time1 / len(minimal_refinements1),
+            time_first_minimal_refinement,
+        )
+    )
     print(*minimal_refinements1, sep="\n")
 
     result_output.write(json.dumps(query_info))
@@ -47,5 +54,5 @@ def run(c, q):
 
 
 data_format = ".csv"
-# run('refine11', 1)
 run('refine21', 2)
+# run('refine31', 3)

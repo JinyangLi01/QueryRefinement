@@ -1,0 +1,3 @@
+query 3, constraint refine31
+{"tables": ["texas_tribune_unique_x"], "selection_numeric_attributes": {"x": {"greater": [">=", 10000, 0.1], "smaller": ["<=", 10500, 0.1]}}}running time = 0.05137205123901367, provenance time = 0.013045072555541992, searching time = 0.03832697868347168
+[10500.0, 10000.0]

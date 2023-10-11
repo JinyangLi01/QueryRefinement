@@ -1,8 +1,14 @@
 {
   "tables": ["uniform"],
   "selection_numeric_attributes": {
-    "x": [">=", 700, 1],
-    "y": [">=", 800, 1]
+    "x": {
+        "greater": [">=", 400, 0.0001],
+        "smaller": ["<=", 600, 0.0001]
+    },
+    "y": {
+        "greater": [">=", 400, 0.0001],
+        "smaller": ["<=", 600, 0.0001]
+    }
   }
 }
 

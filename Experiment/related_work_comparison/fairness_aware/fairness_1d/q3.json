@@ -2,8 +2,8 @@
   "tables": ["texas_tribune_unique_x"],
   "selection_numeric_attributes": {
     "x": {
-        "greater": [">=", 20000, 0.01],
-        "smaller": ["<=", 30000, 0.01]
+        "greater": [">=", 10000, 0.1],
+        "smaller": ["<=", 10500, 0.1]
     }
   }
 }

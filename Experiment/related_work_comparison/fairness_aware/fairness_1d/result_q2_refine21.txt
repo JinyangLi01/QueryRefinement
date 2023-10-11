@@ -1,7 +1,10 @@
 query 2, constraint refine21
-{"tables": ["texas_tribune_unique_x_rounded"], "selection_numeric_attributes": {"x": {"greater": [">=", 10000, 0.1], "smaller": ["<=", 20000, 0.1]}}}running time = 1.430649757385254, provenance time = 0.011790037155151367, searching time = 1.4188587665557861
-[20000.0, 11138.4]
-[19723.8, 10000.0]
-[19759.9, 10135.7]
-[19999.2, 10764.0]
-[19999.9, 11036.2]
+{"tables": ["texas_tribune_unique_x_rounded"], "selection_numeric_attributes": {"x": {"greater": [">=", 10000, 0.1], "smaller": ["<=", 20000, 0.1]}}}running time = 0.48643016815185547, provenance time = 0.02359914779663086, searching time = 0.4628298282623291
+[10000, 19629.6]
+[11305.8, 20000.0]
+[11274.1, 19999.9]
+[11205.2, 19999.2]
+[11138.4, 19759.9]
+[11036.2, 19723.8]
+[10764.0, 19705.7]
+[10135.7, 19701.5]
