@@ -16,7 +16,7 @@ import sys, os, logging
 from Algorithm import LatticeTraversal_2_2022405 as lt
 
 assign_to_provenance_num = 0
-
+binary_sensitive_att = 'blue'
 
 def num2string(pattern):
     st = ''
@@ -87,6 +87,7 @@ Get provenance expressions
         # print("time of get_provenance_contract_only = {}".format(time.time() - time2))
         return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
             contraction_threshold
+
 
 
 def subtract_provenance_refinement(data, selected_attributes, sensitive_attributes, fairness_constraints,
@@ -163,6 +164,8 @@ Get provenance expressions
                 elif df[att].value_counts()[value] < fc_number:  # assume fairness constraints has >= but no >
                     contraction_threshold[att].add(value)
 
+    only_data_involved_in_constraints = copy.deepcopy(data)
+    only_data_involved_in_constraints["involved"] = 0
     for fc in fairness_constraints:
         fc_dic = dict()
         fc_dic['symbol'] = fc['symbol']
@@ -174,10 +177,16 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["first_sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["first_sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['first_provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             fc_data = copy.deepcopy(data)
             for k in fc["second_sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["second_sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['second_provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
                 fairness_constraints_provenance_complex.append(fc_dic)
@@ -186,6 +195,9 @@ Get provenance expressions
             fc_data = copy.deepcopy(data)
             for k in fc["sensitive_attributes"]:
                 fc_data = fc_data[fc_data[k] == fc["sensitive_attributes"][k]]
+            index_left = fc_data.index.tolist()
+            only_data_involved_in_constraints.loc[only_data_involved_in_constraints.index.isin(index_left),
+            'involved'] = 1
             fc_dic['provenance_expression'] = fc_data[selected_attributes + ['occurrence']]
             if fc_dic['symbol'] == "<" or fc_dic['symbol'] == "<=":
                 fairness_constraints_provenance_smaller_than.append(fc_dic)
@@ -194,8 +206,10 @@ Get provenance expressions
                 for att in selected_attributes:
                     get_contraction_threshold(fc_data[[att, 'occurrence']], fc_dic['number'], att)
 
+    data = only_data_involved_in_constraints[only_data_involved_in_constraints["involved"] == 1]
+    print(len(data))
     return fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        fairness_constraints_provenance_complex, contraction_threshold
+        fairness_constraints_provenance_complex, contraction_threshold, data
 
 
 # put categorical columns before numerical ones
@@ -300,7 +314,7 @@ def build_PVT_refinement(data, selected_attributes, numeric_attributes,
                 possible_values_lists[att] = [1, 0]
 
     # Sort the dictionary based on the length of the lists
-    possible_values_lists = {k: v for k, v in sorted(possible_values_lists.items(), key=lambda item: len(item[1]))}
+    possible_values_lists = {k: v for k, v in sorted(possible_values_lists.items(), key=lambda item: len(item[0]))}
     PVT_head = list(possible_values_lists.keys())
     possible_value_table = pd.DataFrame({key: pd.Series(value) for key, value in possible_values_lists.items()})
     # print("possible_value_table:\n", possible_value_table)
@@ -1597,6 +1611,39 @@ def searchPVT_contraction(PVT, PVT_head, numeric_attributes, categorical_attribu
 
 
 
+def update_minimal_relaxation_and_position_refinement(minimal_refinements, minimal_refinements_positions,
+                                                      full_value_assignment, full_value_assignment_positions,
+                                                      shifted_length,
+                                                      initial_PVT, selection_numeric, full_PVT_head):
+    num = len(minimal_refinements_positions)
+    dominated = []
+    dominated_refinements = []
+    full_value_assignment_positions = [full_value_assignment_positions[i] + shifted_length[i] for i in
+                                       range(len(shifted_length))]
+    # deal with the situation that absolute difference are the same, for numeric attributes
+    for i in range(len(full_value_assignment_positions)):
+        pos = full_value_assignment_positions[i]
+        att = full_PVT_head[i]
+        if att in selection_numeric and pos >= 2:
+            if abs(initial_PVT.loc[pos, att] - initial_PVT.loc[0, att]) == \
+                    abs(initial_PVT.loc[pos - 1, att] - initial_PVT.loc[0, att]):
+                full_value_assignment_positions[i] = pos - 1
+    for i in range(num):
+        p = minimal_refinements_positions[i]
+        pd = position_dominate(p, full_value_assignment_positions)
+        if pd == 1 or pd == 4:
+            return minimal_refinements, minimal_refinements_positions, False
+        elif pd == 2:
+            dominated.append(p)
+            to_remove_refinement = minimal_refinements[i]
+            dominated_refinements.append(to_remove_refinement)
+    minimal_refinements_positions = [p for p in minimal_refinements_positions if p not in dominated]
+    minimal_refinements_positions.append(full_value_assignment_positions)
+    minimal_refinements = [p for p in minimal_refinements if p not in dominated_refinements]
+    minimal_refinements.append(full_value_assignment)
+    return minimal_refinements, minimal_refinements_positions, True
+
+
 
 def same_att_first_two_columns(data, two_col_PVT, two_col_PVT_head, full_value_assignment,
                                full_value_assignment_positions, fixed_value_assignments,
@@ -1733,10 +1780,11 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
     num_iterations = 0
     search_space = 0
     initial_PVT = PVT.copy()
+    time_first_minimal_refinement = 0
     while PVT_stack:
         if time.time() - time1 > time_limit:
             print("provenance search alg time out")
-            return minimal_refinements
+            return minimal_refinements, time_first_minimal_refinement
         PVT = PVT_stack.pop()
         num_iterations += 1
         PVT_head = PVT_head_stack.pop()
@@ -1753,14 +1801,14 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         shifted_length = shifted_length_stack.pop()
         num_columns = len(PVT_head)
         fixed_attributes = list(fixed_value_assignments.keys())
-        print("==========================  searchPVT  ========================== ")
-        print("PVT_head: {}".format(PVT_head))
-        print("PVT:\n{}".format(PVT))
-        print("fixed_value_assignments: {}".format(fixed_value_assignments))
-        print("shifted_length: {}".format(shifted_length))
-        print("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
-        print("idx_of_refinement_in_parent_PVT:{}".format(idx_of_refinement_in_parent_PVT))
-        print("max_index_PVT:\n{}".format(max_index_PVT))
+        logging.debug("==========================  searchPVT  ========================== ")
+        logging.debug("PVT_head: {}".format(PVT_head))
+        logging.debug("PVT:\n{}".format(PVT))
+        logging.debug("fixed_value_assignments: {}".format(fixed_value_assignments))
+        logging.debug("shifted_length: {}".format(shifted_length))
+        logging.debug("idx_in_this_col_in_parent_PVT:{}".format(idx_in_this_col_in_parent_PVT))
+        logging.debug("idx_of_refinement_in_parent_PVT:{}".format(idx_of_refinement_in_parent_PVT))
+        logging.debug("max_index_PVT:\n{}".format(max_index_PVT))
         new_value_assignment = {}
         full_value_assignment = {}
         last_satisfying_bounding_relaxation_location = []
@@ -1772,7 +1820,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         while att_idx < num_columns and att_idx >= 0:
             if time.time() - time1 > time_limit:
                 print("provenance search alg time out")
-                return minimal_refinements
+                return minimal_refinements, time_first_minimal_refinement
             col = PVT_head[att_idx]
             find_value_this_col = False
             idx_in_col = 0
@@ -2177,9 +2225,14 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
         find_relaxation[num_columns].append(find_base_refinement)  # FIXME: is this find_relaxation necessary?
 
         minimal_refinements, minimal_refinements_positions, added = \
-            update_minimal_relaxation_and_position(minimal_refinements, minimal_refinements_positions,
-                                                   fva, [full_value_assignment_positions[x] for x in full_PVT_head],
-                                                   shifted_length)
+            update_minimal_relaxation_and_position_refinement(minimal_refinements, minimal_refinements_positions,
+                                                                  fva, [full_value_assignment_positions[x] for x in
+                                                                        full_PVT_head],
+                                                                  shifted_length, initial_PVT, selection_numeric,
+                                                                  full_PVT_head)
+        if added and first_minimal_refinement:
+            time_first_minimal_refinement = time.time()
+
         logging.debug("minimal_refinements: {}".format(minimal_refinements))
         logging.debug("minimal_refinements_positions: {}".format(minimal_refinements_positions))
 
@@ -2201,6 +2254,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
                 selection_numeric,
                 full_PVT_head,
             )
+            return minimal_refinements, time_first_minimal_refinement
 
         if num_columns == 1 or not added:
             if len(PVT_head_stack) > 0:
@@ -2372,7 +2426,7 @@ def searchPVT_refinement(data, PVT, PVT_head, possible_values_lists, numeric_att
             return
 
         PVT.apply(recursion, axis=0)
-    return minimal_refinements
+    return minimal_refinements, time_first_minimal_refinement
 
 
 def check_to_put_to_stack(to_put_to_stack, next_col_num_in_stack, this_num_columns, find_relaxation,
@@ -2596,7 +2650,7 @@ def whether_satisfy_fairness_constraints(data_file_prefix, separator, data_file_
 
 def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_file, data_file_format,
                           single_binary_sensitive_att, time_limit=5 * 60):
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
     time1 = time.time()
     global assign_to_provenance_num
     assign_to_provenance_num = 0
@@ -2750,7 +2804,7 @@ def FindMinimalRefinement(data_file_prefix, separator, query_file, constraint_fi
         return minimal_refinements, time2 - time1, assign_to_provenance_num, provenance_time, time2 - time_search1
 
     fairness_constraints_provenance_greater_than, fairness_constraints_provenance_smaller_than, \
-        fairness_constraints_provenance_complex, contraction_threshold \
+        fairness_constraints_provenance_complex, contraction_threshold, data \
         = subtract_provenance_refinement(data, selected_attributes, sensitive_attributes,
                                          fairness_constraints,
                                          numeric_attributes, categorical_attributes,
