@@ -1,0 +1,8 @@
+numpy>=1.24.2
+pandas>=1.5.3
+intbitset>=3.0.2
+PyMySQL>=1.0.2
+scikit-learn>=1.2.1
+matplotlib>=3.7.0
+seaborn>=0.12.2
+folktables>=0.0.12
