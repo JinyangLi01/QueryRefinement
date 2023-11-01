@@ -85,8 +85,8 @@ def run(query, size, constraint):
     plt.xticks(np.arange(0, 8), x_list, rotation=0, fontsize=80, weight='bold')
     plt.yticks(fontsize=80, weight='bold')
 
-    plt.xlabel(r'l\underline{ }receiptdate starting from \\10/01/1994, 4m interval',
-               fontsize=80, weight='bold', labelpad=-5).set_position((0.44, -0.1))
+    plt.xlabel(r'l\underline{ }receiptdate starting from \\$~~$10/01/1994, 4m interval',
+               fontsize=78, weight='bold', labelpad=-5).set_position((0.47, -0.1))
 
     plt.tight_layout()
     # plt.legend(loc='upper right', bbox_to_anchor=(1.03, 1.05))
